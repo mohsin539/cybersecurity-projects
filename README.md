@@ -4,6 +4,11 @@ A hands-on portfolio of **72 cybersecurity projects** spanning the full spectrum
 
 > ⚠️ **Educational use only.** Every tool here is designed for labs, owned systems, or explicitly authorized environments. Do not use against systems you do not have permission to test.
 
+🔴 **Live demos:** static previews of select dashboards are published via GitHub Pages →
+**https://mohsin539.github.io/cybersecurity-projects/** (source: [`pages/`](pages) — built by
+[`scripts/build-pages.mjs`](scripts/build-pages.mjs), deployed by
+[`.github/workflows/pages-deploy.yml`](.github/workflows/pages-deploy.yml)).
+
 ---
 
 ## 📊 At a Glance

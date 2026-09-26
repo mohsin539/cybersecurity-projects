@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>3D CTF Scoreboard</title>
+  <meta name="description" content="Event-sourced 3D CTF leaderboard with deterministic scoring" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/theme.css" />
+</head>
+
+<body>
+
+<div style="background:#f59e0b;color:#1f2937;font:14px/1.5 system-ui,sans-serif;padding:10px 16px;text-align:center">
+  ⚠️ <strong>Static preview</strong> of “3D CTF Scoreboard” (project 79 3D CTF scoreboard (leaderboard visualization)) from the
+  <a href="https://github.com/mohsin539/cybersecurity-projects" style="color:#1f2937">cybersecurity-projects</a> portfolio.
+  Live data (sampling, APIs) requires running the project locally — see its README.
+  <a href="../../" style="color:#1f2937;font-weight:600">← All demos</a>
+</div>
+  <a href="#fallback-table" class="skip-link">Skip to accessible table</a>
+
+  <canvas id="view" aria-hidden="true"></canvas>
+  <canvas id="labels" aria-hidden="true"></canvas>
+
+  <header id="hud">
+    <div class="hud-left">
+      <h1 id="event-name">Neural Nexus CTF 2026</h1>
+      <div class="chips">
+        <span class="chip" id="phase-chip">phase: live</span>
+        <span class="chip" id="model-chip">model: scoring-v1.2.0</span>
+        <span class="chip" id="seq-chip">seq: 0</span>
+        <span class="chip" id="hash-chip">hash: —</span>
+        <span class="chip" id="solves-chip">solves: 0</span>
+        <span class="chip" id="health-chip">health: ok</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <nav>
+        <button class="btn" data-view="board">3D Board</button>
+        <button class="btn" data-view="table">Table</button>
+        <button class="btn" data-view="admin">Admin</button>
+        <button class="btn" data-view="integrity">Integrity</button>
+        <a class="btn" href="/docs" target="_blank" rel="noreferrer">API Docs</a>
+        <a class="btn" href="/api/leaderboard.csv" download>CSV</a>
+        <a class="btn" href="/api/report.json" download>Report</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="panel-admin" class="panel" hidden>
+      <h2>Referee Console</h2>
+      <p class="muted">Two-person rule enforced; proposals require second approval (SEC-AUTH-07).</p>
+      <form id="login-form" class="grid">
+        <label>Handle<input name="handle" autocomplete="username" /></label>
+        <label>Password<input type="password" name="password" autocomplete="current-password" /></label>
+        <button type="submit" class="btn primary">Login</button>
+        <button type="button" id="logout" class="btn">Logout</button>
+        <div id="me" class="muted"></div>
+        <button type="button" id="step-up" class="btn warn" hidden>Re-verify (step-up)</button>
+      </form>
+      <form id="solve-form" class="grid" hidden>
+        <h3>Record a Solve</h3>
+        <label>Team<input name="team" placeholder="null-pointer" /></label>
+        <label>Challenge<input name="challenge" placeholder="baby-rsa" /></label>
+        <button type="submit" class="btn primary">Award Solve</button>
+        <div id="solve-result" class="muted"></div>
+      </form>
+      <form id="adjust-propose" class="grid" hidden>
+        <h3>Propose Score Adjustment</h3>
+        <p class="muted">Proposals never apply on their own. A second staff member must approve (SEC-AUTH-07).</p>
+        <label>Team<input name="team" /></label>
+        <label>Delta (±)<input name="delta" type="number" step="1" /></label>
+        <label>Reason (min 10 chars)<textarea name="reason" rows="2"></textarea></label>
+        <button type="submit" class="btn warn">Propose</button>
+        <div id="adjust-result" class="muted"></div>
+      </form>
+      <div id="pending-adjustments" hidden>
+        <h3>Pending Approvals</h3>
+        <ul id="pending-list"></ul>
+      </div>
+      <form id="phase-form" class="grid" hidden>
+        <h3>Event Phase</h3>
+        <select name="phase">
+          <option value="setup">setup</option>
+          <option value="live">live</option>
+          <option value="frozen">frozen</option>
+          <option value="ended">ended</option>
+        </select>
+        <button type="submit" class="btn">Set Phase</button>
+      </form>
+      <div id="custody" class="grid" hidden>
+        <h3>Chain of Custody</h3>
+        <p class="muted">
+          Sealing stamps a Merkle root over the sealed range. The audit export needs a
+          fresh step-up because it contains security records.
+        </p>
+        <button type="button" id="seal-log" class="btn warn">Seal event log</button>
+        <a id="export-audit" class="btn" href="/api/admin/audit/export.csv" download>Export audit (CSV)</a>
+        <div id="custody-result" class="muted"></div>
+      </div>
+    </section>
+
+    <section id="panel-integrity" class="panel" hidden>
+      <h2>Integrity & Invariants</h2>
+      <p class="muted">Determinism is enforced; every invariant is an executable assertion.</p>
+      <button id="refresh-integrity" class="btn">Refresh</button>
+      <pre id="integrity-json"></pre>
+    </section>
+
+    <section id="fallback-table" class="panel">
+      <h2>Leaderboard (accessible table)</h2>
+      <table id="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Team</th>
+            <th>Country</th>
+            <th>Score</th>
+            <th>Raw</th>
+            <th>Solves</th>
+            <th>Completed</th>
+            <th>Trend</th>
+            <th>Last Solve</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="muted">This table is the WCAG fallback. The 3D view is decorative.</p>
+    </section>
+
+    <div id="notifications"></div>
+    <footer>
+      <p class="muted">3D CTF Scoreboard — event-sourced, deterministic, append-only. All scores recomputed from the log.</p>
+    </footer>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,49 @@
+name: Deploy Pages
+
+# Publishes the static dashboard previews (66, 78, 79) to GitHub Pages.
+# The site is rebuilt from source on every push that can affect it, so the
+# committed pages/ directory is never stale.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'pages/**'
+      - 'scripts/build-pages.mjs'
+      - '66. Network traffic monitor app (on-device, per-app bandwidth)/public/**'
+      - '78. WebXR security awareness training module/public/**'
+      - '79 3D CTF scoreboard (leaderboard visualization)/ctf-scoreboard/web/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rebuild pages/ from project sources
+        run: node scripts/build-pages.mjs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
