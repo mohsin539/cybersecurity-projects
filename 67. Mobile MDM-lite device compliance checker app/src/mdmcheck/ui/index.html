@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDM-Lite Compliance Checker</title>
+<style>
+:root{
+  --bg:#070b16; --panel:#0e1627; --panel2:#111c33; --line:#1e293b;
+  --txt:#e7ecf5; --muted:#8b99b1; --brand:#7c3aed; --brand2:#2563eb; --cyan:#22d3ee;
+  --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --blue:#3b82f6;
+  --grad:linear-gradient(135deg,#7c3aed 0%,#2563eb 55%,#22d3ee 120%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
+button{font:inherit;cursor:pointer;border:none;border-radius:10px}
+input,select,textarea{font:inherit;background:#0a1120;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--brand2)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#24334f;border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{display:flex;height:100vh}
+
+/* ---------- sidebar ---------- */
+.side{width:230px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px;gap:6px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;padding:6px 8px 18px}
+.logo .ic{width:38px;height:38px;border-radius:12px;background:var(--grad);display:grid;place-items:center;font-size:19px;box-shadow:0 4px 18px rgba(124,58,237,.45)}
+.logo b{font-size:14px;line-height:1.2}
+.logo small{color:var(--muted);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{display:flex;align-items:center;gap:11px;background:transparent;color:var(--muted);padding:11px 12px;text-align:left;font-size:13.5px;border-radius:10px;transition:.15s}
+.nav button:hover{background:#16233e;color:var(--txt)}
+.nav button.on{background:linear-gradient(90deg,rgba(124,58,237,.22),rgba(37,99,235,.12));color:#fff;border:1px solid rgba(124,58,237,.4)}
+.nav .ico{width:20px;text-align:center}
+.side .foot{margin-top:auto;color:var(--muted);font-size:11px;padding:10px 8px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+
+/* ---------- main ---------- */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.top{height:60px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 24px;background:rgba(14,22,39,.6);backdrop-filter:blur(8px)}
+.top h1{font-size:16px;font-weight:700;flex:1}
+.pill{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);padding:6px 12px;border-radius:999px;font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.btn{border:none;padding:9px 16px;border-radius:10px;font-weight:600;font-size:12.5px;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn .s{font-size:14px}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.35)}
+.btn-primary:hover{filter:brightness(1.12)}
+.btn-ghost{background:#16233e;color:var(--txt);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--brand2)}
+.btn-danger{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
+.btn-danger:hover{background:rgba(239,68,68,.28)}
+.btn-green{background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.4)}
+.btn-green:hover{background:rgba(34,197,94,.28)}
+.btn-green.on{background:var(--green);color:#062b16;border-color:var(--green)}
+.btn-sm{padding:6px 10px;font-size:11.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.body{padding:24px;overflow-y:auto;flex:1}
+.view{display:none;animation:fade .25s}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- dashboard cards ---------- */
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.25)}
+.stat::after{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--ac,var(--grad))}
+.stat .lb{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
+.stat .num{font-size:34px;font-weight:800;margin:6px 0 2px;color:var(--ac,#fff)}
+.stat .ft{font-size:11.5px;color:var(--muted)}
+.c-green{--ac:#22c55e}.c-red{--ac:#ef4444}.c-amber{--ac:#f59e0b}.c-blue{--ac:#22d3ee}.c-purple{--ac:#a78bfa}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+
+.panel{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 6px 22px rgba(0,0,0,.25)}
+.panel h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+
+/* donut */
+.donut{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
+.donut svg{transform:rotate(-90deg)}
+.legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px}
+.legend .row{display:flex;align-items:center;gap:8px}
+.legend .sw{width:10px;height:10px;border-radius:3px}
+.legend .v{margin-left:auto;font-weight:700;padding-left:14px}
+
+/* distribution bars */
+.bars{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.bar .lab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}
+.track{height:9px;background:#0a1120;border-radius:99px;overflow:hidden}
+.fill{height:100%;border-radius:99px;background:var(--c,var(--grad));width:0;transition:width .6s}
+
+/* ---------- table ---------- */
+.tbl-wrap{overflow-x:auto;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;border-bottom:1px solid var(--line)}
+td{padding:11px 12px;border-bottom:1px solid rgba(30,41,59,.5)}
+tr:hover td{background:rgba(20,30,52,.55)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:11.5px;font-weight:700}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.ok{background:rgba(34,197,94,.14);color:#4ade80}
+.chip.no{background:rgba(239,68,68,.14);color:#f87171}
+.chip.pend{background:rgba(245,158,11,.14);color:#fbbf24}
+.chip.off{background:rgba(100,116,139,.15);color:#94a3b8}
+.ops{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.empty{text-align:center;color:var(--muted);padding:44px;font-size:13.5px}
+.empty .big{font-size:42px;display:block;margin-bottom:10px}
+
+/* ---------- policy cards ---------- */
+.rules{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:14px}
+.rule{background:#0f1a30;border:1px solid var(--line);border-radius:14px;padding:14px}
+.rule .rh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rule .sev{font-size:10px;font-weight:800;letter-spacing:.05em;padding:3px 9px;border-radius:999px;text-transform:uppercase}
+.rule .rname{font-size:13px;font-weight:700}
+.rule .rdesc{color:var(--muted);font-size:12px;margin:6px 0}
+.rule .meta{display:flex;gap:8px;margin-top:10px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.meta i{font-style:normal;background:#16233e;border:1px solid var(--line);padding:2px 8px;border-radius:8px}
+.sev-critical{background:rgba(239,68,68,.18);color:#f87171}
+.sev-high{background:rgba(249,115,22,.18);color:#fb923c}
+.sev-medium{background:rgba(245,158,11,.18);color:#fbbf24}
+.sev-low{background:rgba(59,130,246,.18);color:#93c5fd}
+
+textarea.code{font-family:Consolas,"Cascadia Code",monospace;font-size:12.5px;min-height:320px;line-height:1.5;white-space:pre;background:#0a1120}
+
+/* ---------- logs ---------- */
+.log-list{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.log{display:flex;gap:12px;background:#0f1a30;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:12.5px}
+.log .tm{color:var(--muted);font-family:Consolas,monospace;font-size:11px;min-width:150px;white-space:nowrap}
+.log .ev{font-weight:700;min-width:120px}
+.log .lv{font-size:10px;font-weight:800;text-transform:uppercase;padding:2px 8px;border-radius:999px;height:fit-content;margin-top:-1px}
+.lv-info{background:rgba(59,130,246,.16);color:#93c5fd}
+.lv-warn{background:rgba(245,158,11,.16);color:#fbbf24}
+.lv-critical{background:rgba(239,68,68,.18);color:#f87171}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(4,7,14,.7);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:50}
+.modal.on{display:flex}
+.modal-box{background:var(--panel2);border:1px solid var(--line);border-radius:18px;width:min(560px,94vw);max-height:88vh;overflow:auto;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .18s}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:none;opacity:1}}
+.modal-box h2{font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.frm{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
+.frm .full{grid-column:1/-1}
+.frm label{font-size:11.5px;color:var(--muted);display:block;margin-bottom:5px}
+.mrow{display:flex;justify-content:flex-end;gap:9px;margin-top:6px}
+
+.notice{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:9px;z-index:60}
+.toast{background:#16233e;border:1px solid var(--line);border-left:4px solid var(--brand2);padding:12px 16px;border-radius:12px;font-size:12.5px;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:slide .2s}
+.toast.g{border-left-color:var(--green)}.toast.r{border-left-color:var(--red)}.toast.w{border-left-color:var(--amber)}
+@keyframes slide{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+
+.sect-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px}
+.sect-h h2{font-size:17px}
+.sect-h p{color:var(--muted);font-size:12.5px;margin-top:3px}
+.adb-strip{display:flex;gap:10px;align-items:center;background:#0f1a30;border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:12.5px;margin:12px 0;flex-wrap:wrap}
+.mono{font-family:Consolas,monospace;font-size:12px;color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ sidebar ============ -->
+  <aside class="side">
+    <div class="logo">
+      <div class="ic">&#128737;</div>
+      <div><b>MDM-Lite</b><small>Compliance Checker</small></div>
+    </div>
+    <nav class="nav">
+      <button class="on" data-view="dashboard"><span class="ico">&#128202;</span>Dashboard</button>
+      <button data-view="devices"><span class="ico">&#128241;</span>Devices</button>
+      <button data-view="policy"><span class="ico">&#128737;</span>Policy Engine</button>
+      <button data-view="reports"><span class="ico">&#128196;</span>Reports &amp; Audit</button>
+      <button data-view="logs"><span class="ico">&#128274;</span>Security Log</button>
+    </nav>
+    <div class="foot">
+      <div class="adb-strip" style="margin:0;padding:9px 10px"><span>ADB:</span><span id="adbLabel" class="mono">checking&hellip;</span></div>
+      <div id="healthLabel">&#9679; checking</div>
+      <div>v<span id="ver">--</span> &middot; local-only</div>
+    </div>
+  </aside>
+
+  <!-- ============ main ============ -->
+  <div class="main">
+    <div class="top">
+      <h1 id="pageTitle">Dashboard</h1>
+      <span class="pill" id="policyPill">policy --</span>
+      <span class="pill" id="dataPill"><span class="dot"></span>loopback</span>
+      <button class="btn btn-primary" id="scanAllBtn"><span class="s">&#128260;</span>Run demo scans (all)</button>
+      <button class="btn btn-danger" id="shutdownBtn"><span class="s">&#9940;</span>Shutdown app</button>
+    </div>
+
+    <div class="body">
+      <!-- ========== DASHBOARD ========== -->
+      <section class="view on" id="view-dashboard">
+        <div class="hero">
+          <div class="stat c-green"><div class="lb">Compliant</div><div class="num" id="stCompliant">0</div><div class="ft" id="stCompliantPct">0% of fleet</div></div>
+          <div class="stat c-red"><div class="lb">Non-compliant</div><div class="num" id="stNonCompliant">0</div><div class="ft">flag for remediation</div></div>
+          <div class="stat c-amber"><div class="lb">Pending scan</div><div class="num" id="stPending">0</div><div class="ft">awaiting telemetry</div></div>
+          <div class="stat c-blue"><div class="lb">Avg fleet score</div><div class="num" id="stAvg">0%</div><div class="ft" id="stScans">0 total scans</div></div>
+          <div class="stat c-purple"><div class="lb">Enrolled fleet</div><div class="num" id="stTotal">0</div><div class="ft" id="stSplit">--/--</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <h3>Compliance distribution</h3>
+            <div class="donut">
+              <svg id="donut" width="190" height="190"></svg>
+              <div class="legend">
+                <div class="row"><span class="sw" style="background:#22c55e"></span>Compliant<span class="v" id="lgOk">0</span></div>
+                <div class="row"><span class="sw" style="background:#ef4444"></span>Non-compliant<span class="v" id="lgNo">0</span></div>
+                <div class="row"><span class="sw" style="background:#f59e0b"></span>Pending<span class="v" id="lgPend">0</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Fleet health</h3>
+            <div class="bars">
+              <div><div class="lab"><span>Compliance rate</span><span id="bRateLb">0%</span></div><div class="track"><div class="fill" id="bRate" style="--c:linear-gradient(90deg,#22c55e,#4ade80)"></div></div></div>
+              <div><div class="lab"><span>Android fleet</span><span id="bAndLb">0</span></div><div class="track"><div class="fill" id="bAnd" style="--c:linear-gradient(90deg,#2563eb,#22d3ee)"></div></div></div>
+              <div><div class="lab"><span>iOS fleet</span><span id="bIosLb">0</span></div><div class="track"><div class="fill" id="bIos" style="--c:linear-gradient(90deg,#64748b,#94a3b8)"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Fleet status</h3>
+          <div id="dashTable" class="empty">Loading devices&hellip;</div>
+        </div>
+      </section>
+
+      <!-- ========== DEVICES ========== -->
+      <section class="view" id="view-devices">
+        <div class="sect-h">
+          <div><h2>Device registry</h2><p>Enroll devices and run compliance scans (demo simulation, live ADB, or manual telemetry).</p></div>
+          <div style="display:flex;gap:9px">
+            <button class="btn btn-ghost" id="adbRefresh"><span class="s">&#128260;</span>Refresh ADB</button>
+            <button class="btn btn-primary" id="addDeviceBtn"><span class="s">&#10133;</span>Add device</button>
+          </div>
+        </div>
+        <div class="adb-strip" id="adbStrip" style="display:none"></div>
+        <div class="panel" style="padding:8px 18px">
+          <div id="devTable" class="empty">No devices enrolled yet.</div>
+        </div>
+      </section>
+
+      <!-- ========== POLICY ========== -->
+      <section class="view" id="view-policy">
+        <div class="sect-h">
+          <div><h2>Compliance policy</h2><p>The engine evaluates every device against these rules. Scores are severity-weighted and a critical failure blocks compliance.</p></div>
+          <div style="display:flex;gap:9px">
+            <button class="btn btn-ghost" id="policyEditBtn"><span class="s">&#9998;</span>JSON editor</button>
+            <button class="btn btn-danger" id="policyResetBtn"><span class="s">&#8635;</span>Reset baseline</button>
+          </div>
+        </div>
+        <div id="policyMeta"></div>
+        <div class="rules" id="rulesWrap"></div>
+      </section>
+
+      <!-- ========== REPORTS ========== -->
+      <section class="view" id="view-reports">
+        <div class="sect-h">
+          <div><h2>Reports &amp; audit</h2><p>Machine-local HTML and JSON reports. Nothing is uploaded anywhere.</p></div>
+          <div style="display:flex;gap:9px">
+            <button class="btn btn-ghost" id="jsonReportBtn"><span class="s">&#12299;</span>JSON report</button>
+            <button class="btn btn-primary" id="htmlReportBtn"><span class="s">&#128196;</span>HTML report</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Fleet report preview</h3>
+          <div id="reportPreview"><div class="empty">Generating preview&hellip;</div></div>
+        </div>
+      </section>
+
+      <!-- ========== LOGS ========== -->
+      <section class="view" id="view-logs">
+        <div class="sect-h">
+          <div><h2>Security log</h2><p>Chronological audit trail of enrollment, scans, policy changes and events.</p></div>
+          <button class="btn btn-danger btn-sm" id="clearLogsBtn">Clear log</button>
+        </div>
+        <div class="log-list" id="logList"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ========== add device modal ========== -->
+<div class="modal" id="addModal">
+  <div class="modal-box">
+    <h2>&#128241; Enroll a device</h2>
+    <div class="frm">
+      <div><label>Device name</label><input id="fName" placeholder="e.g. Florence-Android"></div>
+      <div><label>Platform</label><select id="fPlatform"><option value="android">Android</option><option value="ios">iOS</option></select></div>
+      <div><label>Model</label><input id="fModel" placeholder="e.g. Pixel 7"></div>
+      <div><label>Department</label><input id="fDept" placeholder="e.g. BYOD / Sales / Corp"></div>
+      <div class="full"><label>Owner</label><input id="fOwner" placeholder="Optional"></div>
+    </div>
+    <div class="mrow">
+      <button class="btn btn-ghost" id="addCancel">Cancel</button>
+      <button class="btn btn-primary" id="addSave">Enroll device</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== policy editor modal ========== -->
+<div class="modal" id="policyModal">
+  <div class="modal-box" style="width:min(720px,94vw)">
+    <h2>&#9998; Policy JSON editor</h2>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:12px">Edit and validate. Save re-evaluates the whole fleet fleet policy &mdash; scan results are invalidated until re-scanned.</p>
+    <textarea class="code" id="policyEditor"></textarea>
+    <div class="mrow">
+      <button class="btn btn-ghost" id="policyCancel">Cancel</button>
+      <button class="btn btn-primary" id="policySave">Validate &amp; save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== device detail ========== -->
+<div class="modal" id="detailModal">
+  <div class="modal-box" style="width:min(760px,94vw)">
+    <h2 id="detailTitle">Device detail</h2>
+    <div id="detailBody"></div>
+    <div class="mrow"><button class="btn btn-ghost" id="detailClose">Close</button></div>
+  </div>
+</div>
+
+<div class="notice" id="toasts"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const state={counts:null,devices:[],policy:null};
+let currentStatus='COMPLIANT';
+
+/* ---------------- helpers ---------------- */
+function toast(msg,type=''){
+  const d=document.createElement('div');d.className='toast '+type;d.textContent=msg;
+  $('toasts').appendChild(d);setTimeout(()=>d.remove(),4200);
+}
+async function api(url,opts={}){
+  const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts});
+  const j=await r.json(); if(!r.ok&&j&&j.error) throw new Error(j.error); return j;
+}
+function esc(s){s=String(s??'');return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function short(s){s=String(s??'');return s.length>26?s.slice(0,24)+'…':s;}
+
+/* ---------------- nav ---------------- */
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');$('view-'+b.dataset.view).classList.add('on');
+  const titles={dashboard:'Dashboard',devices:'Devices',policy:'Policy Engine',reports:'Reports & Audit',logs:'Security Log'};
+  $('pageTitle').textContent=titles[b.dataset.view];
+});
+
+/* ---------------- donut ---------------- */
+function drawDonut(c,no,p){
+  const r=70,cx=95,cy=95,circ=2*Math.PI*r,tot=c+no+p||1;
+  const seg=(v,color,off)=>{
+    const f=(v/tot)*circ;
+    const el=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    el.setAttribute('cx',cx);el.setAttribute('cy',cy);el.setAttribute('r',r);
+    el.setAttribute('fill','none');el.setAttribute('stroke',color);
+    el.setAttribute('stroke-width','20');el.setAttribute('stroke-linecap','round');
+    el.setAttribute('stroke-dasharray',`${Math.max(f-2,0)} ${circ}`);
+    el.setAttribute('stroke-dashoffset',`${-off}`);
+    return el;
+  };
+  const svg=$('donut');svg.innerHTML='';
+  svg.appendChild(seg(c,'#22c55e',0));
+  svg.appendChild(seg(no,'#ef4444',(c/tot)*circ));
+  svg.appendChild(seg(p,'#f59e0b',((c+no)/tot)*circ));
+}
+
+/* ---------------- dashboard ---------------- */
+async function refreshDashboard(){
+  const s=await api('/api/state');
+  const c=s.counts;state.counts=c;state.devices=s.devices;state.policy=s.policy;
+  $('stTotal').textContent=c.total;$('stCompliant').textContent=c.compliant;
+  $('stNonCompliant').textContent=c.nonCompliant;$('stPending').textContent=c.pending;
+  $('stAvg').textContent=c.avgScore+'%';$('stScans').textContent=c.totalScans+' total scans';
+  $('stSplit').textContent=c.android+' Android / '+c.ios+' iOS';
+  const rate=c.total?Math.round(c.compliant/c.total*100):0;
+  $('stCompliantPct').textContent=rate+'% of fleet';
+  $('bRateLb').textContent=rate+'%';$('bRate').style.width=rate+'%';
+  const ap=c.total?Math.round(c.android/c.total*100):0, ip=c.total?Math.round(c.ios/c.total*100):0;
+  $('bAndLb').textContent=c.android+' ('+ap+'%)';$('bAnd').style.width=ap+'%';
+  $('bIosLb').textContent=c.ios+' ('+ip+'%)';$('bIos').style.width=ip+'%';
+  $('lgOk').textContent=c.compliant;$('lgNo').textContent=c.nonCompliant;$('lgPend').textContent=c.pending;
+  drawDonut(c.compliant,c.nonCompliant,c.pending);
+  $('policyPill').textContent=s.policy.name+' v'+s.policy.version;
+
+  const rows=s.devices.map(d=>{
+    const sc=d.scan;
+    const st=d.status||'PENDING';
+    const cls=st==='COMPLIANT'?'ok':st==='NON_COMPLIANT'?'no':st==='PENDING'?'pend':'off';
+    const score=sc?sc.score.toFixed(1)+'%':'&mdash;';
+    const fails=sc?sc.fail_count:'&mdash;';
+    const last=sc?esc(sc.at.slice(0,19).replace('T',' ')):'&mdash;';
+    return `<tr>
+      <td><b>${esc(d.name)}</b><div style="color:var(--muted);font-size:11px">${esc(d.model||'')} &middot; ${esc(d.owner||'')}</div></td>
+      <td><span class="chip ${d.platform==='android'?'ok':'off'}">${d.platform.toUpperCase()}</span></td>
+      <td><span class="chip ${cls}">${st.replace('_',' ')}</span></td>
+      <td>${score}</td><td>${fails}</td><td>${last}</td>
+      <td class="ops"><button class="btn btn-green btn-sm" onclick="quickScan('${d.id}')">Scan</button><button class="btn btn-ghost btn-sm" onclick="openDetail('${d.id}')">Detail</button></td>
+    </tr>`;
+  }).join('');
+  $('dashTable').innerHTML=c.total
+    ? `<table><thead><tr><th>Device</th><th>Platform</th><th>Status</th><th>Score</th><th>Fails</th><th>Last scan</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rows}</tbody></table>`
+    : '<div class="empty"><span class="big">&#128073;</span>No devices yet &mdash; enroll one, or run demo scans.</div>';
+}
+
+/* ---------------- devices ---------------- */
+async function refreshDevices(){
+  const d=await api('/api/devices');
+  state.devices=d.devices;
+  const rows=d.devices.map(dev=>{
+    const sc=dev.scan, st=dev.status||'PENDING';
+    const cls=st==='COMPLIANT'?'ok':st==='NON_COMPLIANT'?'no':st==='PENDING'?'pend':'off';
+    const score=sc?sc.score.toFixed(1)+'%':'&mdash;';
+    const fails=sc?sc.fail_count:'&mdash;';
+    return `<tr>
+      <td><b>${esc(dev.name)}</b><div class="mono" style="font-size:10.5px">${esc(dev.id)}</div></td>
+      <td><span class="chip ${dev.platform==='android'?'ok':'off'}">${dev.platform.toUpperCase()}</span></td>
+      <td>${esc(dev.model||'&mdash;')}</td><td>${esc(dev.department||'&mdash;')}</td>
+      <td><span class="chip ${cls}">${st.replace('_',' ')}</span></td>
+      <td>${score} <span style="color:var(--muted);font-size:11px">(${fails} fail)</span></td>
+      <td class="ops">
+        <button class="btn btn-green btn-sm" onclick="quickScan('${dev.id}')">&#128260; Demo</button>
+        <button class="btn btn-ghost btn-sm" onclick="scanAdb('${dev.id}')">&#128268; ADB</button>
+        <button class="btn btn-ghost btn-sm" onclick="openDetail('${dev.id}')">Detail</button>
+        <button class="btn btn-danger btn-sm" onclick="removeDevice('${dev.id}')">&#10005;</button>
+      </td>
+    </tr>`;
+  }).join('');
+  $('devTable').innerHTML=d.devices.length
+    ? `<table><thead><tr><th>Device</th><th>Platform</th><th>Model</th><th>Dept</th><th>Status</th><th>Score</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rows}</tbody></table>`
+    : '<div class="empty"><span class="big">&#128241;</span>No devices enrolled yet.</div>';
+  checkAdb();
+}
+async function checkAdb(){
+  try{
+    const a=await api('/api/adb/status');
+    $('adbLabel').textContent=a.available?(a.devices.length+' device(s)'):'offline';
+    $('adbStrip').innerHTML=a.available
+      ? (a.devices.length
+          ? `<span>&#9989; ADB connected: ${a.devices.map(x=>`<span class="mono">${esc(x.serial)} [${x.state}]</span>`).join(' ')}</span><span class="mono">Use "ADB" on a device row to collect live telemetry (enter its serial below).</span>`
+          : '<span>&#128269; ADB found on PATH but no devices connected. Plug in an Android device with USB debugging.</span>')
+      : '<span>&#9888; ADB not found on PATH &mdash; live Android collection unavailable (demo &amp; manual modes still work). Install <span class="mono">platform-tools</span> to enable.</span>';
+    $('adbStrip').style.display='block';
+  }catch(e){$('adbLabel').textContent='error';}
+}
+function quickScan(id){
+  toast('Running demo telemetry scan for '+id+'&hellip;','w');
+  api('/api/devices/'+id+'/scan',{method:'POST',body:JSON.stringify({mode:'demo'})})
+    .then(async r=>{toast('Scan complete: '+(r.device?r.device.status:'?'),r.device&&r.device.status==='COMPLIANT'?'g':r.device?'r':'');refreshDashboard();refreshDevices();})
+    .catch(e=>toast('Scan failed: '+e.message,'r'));
+}
+async function scanAdb(id){
+  const serial=prompt('ADB serial for '+id+'\n(leave empty to use device id)','');
+  if(serial===null)return;
+  toast('Collecting live Android telemetry via ADB&hellip;','w');
+  try{
+    const r=await api('/api/devices/'+id+'/scan',{method:'POST',body:JSON.stringify({mode:'adb',serial:serial||''})});
+    toast('ADB scan: '+(r.device?r.device.status:r.error||'?'),r.device&&r.device.status==='COMPLIANT'?'g':'r');
+    refreshDashboard();refreshDevices();
+  }catch(e){toast('ADB scan failed: '+e.message,'r');}
+}
+async function removeDevice(id){
+  if(!confirm('Remove '+id+'?'))return;
+  try{await api('/api/devices/'+id,{method:'DELETE'});toast(id+' removed.','w');refreshDashboard();refreshDevices();}catch(e){toast(e.message,'r');}
+}
+/* detail */
+async function openDetail(id){
+  const d=await api('/api/devices/'+id);
+  $('detailTitle').textContent='&#128241; '+esc(d.name)+' ('+esc(d.id)+')';
+  let h=`<div class="frm" style="margin-bottom:6px">
+    <div><label>Platform</label><input value="${esc(d.platform.toUpperCase())}" disabled></div>
+    <div><label>Model</label><input value="${esc(d.model||'')}" disabled></div>
+    <div><label>Department</label><input value="${esc(d.department||'')}" disabled></div>
+    <div><label>Owner</label><input value="${esc(d.owner||'')}" disabled></div>
+  </div>`;
+  if(!d.scan){h+='<div class="empty">Not scanned yet &mdash; run a scan.</div>';}
+  else{
+    const sc=d.scan;
+    h+=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="chip ${sc.status==='COMPLIANT'?'ok':'no'}">${sc.status}</span>
+      <span class="pill">Score <b>${sc.score.toFixed(1)}%</b></span>
+      <span class="pill">Pass ${sc.pass_count} / Fail ${sc.fail_count} / N/A ${sc.na_count}</span>
+      <span class="pill">Mode ${sc.mode}</span><span class="pill">${esc(sc.at.slice(0,19).replace('T',' '))}</span>
+    </div>`;
+    h+=`<table><thead><tr><th>Rule</th><th>Severity</th><th>Verdict</th><th>Actual</th><th>Expected</th></tr></thead><tbody>`;
+    sc.results.forEach(r=>{
+      const sev=r.severity||'low';
+      h+=`<tr><td><b>${esc(r.label)}</b><div style="color:var(--muted);font-size:11px;max-width:260px">${esc(r.remediation)}</div></td>
+      <td><span class="sev sev-${sev}">${sev}</span></td>
+      <td><span class="chip ${r.verdict==='PASS'?'ok':r.verdict==='FAIL'?'no':'off'}">${r.verdict}</span></td>
+      <td class="mono" style="font-size:11px">${esc(JSON.stringify(r.actual))||'&ndash;'}</td>
+      <td class="mono" style="font-size:11px">${esc(JSON.stringify(r.expected))||'&ndash;'}</td></tr>`;
+    });
+    h+='</tbody></table>';
+  }
+  $('detailBody').innerHTML=h;$('detailModal').classList.add('on');
+}
+
+/* ---------------- add device ---------------- */
+$('addDeviceBtn').onclick=()=>$('addModal').classList.add('on');
+$('addCancel').onclick=()=>$('addModal').classList.remove('on');
+$('detailClose').onclick=()=>$('detailModal').classList.remove('on');
+$('addSave').onclick=async()=>{
+  const body={name:$('fName').value.trim(),platform:$('fPlatform').value,model:$('fModel').value.trim(),department:$('fDept').value.trim(),owner:$('fOwner').value.trim(),scanOnEnroll:true,mode:'demo'};
+  if(!body.name){toast('Device name is required','r');return;}
+  try{const r=await api('/api/devices',{method:'POST',body:JSON.stringify(body)});toast('Enrolled '+r.device.name+' ('+r.device.status+').',r.device.status==='COMPLIANT'?'g':'w');$('addModal').classList.remove('on');refreshDashboard();refreshDevices();}
+  catch(e){toast(e.message,'r');}
+};
+
+/* ---------------- policy ---------------- */
+async function refreshPolicy(){
+  const p=await api('/api/policy');
+  state.policy=p;
+  $('policyMeta').innerHTML=`
+    <div class="adb-strip"><span>&#128737; <b>${esc(p.name)}</b></span><span class="pill">version ${esc(p.version)}</span><span class="pill">${p.rules.length} rules</span><span class="pill">threshold ${Math.round(p.threshold*100)}%</span><span class="pill">updated ${esc((p.updatedAt||'').slice(0,19).replace('T',' '))}</span></div>`;
+  $('rulesWrap').innerHTML=p.rules.map(r=>{
+    const plat=r.platform==='both'?'Android + iOS':(r.platform==='ios'?'iOS':r.platform==='android'?'Android':'both');
+    return `<div class="rule">
+      <div class="rh"><span class="rname">${esc(r.label)}</span><span class="sev sev-${esc(r.severity)}">${esc(r.severity)}</span></div>
+      <div class="rdesc">${esc(r.description)}</div>
+      <div class="meta"><i>${esc(r.id)}</i><i>${esc(r.kind)}</i><i>${plat}</i><i>expects ${esc(JSON.stringify(r.expected))}</i></div>
+      ${r.remediation?`<div style="color:#7dd3fc;font-size:11.5px;margin-top:8px">&#128161; ${esc(r.remediation)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+$('policyEditBtn').onclick=()=>{
+  $('policyEditor').value=JSON.stringify(state.policy,null,2);
+  $('policyModal').classList.add('on');
+};
+$('policyCancel').onclick=()=>$('policyModal').classList.remove('on');
+$('policySave').onclick=async()=>{
+  try{
+    const pol=JSON.parse($('policyEditor').value);
+    const r=await api('/api/policy',{method:'POST',body:JSON.stringify({policy:pol})});
+    toast('Policy saved: '+r.policy.rules.length+' rules validated.','g');
+    $('policyModal').classList.remove('on');refreshPolicy();refreshDashboard();
+  }catch(e){toast('Policy rejected: '+e.message,'r');}
+};
+$('policyResetBtn').onclick=async()=>{
+  if(!confirm('Reset policy to MDM-Lite baseline?'))return;
+  try{const r=await api('/api/policy/reset',{method:'POST'});toast('Policy reset to '+r.policy.version,'w');refreshPolicy();refreshDashboard();}catch(e){toast(e.message,'r');}
+};
+
+/* ---------------- reports ---------------- */
+$('htmlReportBtn').onclick=()=>{window.open('/api/report/html','_blank');toast('Opening HTML report in a new tab.','w');};
+$('jsonReportBtn').onclick=()=>{window.open('/api/report/json','_blank');toast('Opening JSON report in a new tab.','w');};
+async function refreshReports(){
+  const s=await api('/api/summary');
+  const rows=(state.devices||s.devices||[]).map(d=>{
+    const sc=d.scan;
+    const st=d.status||'PENDING';
+    const cls=st==='COMPLIANT'?'ok':st==='NON_COMPLIANT'?'no':'pend';
+    return `<div class="log"><span class="ev">${esc(d.name)}</span><span class="chip ${cls}">${st.replace('_',' ')}</span><span style="color:var(--muted)">${sc?sc.score.toFixed(1)+'% &middot; '+sc.fail_count+' failure(s)':'not scanned'}</span></div>`;
+  }).join('')||'<div class="empty">No devices yet.</div>';
+  $('reportPreview').innerHTML=`<p style="color:var(--muted);font-size:12.5px;margin-bottom:10px">Summary snapshot &mdash; ${s.total} enrolled, ${s.compliant} compliant, ${s.nonCompliant} non-compliant, ${s.pending} pending &middot; avg score ${s.avgScore}%</p><div class="log-list">${rows}</div>`;
+}
+
+/* ---------------- logs ---------------- */
+async function refreshLogs(){
+  const s=await api('/api/securitylog');
+  $('logList').innerHTML=s.log.map(l=>
+    `<div class="log"><span class="tm">${esc(l.at.slice(0,19).replace('T',' '))}</span><span class="lv lv-${esc(l.level)}">${esc(l.level)}</span><span class="ev">${esc(l.event)}</span><span style="color:var(--muted)">${esc(l.message)}</span></div>`
+  ).join('')||'<div class="empty">No security events in this instance.</div>';
+}
+$('clearLogsBtn').onclick=async()=>{try{await api('/api/securitylog/clear',{method:'POST'});toast('Log cleared.','w');refreshLogs();}catch(e){toast(e.message,'r');}};
+
+/* ---------------- top bar ---------------- */
+$('scanAllBtn').onclick=async()=>{
+  const b=$('scanAllBtn');b.disabled=true;b.innerHTML='Scanning fleet&hellip;';
+  try{const r=await api('/api/scan',{method:'POST',body:JSON.stringify({mode:'demo'})});toast('Fleet scanned ('+r.scanned+' devices).');}
+  catch(e){toast(e.message,'r');}
+  b.disabled=false;b.innerHTML='<span class="s">&#128260;</span>Run demo scans (all)';
+  refreshDashboard();refreshDevices();refreshReports();
+};
+$('shutdownBtn').onclick=async()=>{try{await api('/api/shutdown',{method:'POST'});toast('Shutting down server&hellip;');setTimeout(()=>document.body.innerHTML='<div style="display:grid;place-items:center;height:100vh;color:var(--muted)">App stopped &mdash; you can close this tab.</div>',400);}catch(e){toast(e.message||'server stopped','w');}};
+$('adbRefresh').onclick=()=>checkAdb();
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  try{
+    const h=await api('/api/health');
+    $('ver').textContent=h.version;
+    if(h.frozen)$('dataPill').innerHTML='<span class="dot"></span>portable build';
+    $('healthLabel').setAttribute('class','');
+    $('healthLabel').textContent='&#9679; local server '+(h.ok?'online':'offline');
+  }catch(e){$('healthLabel').textContent='&#10060; server unreachable';}
+  await refreshDashboard();await refreshDevices();await refreshPolicy();await refreshReports();await refreshLogs();
+  setInterval(()=>refreshDashboard().catch(()=>{}),15000);
+  setInterval(()=>refreshLogs().catch(()=>{}),10000);
+}
+boot();
+</script>
+</body>
+</html>

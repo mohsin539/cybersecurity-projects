@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title or "LAMDEX" }} · Lateral Movement Detection Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">&#128270;</span>
+      <div><b>LAMDEX</b><small>AD Lab Console</small></div>
+    </div>
+    <nav>
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active=='dashboard' }}">&#128202; Dashboard</a>
+      <a href="{{ url_for('techniques') }}" class="{{ 'active' if active=='techniques' }}">&#127922; Techniques</a>
+      <a href="{{ url_for('detections') }}" class="{{ 'active' if active=='detections' }}">&#128276; Detections</a>
+      <a href="{{ url_for('coverage') }}" class="{{ 'active' if active=='coverage' }}">&#127919; Coverage</a>
+      <a href="{{ url_for('reports') }}" class="{{ 'active' if active=='reports' }}">&#128196; Reports</a>
+      <a href="{{ url_for('audit') }}" class="{{ 'active' if active=='audit' }}">&#128221; Audit</a>
+    </nav>
+    <div class="side-foot">
+      {% if lab_up is defined %}
+      <div class="labp {{ 'up' if lab_up else 'down' }}">{{ '&#128267; Lab UP' if lab_up else '&#128273; Lab DOWN' }}</div>
+      {% endif %}
+      {% if actor %}
+      <div class="actor">&#128100; {{ actor }} · <a href="{{ url_for('logout') }}">logout</a></div>
+      {% endif %}
+    </div>
+  </aside>
+  <main class="content">
+    {% with msgs = request.args.getlist('msg'), count = request.args.get('count'), runid = request.args.get('runid') %}
+    {% if msgs %}
+      <div class="toast">
+        {% if 'ok' in msgs %}Reports generated: {{ count }} artifacts.{% endif %}
+        {% if 'empty' in msgs %}No runs yet — run a technique first.{% endif %}
+      </div>
+    {% endif %}
+    {% if runid %}<div class="toast">Run completed: <code>{{ runid }}</code></div>{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

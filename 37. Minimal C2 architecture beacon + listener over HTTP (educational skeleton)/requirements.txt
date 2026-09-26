@@ -1,0 +1,6 @@
+# C2 Study Lab dependencies
+cryptography>=41.0.0
+openpyxl>=3.1.0
+
+# Build only (optional but recommended)
+pyinstaller>=6.0.0

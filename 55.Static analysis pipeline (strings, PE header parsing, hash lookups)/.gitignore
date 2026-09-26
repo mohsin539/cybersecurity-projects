@@ -1,0 +1,28 @@
+# build / package artifacts
+build/
+dist/
+*.spec.bak
+pack/sap_manifest.json
+*.sha256
+
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# case output zones (runtime state, never commit)
+SAP_CaseWork/
+case-dirs/
+*.sapcase
+
+# environment / keys (raw secrets never committed)
+*.pem
+*.pfx
+.env
+api_keys.json
+intel/secrets/
+
+# IDE
+.vscode/
+.idea/

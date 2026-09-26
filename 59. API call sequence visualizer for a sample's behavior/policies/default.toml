@@ -1,0 +1,27 @@
+# ACSV default hardened policy (ISO 27001 A.5.1 / A.5.36, OWASP A05).
+# Editing this file is an audit-worthy change; restart to apply. Every session
+# records its policy snapshot hash in both the event store and audit log.
+
+config_version = "1.0"
+
+[capture]
+max_events_per_session = 5000000
+timeout_seconds = 300
+default_sandbox = "offline_replay"
+
+[security]
+redact_pii = true
+sign_reports = false   # enable for Ed25519 attestation in v1.2
+audit_enabled = true
+audit_tail_storage_mb = 64
+# Redaction regexes applied before persistence/export (ISO A.5.34).
+# Patterns are also mirrored in acsv/crypto DefaultPatterns.
+
+[reporting]
+allowed_export_formats = ["json", "csv", "html", "pdf", "stix"]
+max_download_bytes = 1073741824
+
+[compliance]
+frameworks = ["ISO27001", "NIST", "OWASP"]
+
+retention_days = 90

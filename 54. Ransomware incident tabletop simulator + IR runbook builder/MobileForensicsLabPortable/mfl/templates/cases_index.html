@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Cases · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+
+<h1>📁 Case Dossier</h1>
+<div class="sub">Investigative case management — every action is hash-chained to the audit trail.</div>
+<div class="actions">
+  {% for s,label in [('open','Open'),('active','Active'),('closed','Closed'),('shelved','Shelved')] %}
+  <a class="btn {{ 'primary' if active==s else 'ghost' }}" href="{{ url_for('cases.index', status=s) }}">{{ label }} ({{ counts[s] }})</a>
+  {% endfor %}
+  <a class="btn primary" href="{{ url_for('cases.create') }}">+ New case</a>
+</div>
+
+{% if cases %}
+<div class="tblwrap"><table>
+  <tr><th>Ref</th><th>Title</th><th>Status</th><th>Severity</th><th>Lead examiner</th><th>Updated</th><th></th></tr>
+  {% for c in cases %}
+  <tr>
+    <td><a href="{{ url_for('cases.detail', cid=c['id']) }}"><code>{{ c['case_ref'] }}</code></a></td>
+    <td>{{ c['title'] }}</td>
+    <td><span class="tag tag-{{ 'cyan' if c['status']=='open' else ('amber' if c['status']=='active' else 'green') if c['status']=='closed' else 'gray' }}">{{ c['status'] }}</span></td>
+    <td><span class="tag sev-{{ c['severity'] if c['severity'] in ('blocker','critical','high','medium','low','info') else 'info' }}">{{ c['severity'] }}</span></td>
+    <td>{{ c['lead_examiner'] or '—' }}</td>
+    <td class="small muted">{{ c['updated_at'] }}</td>
+    <td><a class="btn ghost small" href="{{ url_for('cases.detail', cid=c['id']) }}">Open →</a></td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% else %}
+<div class="card"><div class="empty">No cases in this view.</div></div>
+{% endif %}
+
+{% endblock %}

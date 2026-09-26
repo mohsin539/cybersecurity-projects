@@ -1,0 +1,1 @@
+"""Application services — use cases orchestrating core + persistence + platform."""

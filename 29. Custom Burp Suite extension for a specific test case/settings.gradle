@@ -1,0 +1,4 @@
+rootProject.name = 'BurpTester'
+
+include 'burp-extension'
+include 'gui-launcher'

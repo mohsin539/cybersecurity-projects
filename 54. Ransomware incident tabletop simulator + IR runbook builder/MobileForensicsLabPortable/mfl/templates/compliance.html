@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Compliance · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<h1>✅ Compliance & Controls Posture</h1>
+<div class="sub">Live evidence of control implementation for ISO 27001:2022, NIST CSF 2.0 / SP 800-53r5 and OWASP Top 10 (2021).</div>
+
+<div class="grid stats">
+  <div class="card stat grad-green"><div class="num">{{ posture['score'] }}%</div><div class="lbl">Evidenced controls</div></div>
+  <div class="card stat grad-cyan"><div class="num">{{ posture['evidenced'] }}</div><div class="lbl">Controls evidenced</div></div>
+  <div class="card stat grad-violet"><div class="num">{{ posture['total'] }}</div><div class="lbl">Controls tracked</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1.4fr 1fr; gap:18px; margin-top:20px">
+  <div class="card">
+    <h3 style="margin-top:0">Control registry → evidence mapping</h3>
+    <div class="tblwrap" style="border:0"><table>
+      <tr><th>Control</th><th>Capability</th><th>Evidence</th></tr>
+      {% for r in posture['rows'] %}
+      <tr class="{{ 'compliance-ok' if r['evidence'] else 'compliance-miss' }}">
+        <td><code style="color:var(--text)">{{ r['ref'] }}</code><div class="small muted">{{ r['framework'] }}</div></td>
+        <td>{{ r['control'] }}<div class="small muted">{{ r['capability'] }}</div></td>
+        <td>{{ '✅' if r['evidence'] else '⬜ (no audit event yet)' }}</td>
+      </tr>
+      {% endfor %}
+    </table></div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h3 style="margin-top:0">By framework</h3>
+      {% for fw, info in by_fw.items() %}
+      <div class="small" style="margin-top:8px;color:var(--text)"><span style="color:{{ colors.get(fw, '#fff') }}">●</span> {{ fw }}</div>
+      <div class="bar"><i style="width: {{ (100*info['evidenced']/info['total']) if info['total'] else 0 }}%"></i></div>
+      <div class="small muted">{{ info['evidenced'] }}/{{ info['total'] }} · {{ (100*info['evidenced']/info['total'])|round if info['total'] else 0 }}%</div>
+      {% endfor %}
+    </div>
+
+    <div class="card mt">
+      <h3 style="margin-top:0">🔐 Audit chain integrity</h3>
+      {% if chain['intact'] %}
+        <p class="chain-ok">✅ Chain intact — {{ chain['checked'] }}/{{ chain['total'] }} links verified (SHA-256).</p>
+      {% else %}
+        <p class="chain-bad">⚠️ Chain broken at event #{{ chain['issues'][0]['id'] }} ({{ chain['issues'][0]['reason'] }}) — investigate immediately!</p>
+      {% endif %}
+      <div class="actions"><a class="btn ghost" href="{{ url_for('main.verify_chain') }}">Re-verify now</a></div>
+    </div>
+
+    <div class="card mt">
+      <h3 style="margin-top:0">🕗 Recent audit events</h3>
+      {% for l in latest %}
+      <div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)">
+        <span class="tag tag-gray">{{ l['action'] }}</span> <span class="muted">{{ l['ts'] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card mt">
+  <h3 style="margin-top:0">How evidence is scored</h3>
+  <p class="small muted">A control is considered <b>evidenced</b> when at least one labelled audit action (e.g. <code>EVIDENCE_CREATE</code>, <code>CUSTODY_EVENT</code>, <code>AUDIT_EXPORT</code>) exists in the current compliance window. Run the app normally — every exercised workflow generates the evidence automatically.</p>
+</div>
+{% endblock %}

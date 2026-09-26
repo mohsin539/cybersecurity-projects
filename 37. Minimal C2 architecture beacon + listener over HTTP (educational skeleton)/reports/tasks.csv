@@ -1,0 +1,3 @@
+﻿task_id,beacon_id,name,status,queued_at,dispatched_at,completed_at,output
+task-ce9aeb364d9d,,get-sysinfo,ok,2026-09-20T08:13:43.891786+00:00,2026-09-20T08:13:43.906250+00:00,2026-09-20T08:13:43.921863+00:00,"{""os"": ""Windows-11-10.0.26200-SP0"", ""hostname"": ""mohsinIT-PC"", ""machine"": ""AMD64"", ""python"": ""3.12.7""}"
+task-ab81f6e7e10f,,heartbeat-test,ok,2026-09-20T08:13:43.923863+00:00,2026-09-20T08:13:43.928913+00:00,2026-09-20T08:13:43.952426+00:00,"{""ok"": true, ""ts"": ""2026-09-20T08:13:43.930384+00:00""}"

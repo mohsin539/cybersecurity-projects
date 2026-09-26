@@ -1,0 +1,40 @@
+{
+  "name": "prismforge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PrismForge - secure, audited, web-based 3D product configurator (drag, rotate, customize) with compliance-grade reporting.",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace @prismforge/api",
+    "dev:web": "npm run dev --workspace @prismforge/web",
+    "start": "concurrently -n api,web -c magenta,cyan \"npm:start:api\" \"npm:start:web\"",
+    "start:api": "npm run start --workspace @prismforge/api",
+    "start:web": "npm run start --workspace @prismforge/web",
+    "build": "npm run build --workspace @prismforge/web",
+    "preview": "npm run preview --workspace @prismforge/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:migrate": "npm run db:migrate --workspace @prismforge/api",
+    "db:seed": "npm run db:seed --workspace @prismforge/api",
+    "db:reset": "npm run db:reset --workspace @prismforge/api",
+    "audit:verify": "npm run audit:verify --workspace @prismforge/api",
+    "audit:report": "npm run audit:report --workspace @prismforge/api",
+    "setup": "npm install && npm run db:migrate && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

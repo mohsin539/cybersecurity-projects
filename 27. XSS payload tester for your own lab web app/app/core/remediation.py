@@ -1,0 +1,58 @@
+"""Remediation guidance per context type (OWASP XSS Prevention Cheat Sheet).
+
+Returned inline with every finding so a report is actionable ("fix it", not
+just "it's vulnerable").
+"""
+
+from __future__ import annotations
+
+from .contexts import Context, ContextSpec, CTX_INDEX
+
+_CHEATSHEET = "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+
+REMEDIATION: dict[Context, str] = {
+    Context.HTML: (
+        "HTML-body/context encode the reflection before placing it inside an element: "
+        "escape &, <, >, \", ' and backtick (OWASP RULE #1). Use your framework's "
+        "auto-escaping templates; never build HTML via string concatenation."
+    ),
+    Context.ATTR: (
+        "Encode with the attribute-output encoder (escape &, \", ', <, >) AND quote "
+        "attribute values (OWASP RULE #2). Enforce an allowlist of schemes for URL-ish "
+        "attributes; `javascript:` must never reach an attribute."
+    ),
+    Context.SCRIPT: (
+        "Put data only inside a JSON block rendered with JSON.stringify into a "
+        "<script> tag and escape <, >, / (OWASP RULE #3). Prefer calling a safe "
+        "parameterized API instead of toJSON; never inline untrusted data into JS code."
+    ),
+    Context.URL: (
+        "URL-encode untrusted input (OWASP RULE #5) and validate the scheme against an "
+        "allowlist (http:, https:, mailto:). Reject `javascript:`/`data:`. For redirect "
+        "parameters use relative-path allowlists to prevent open-redirect+XSS."
+    ),
+    Context.DOM: (
+        "Eliminate HTML sinks (innerHTML, document.write, insertAdjacentHTML, outerHTML). "
+        "Use textContent / safe DOM APIs (OWASP RULE #4). If a sink is unavoidable, sanitize "
+        "with an allowlist-based library configured to drop all event handlers and javascript: URLs."
+    ),
+}
+
+
+def remediate(spec: ContextSpec) -> str:
+    return f"{REMEDIATION[spec.kind]} ({_CHEATSHEET})"
+
+
+def remediate_by_name(context_name: str) -> str:
+    spec = CTX_INDEX.get(context_name)
+    return remediate(spec) if spec else "Apply OWASP XSS Prevention guidance (encode per output context)."
+
+
+def csp_recommendation() -> str:
+    return (
+        "Deploy a strict CSP as defense-in-depth (OWASP A05): `default-src 'none'; "
+        "script-src 'self' 'nonce-<random>' 'strict-dynamic'; object-src 'none'; "
+        "base-uri 'none'`. Where inline handlers are unavoidable, keep a narrowly "
+        "scoped 'unsafe-inline' only on the specific script-src directive and add "
+        "`require-trusted-types-for 'script'`."
+    )

@@ -1,0 +1,36 @@
+<!--
+  Phase 2 — Execution (T1059 / T1203). Levels 6-8.
+  Inputs: Project 12 HIDS cmdline events (hids-agent[0] prefix), web cmd.
+-->
+<group name="chain_exec,execution,">
+  <rule id="200100" level="6">
+    <decoded_as>chain-cmdline</decoded_as>
+    <match>powershell|-enc|-encodedcommand|base64</match>
+    <description>Encoded PowerShell on command line</description>
+    <group>chain_exec,</group>
+    <mitre>
+      <id>T1059.001</id>
+      <tactic>Execution</tactic>
+    </mitre>
+  </rule>
+
+  <rule id="200101" level="7">
+    <decoded_as>chain-cmdline</decoded_as>
+    <regex>wget |curl |nc -e|ncat -e|mkfifo|bash -i</regex>
+    <description>Network download-at-execute (T1059 common reverse shell shape)</description>
+    <group>chain_exec,</group>
+  </rule>
+
+  <!-- Execution preceded by chain_access on same host -> escalate -->
+  <rule id="200120" level="8">
+    <if_group>chain_access</if_group>
+    <decoded_as>chain-cmdline</decoded_as>
+    <match>powershell|curl|wget</match>
+    <description>Execution after access-phase signal on same host</description>
+    <group>chain_exec,</group>
+    <mitre>
+      <id>T1059</id>
+      <tactic>Execution</tactic>
+    </mitre>
+  </rule>
+</group>

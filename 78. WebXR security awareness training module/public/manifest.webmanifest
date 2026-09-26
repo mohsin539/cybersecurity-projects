@@ -1,0 +1,17 @@
+{
+  "name": "WebXR Security Awareness Training",
+  "short_name": "XR Security",
+  "description": "Browser-based immersive security awareness training (ISO 27001 / NIST / OWASP aligned)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

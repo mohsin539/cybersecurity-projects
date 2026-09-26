@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} — VPN Tunnel Builder{% endblock %}
+{% block content %}
+<div class="center-box">
+  <div class="panel" style="max-width:420px; text-align:center">
+    <div class="stat-num" style="color:var(--err)">{{ code }}</div>
+    <h2>{{ message }}</h2>
+    <p class="muted">
+      {% if code==403 %}You do not have access, or the CSRF token was invalid.
+      {% elif code==404 %}The requested resource was not found.
+      {% else %}An unexpected error occurred. Check the audit log.{% endif %}
+    </p>
+    <a class="btn" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+  </div>
+</div>
+{% endblock %}

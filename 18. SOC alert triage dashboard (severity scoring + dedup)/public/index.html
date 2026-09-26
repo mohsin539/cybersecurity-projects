@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOC Alert Triage Dashboard</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">SOC Triage<span class="sub">severity scoring · alert dedup</span></div>
+  <div id="degraded-banner" class="banner hidden"></div>
+  <nav id="nav" class="hidden">
+    <button data-view="queue" class="navbtn active">Queue</button>
+    <button data-view="audit" class="navbtn">Audit</button>
+    <button data-view="config" class="navbtn" data-requires="config">Config</button>
+    <span id="who" class="who"></span>
+    <button id="logout" class="btn subtle">Logout</button>
+  </nav>
+</header>
+
+<!-- Login -->
+<section id="view-login" class="card narrow">
+  <h1>Sign in</h1>
+  <p class="muted">Demo mode — pick a demo identity (no password). Sessions: 12h absolute / 30m idle.</p>
+  <div class="login-grid">
+    <button class="btn login-as" data-user="analyst@t1">analyst@t1 <small>tier1 · tenant t1</small></button>
+    <button class="btn login-as" data-user="lead@t1">lead@t1 <small>soc.lead · tenant t1</small></button>
+    <button class="btn login-as" data-user="auditor@t1">auditor@t1 <small>auditor · read-only</small></button>
+    <button class="btn login-as" data-user="analyst@t2">analyst@t2 <small>tier1 · tenant t2</small></button>
+  </div>
+  <p id="login-error" class="error hidden"></p>
+</section>
+
+<!-- Queue -->
+<section id="view-queue" class="hidden">
+  <div class="toolbar">
+    <div class="filters" id="band-filters">
+      <button class="chip active" data-band="">All</button>
+      <button class="chip" data-band="critical">Critical</button>
+      <button class="chip" data-band="high">High</button>
+      <button class="chip" data-band="medium">Medium</button>
+      <button class="chip" data-band="low">Low</button>
+      <button class="chip" data-band="informational">Info</button>
+    </div>
+    <span id="queue-meta" class="muted"></span>
+    <button id="btn-ingest" class="btn subtle" data-requires="ingest">+ Simulate ingest</button>
+  </div>
+  <table class="queue" id="queue-table">
+    <thead>
+      <tr><th>Score</th><th>Band</th><th>Title</th><th>Entities</th><th>Occurrences</th><th>Status</th><th>Last seen</th></tr>
+    </thead>
+    <tbody id="queue-body"></tbody>
+  </table>
+  <p id="queue-empty" class="muted hidden">No alerts in this band.</p>
+</section>
+
+<!-- Alert detail -->
+<section id="view-alert" class="hidden">
+  <button id="back-to-queue" class="btn subtle">← Queue</button>
+  <div id="alert-detail"></div>
+</section>
+
+<!-- Audit -->
+<section id="view-audit" class="hidden">
+  <div class="toolbar">
+    <h2>Audit trail</h2>
+    <span id="chain-status" class="chip ok">chain: …</span>
+    <button id="btn-verify" class="btn subtle">Verify chain</button>
+    <button id="btn-export" class="btn subtle">Export JSONL</button>
+  </div>
+  <table class="queue">
+    <thead><tr><th>Seq</th><th>Time</th><th>Actor</th><th>Action</th><th>Object</th><th>Change</th></tr></thead>
+    <tbody id="audit-body"></tbody>
+  </table>
+</section>
+
+<!-- Config -->
+<section id="view-config" class="hidden">
+  <h2>Configuration <span id="score-version" class="muted"></span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Factor weights (must sum to 100)</h3>
+      <div id="weights-editor"></div>
+      <p class="muted">Sum: <span id="weight-sum"></span></p>
+      <button id="btn-save-weights" class="btn primary">Apply weights</button>
+    </div>
+    <div class="card">
+      <h3>Thresholds</h3>
+      <div id="thresholds-editor"></div>
+      <h3>Kill switches</h3>
+      <div id="switches-editor"></div>
+      <button id="btn-save-config" class="btn primary">Apply</button>
+    </div>
+  </div>
+  <p class="muted">Every change is audited with before/after and bumps the score version (01 F3, 02 §4.5).</p>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+<script src="/app.js"></script>
+</body>
+</html>

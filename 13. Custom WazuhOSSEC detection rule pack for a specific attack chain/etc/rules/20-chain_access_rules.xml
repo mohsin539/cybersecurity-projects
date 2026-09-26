@@ -1,0 +1,31 @@
+<!--
+  Phase 1 — Initial Access (T1190 / T1566). Levels 6-7.
+  Custom IDs: 200010 - 200060
+-->
+<group name="chain_access,web,">
+  <rule id="200010" level="6">
+    <decoded_as>chain-web-access</decoded_as>
+    <field name="status">4</field>
+    <description>HTTP 4xx from chain-aware decoder (recon)</description>
+    <group>chain_access,</group>
+  </rule>
+
+  <rule id="200011" level="7">
+    <decoded_as>chain-web-access</decoded_as>
+    <field name="status">5</field>
+    <description>HTTP 5xx burst — possible exploit probe</description>
+    <group>chain_access,</group>
+  </rule>
+
+  <!-- Suspicious URLs to admin/upload surfaces -->
+  <rule id="200020" level="7">
+    <decoded_as>chain-web-access</decoded_as>
+    <regex>\.\./|/etc/passwd|/proc/self|/actuator|/wp-content|/\.[a-z0-9]+\.(env|git|log)</regex>
+    <description>Traversal / sensitive file access attempt</description>
+    <group>chain_access,</group>
+    <mitre>
+      <id>T1190</id>
+      <tactic>Initial Access</tactic>
+    </mitre>
+  </rule>
+</group>

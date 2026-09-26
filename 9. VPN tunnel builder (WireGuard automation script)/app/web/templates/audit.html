@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Audit log — VPN Tunnel Builder{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Audit log</h1>
+  <p>Hash-chained, tamper-evident operational events (NIST AU-2..6, ISO A.8.15).</p>
+  <div class="toolbar">
+    <span class="badge {{ 'ok' if chain_valid else 'off' }}">
+      Chain: {{ 'VALID' if chain_valid else 'BROKEN — ' ~ broken|length ~ ' corrupted entries' }}
+    </span>
+    <a class="btn" href="{{ url_for('audit_export') }}">Export (TSV)</a>
+  </div>
+</div>
+
+<section class="panel">
+  <table class="tbl small">
+    <thead>
+      <tr><th>Time</th><th>Action</th><th>Actor</th><th>Target</th><th>Result</th><th>Event hash</th></tr>
+    </thead>
+    <tbody>
+      {% for ev in events[-200:]|reverse %}
+      <tr>
+        <td class="mono small">{{ ev.ts }}</td>
+        <td>{{ ev.action }}</td>
+        <td>{{ ev.actor }}</td>
+        <td>{{ ev.target }}</td>
+        <td>
+          {% if ev.result=='OK' %}<span class="badge ok">OK</span>
+          {% elif ev.result=='ERR' %}<span class="badge off">ERR</span>
+          {% elif ev.result=='NOOP' %}<span class="badge warn">NOOP</span>
+          {% else %}<span class="badge">{{ ev.result }}</span>{% endif %}
+        </td>
+        <td class="mono small" title="{{ ev.event_hash }}">{{ ev.event_hash[:12] }}…</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if not events %}
+  <p class="muted">Audit log is empty.</p>
+  {% endif %}
+</section>
+{% endblock %}

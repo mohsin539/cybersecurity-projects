@@ -1,0 +1,19 @@
+﻿framework,control,description,evidence
+ISO,A.8.10,Information deletion — one-command teardown of lab VMs,engine.run_technique / lab teardown
+ISO,A.8.16,Monitoring activities — event log + network telemetry capture,engine steps + detection pipeline
+ISO,A.8.28,"Secure coding — parameterized SQL, escaped HTML",store.py / report.py
+ISO,A.9.1.2,Access to networks — ATK01 allowed only in run window,lab topology ACL
+ISO,A.5.16/5.17,Identity & access — MFA + least privilege on web console,main.py auth
+NIST,CSF ID.AM-06,Inventory — lab asset + identity fabric,engine.TOPOLOGY / IDENTITIES
+NIST,CSF PR.AA-02,Access — RBAC + session binding,main.py auth
+NIST,CSF DE.CM-07,Monitoring — continuous telemetry capture,telemetry collectors
+NIST,CSF DE.AE-01,Anomaly events — detection metrics vs ground truth,metrics.compute
+NIST,800-53 SC-7,"Boundary protection — no egress, host-only vNIC",network segmentation
+NIST,800-53 SI-4,System monitoring — Zeek/Suricata + event logs,NSM plane
+NIST,800-53 AU-6,Audit review — evidence ledger SHA-256,report evidence
+OWASP,A01,Broken access control — RBAC + signed downloads,main.py auth / report download
+OWASP,A02,"Cryptographic failures — TLS, SHA-256 evidence",report hashing
+OWASP,A03,"Injection — parameterized SQL, escaped HTML output",store / report
+OWASP,A08,Data integrity — report checksums,report sha256
+OWASP,A09,Logging failures — audit ledger,store.audit
+OWASP,A10,SSRF — no outbound fetch in web app,no external URLs

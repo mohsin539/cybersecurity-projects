@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rekt"
+version = "1.0.0"
+description = "REkt - Reverse-Engineering CTF Challenge Solver Toolkit (portable, GUI)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[project.gui-scripts]
+rekt = "rekt.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["rekt*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "S", "B"]
+# S: bandit-style rules — no eval/exec/shell-true (OWASP A03, ISO A.8.28)
+ignore = ["S101"]  # assert allowed in tests

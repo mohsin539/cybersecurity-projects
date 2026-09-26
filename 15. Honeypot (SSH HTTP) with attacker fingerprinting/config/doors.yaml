@@ -1,0 +1,21 @@
+"""
+Honeypot config: doors + guards + blocklist push (Project 16).
+"""
+doors:
+  ssh:
+    bind_port: 2222
+    banner: "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6"
+    honeytokens: ["admin", "root-hun"]
+  http:
+    bind_port: 8080
+    bind_tls: 8443
+
+guards:
+  max_auth_attempts_per_session: 20
+  session_timeout_s: 30
+  egress_allowlist: ["dns", "https"]
+
+blocklist:
+  enabled: true
+  webhook: ""
+  auth_token_env: "HONEYPOT_BLOCKLIST_TOKEN"

@@ -1,0 +1,3 @@
+cryptography>=42.0
+# GUI: tkinter ships with CPython on Windows (python.org / tcltk).
+# Packet capture: optional 'scapy' backend for live capture; simulator is built-in.

@@ -1,0 +1,713 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Social Engineering Awareness Simulator â€” Production Architecture (Bangladesh Bank Edition)</title>
+<style>
+  :root{
+    --navy:#0b1f3a; --navy2:#12294a; --ink:#1a2433; --muted:#5b6b80;
+    --cyan:#0ea5e9; --teal:#0d9488; --gold:#f59e0b; --rose:#e11d48;
+    --green:#16a34a; --violet:#7c3aed; --orange:#ea580c;
+    --line:#dbe4f0; --bg:#f4f7fb; --card:#ffffff;
+    --red-soft:#fee2e2; --blue-soft:#e0f2fe; --green-soft:#dcfce7;
+    --amber-soft:#fef3c7; --violet-soft:#ede9fe; --slate-soft:#e2e8f0;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;}
+  h1,h2,h3,h4{line-height:1.25;margin:0 0 .4em;}
+  code{font-family:Consolas,"Cascadia Code",Menlo,monospace;font-size:.92em;background:#eef2f7;padding:1px 5px;border-radius:4px;}
+  pre{background:#0f1e38;color:#d7e6ff;padding:14px 16px;border-radius:10px;overflow:auto;font-family:Consolas,Menlo,monospace;font-size:12.5px;line-height:1.5;}
+  pre .c{color:#7dd3fc;} pre .k{color:#fbbf24;}
+  table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:#eef3fa;font-weight:600;}
+  tr:nth-child(even) td{background:#fafcff;}
+  a{color:var(--teal);}
+  .wrap{max-width:1220px;margin:0 auto;padding:0 22px;}
+
+  .hero{background:linear-gradient(120deg,#0a1a33 0%,#123054 45%,#0d3b52 70%,#0b2e3f 100%);
+        color:#fff;padding:58px 0 46px;position:relative;overflow:hidden;}
+  .hero::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;
+        background:radial-gradient(circle, rgba(14,165,233,.35), transparent 65%);}
+  .hero .wrap{position:relative;z-index:2;}
+  .hero h1{font-size:34px;font-weight:800;margin:6px 0 10px;}
+  .hero .sub{font-size:16px;color:#bfd9ff;max-width:900px;}
+  .badge{display:inline-block;background:rgba(14,165,233,.16);border:1px solid rgba(14,165,233,.5);
+         color:#7dd3fc;border-radius:999px;padding:3px 12px;font-size:12px;font-weight:600;letter-spacing:.04em;margin:2px 4px 2px 0;}
+  .badge.gold{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.5);color:#fcd34d;}
+  .badge.green{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.5);color:#86efac;}
+  .chips{margin-top:14px;}
+
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:26px 0;
+       display:flex;flex-wrap:wrap;gap:8px;}
+  .toc a{background:#eef4fb;color:var(--navy2);text-decoration:none;font-size:13px;font-weight:600;
+         border-radius:8px;padding:6px 11px;border:1px solid var(--line);transition:.15s;}
+  .toc a:hover{background:var(--navy);color:#fff;}
+
+  section{margin:34px 0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin:16px 0;
+        box-shadow:0 4px 14px rgba(11,31,58,.05);}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+  .sec-num{min-width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+        color:#fff;font-weight:800;font-size:15px;background:linear-gradient(135deg,var(--cyan),var(--teal));}
+  h2.sec-title{font-size:23px;color:var(--navy);}
+  h3{color:var(--navy2);font-size:17px;margin-top:18px;}
+  .lead{color:var(--muted);font-size:15px;max-width:1000px;}
+
+  .grid{display:grid;gap:16px;}
+  .g2{grid-template-columns:repeat(2,1fr);}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  .g4{grid-template-columns:repeat(4,1fr);}
+  @media(max-width:960px){.grid{grid-template-columns:1fr;}}
+
+  .mini{background:#fbfdff;border:1px solid var(--line);border-top:4px solid var(--cyan);border-radius:12px;padding:14px 16px;}
+  .mini.teal{border-top-color:var(--teal);} .mini.gold{border-top-color:var(--gold);}
+  .mini.violet{border-top-color:var(--violet);} .mini.rose{border-top-color:var(--rose);}
+  .mini.green{border-top-color:var(--green);} .mini.orange{border-top-color:var(--orange);}
+  .mini h4{margin-bottom:4px;font-size:15px;color:var(--navy2);}
+  .mini p{font-size:13.5px;color:var(--muted);margin:4px 0 0;}
+
+  .pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:700;letter-spacing:.02em;}
+  .pill.green{background:var(--green-soft);color:#15803d;}
+  .pill.amber{background:var(--amber-soft);color:#b45309;}
+  .pill.red{background:var(--red-soft);color:#b91c1c;}
+  .pill.blue{background:var(--blue-soft);color:#0369a1;}
+  .pill.violet{background:var(--violet-soft);color:#6d28d9;}
+  .pill.slate{background:var(--slate-soft);color:#334155;}
+
+  .zone{border-radius:14px;padding:14px;margin:10px 0;}
+  .z-internet{background:#fef2f2;border:2px solid var(--rose);}
+  .z-perimeter{background:#fff7ed;border:2px solid var(--orange);}
+  .z-app{background:#eff6ff;border:2px solid var(--cyan);}
+  .z-data{background:#ecfdf5;border:2px solid var(--green);}
+  .z-external{background:#f5f3ff;border:2px dashed var(--violet);}
+  .zone .ztitle{font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+  .z-internet .ztitle{color:var(--rose);} .z-perimeter .ztitle{color:var(--orange);}
+  .z-app .ztitle{color:var(--cyan);} .z-data .ztitle{color:var(--green);} .z-external .ztitle{color:var(--violet);}
+  .node{display:inline-block;background:#fff;border:2px solid var(--line);border-radius:10px;padding:9px 13px;
+        margin:4px;font-size:12.5px;font-weight:600;color:var(--navy2);box-shadow:0 2px 6px rgba(11,31,58,.06);}
+  .node b{display:block;font-size:12.5px;color:var(--navy2);}
+  .node span{display:block;font-size:11px;color:var(--muted);font-weight:500;}
+  .arrow{text-align:center;color:#64748b;font-weight:700;font-size:14px;margin:2px 0;letter-spacing:.2em;}
+
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;margin:8px 0;}
+  .flow .step{flex:1 1 230px;background:#fff;border:2px solid var(--line);border-radius:12px;margin:6px;padding:12px 14px;position:relative;}
+  .flow .step .n{position:absolute;top:-11px;left:12px;background:linear-gradient(135deg,var(--cyan),var(--teal));color:#fff;
+        width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  .flow .step b{display:block;font-size:13.5px;color:var(--navy2);margin-top:6px;}
+  .flow .step p{font-size:12px;color:var(--muted);margin:4px 0 0;}
+  .flow .arrowmid{display:flex;align-items:center;color:#94a3b8;font-size:20px;padding:0 2px;font-weight:800;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin:10px 0;}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-2px;}
+
+  .cmp{background:#fbfdff;border:1px solid var(--line);border-left:6px solid var(--cyan);border-radius:12px;padding:14px 16px;margin:12px 0;}
+  .cmp h4{margin:0 0 6px;font-size:15px;}
+  .cmp h4 code{font-size:13px;}
+  .cmp .tags{margin:8px 0 0;}
+  .cmp .tags span{margin-right:6px;}
+
+  .pillar{display:flex;gap:16px;flex-wrap:wrap;}
+  .pillar .col{flex:1 1 300px;background:#fbfdff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .pillar h5{margin:0 0 8px;font-size:14px;color:var(--navy2);border-bottom:1px solid var(--line);padding-bottom:6px;}
+  .pillar ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--muted);}
+  .pillar li{margin:3px 0;}
+
+  .kpi{background:linear-gradient(135deg,#0e7490,#134e4a);color:#fff;border-radius:14px;padding:16px 18px;text-align:center;}
+  .kpi .v{font-size:26px;font-weight:800;}
+  .kpi .l{font-size:12px;opacity:.85;}
+
+  .note{border-left:5px solid var(--gold);background:#fffbeb;border-radius:8px;padding:12px 16px;font-size:14px;margin:14px 0;}
+  .note b{color:#92400e;}
+  .ok{color:#15803d;font-weight:700;}
+  .warn{color:#b45309;font-weight:700;}
+  .no{color:#b91c1c;font-weight:700;}
+
+  footer{background:var(--navy);color:#b9cbe6;padding:26px 0;margin-top:44px;font-size:13.5px;}
+  @media print{
+    .hero{background:#0a1a33;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sec-num,.pill,.badge{print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="badge gold">BANGLADESH BANK READY</div>
+    <div class="badge">OWASP Top 10 (2021) Hardened</div>
+    <div class="badge">NIST CSF 2.0 Aligned</div>
+    <div class="badge green">ISO 27001:2022 Annex-A Ready</div>
+    <h1>Social Engineering Awareness Simulator</h1>
+    <div class="sub">
+      Internal phishing-test platform engineered for production deployment in Bangladeshi banks â€” safe, consent-based
+      phishing simulations with remediation training, psychometric risk scoring, and one-click exports in
+      <b>.XLSX &#183; .CSV &#183; .HTML</b>.
+    </div>
+    <div class="sub" style="margin-top:8px;">
+      Local data residency &#183; Bengali-first UX &#183; Zero-trust microservices &#183; Immutable audit trail &#183; DR-ready
+    </div>
+    <div class="chips">
+      <span class="badge">React + TypeScript</span>
+      <span class="badge">FastAPI &#183; Python 3.12</span>
+      <span class="badge">PostgreSQL 16 + Redis 7</span>
+      <span class="badge">Celery Mail/SMS Engine</span>
+      <span class="badge">Kubernetes / On-prem</span>
+      <span class="badge gold">Report Exports: XLSX &#183; CSV &#183; HTML</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="toc">
+    <a href="#s1">1 &#183; Context</a>
+    <a href="#s2">2 &#183; Solution Overview</a>
+    <a href="#s3">3 &#183; Deployment Topology</a>
+    <a href="#s4">4 &#183; Layered Architecture</a>
+    <a href="#s5">5 &#183; Component Catalogue</a>
+    <a href="#s6">6 &#183; Campaign Lifecycle</a>
+    <a href="#s7">7 &#183; Data Model</a>
+    <a href="#s8">8 &#183; API Contract</a>
+    <a href="#s9">9 &#183; Security &amp; Compliance</a>
+    <a href="#s10">10 &#183; Reporting &amp; Export Subsystem</a>
+    <a href="#s11">11 &#183; Environments &amp; CI/CD</a>
+    <a href="#s12">12 &#183; Scale, HA, DR</a>
+    <a href="#s13">13 &#183; Production Readiness Checklist</a>
+    <a href="#s14">14 &#183; Rollout Roadmap</a>
+  </div>
+
+  <section id="s1">
+    <div class="sec-head"><div class="sec-num">1</div><h2 class="sec-title">Business &amp; Regulatory Context (Bangladesh Banking)</h2></div>
+    <p class="lead">The single biggest insider threat across Bangladeshi banks is credential loss via social engineering.
+      This platform lets banks run <i>consented, in-house</i> phishing simulations â€” legally and measurably â€” then train
+      and uplift the workforce while proving control effectiveness to regulators.</p>
+
+    <div class="grid g4">
+      <div class="kpi"><div class="v">90%+</div><div class="l">of cyber incidents start with social engineering (industry)</div></div>
+      <div class="kpi"><div class="v">3x</div><div class="l">risk reduction from continuous simulation + training</div></div>
+      <div class="kpi"><div class="v">2&#8211;4 wks</div><div class="l">perceivable behaviour shift in staff</div></div>
+      <div class="kpi"><div class="v">24/7</div><div class="l">automated scheduling &amp; regulator-grade evidence</div></div>
+    </div>
+
+    <div class="note"><b>Compliance drivers.</b> Bangladesh Bank (BB) governs through the
+      <b>ICT Security Guidelines for Banks &amp; Financial Institutions</b> (2015, revised circulars) and the
+      <b>PSD/Cyber Circular series</b>. Mandatory items addressed: <b>data residency in Bangladesh</b>, mandatory
+      <b>security-awareness &amp; workforce training</b>, <b>audit-log &amp; incident-evidence retention</b>, and
+      <b>secure SDLC</b>. Design is forward-compatible with ISO 27001:2022 &amp; NIST CSF 2.0 adoption.</div>
+
+    <div class="pillar">
+      <div class="col"><h5>Bangladesh-Specific Design Decisions</h5>
+        <ul>
+          <li>Primary data centre inside Bangladesh â€” <b>no foreign egress</b> of people/behaviour data (BB data-residency rule)</li>
+          <li>SMS delivery via national telecom aggregator typical of BD banks; vishing call-scripts via internal dialer integration</li>
+          <li><b>Bengali (Bangla) + English</b> bilingual templates, training modules and reports</li>
+          <li>Employee identity via bank HR / AD / SCIM feed; Branch &amp; Division taxonomy matches BB reporting format</li>
+          <li>BDT-based risk monetisation (potential loss per clicked/sophisticated lure per job level)</li>
+        </ul>
+      </div>
+      <div class="col"><h5>Standards Tracked</h5>
+        <ul>
+          <li><b>OWASP Top 10 (2021)</b> â€” complete A01&#8211;A10 control matrix (&#167;9)</li>
+          <li><b>NIST CSF 2.0</b> â€” Govern / Identify / Protect / Detect / Respond / Recover (&#167;9)</li>
+          <li><b>ISO/IEC 27001:2022</b> â€” Annex-A control mapping (&#167;9)</li>
+          <li>OWASP ASVS (L2 target) + OWASP Top-10 API Security</li>
+          <li>Bangladesh Bank ICT Security Guidelines (2015 / rev.)</li>
+        </ul>
+      </div>
+      <div class="col"><h5>Ethical &amp; Legal Guardrails</h5>
+        <ul>
+          <li>Board-level policy + written employee consent acknowledgement before enrolment</li>
+          <li>"Safe harbour" internal-only lure domains flagged with <code>X-Phish-Security: true</code></li>
+          <li><b>Never stores real passwords</b> â€” captured inputs are masked then hashed</li>
+          <li>Do-Not-Phish registry (executives, EWS, emergency roles) enforced automatically</li>
+          <li>Every event retained as regulator-ready evidence with retention &amp; purge policy</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="s2">
+    <div class="sec-head"><div class="sec-num">2</div><h2 class="sec-title">Solution Overview â€” Functional Modules</h2></div>
+    <p class="lead">Eight purpose-built modules behind one admin console â€” each independently scalable and individually auditable.</p>
+    <div class="grid g4">
+      <div class="mini">
+        <h4>1 &#183; Campaign Studio</h4>
+        <p>Multi-vector campaigns: E-mail, SMS, QR, Vishing, USB-drop, MFA-prompt bait. Scheduling, approval gates, traffic-shaping.</p>
+      </div>
+      <div class="mini teal">
+        <h4>2 &#183; Template &amp; Lure Engine</h4>
+        <p>Reusable Bengali/English clone-templates with variables, A/B split tests and a <b>sandboxed landing-page designer</b>.</p>
+      </div>
+      <div class="mini gold">
+        <h4>3 &#183; People Directory</h4>
+        <p>SCIM sync from HR/AD/LDAP; branch/division taxonomy, job-level risk weights, opt-out registry.</p>
+      </div>
+      <div class="mini violet">
+        <h4>4 &#183; Delivery &amp; Tracking Engine</h4>
+        <p>Throttled SMTP relays &amp; SMS gateways; open-pixel, click, submit, report, forward events; SOC webhook.</p>
+      </div>
+      <div class="mini rose">
+        <h4>5 &#183; Training &amp; Remediation</h4>
+        <p>Gamified micro-learnings, phishing-101 quizzes, role curricula, forced re-training loop for repeat offenders.</p>
+      </div>
+      <div class="mini green">
+        <h4>6 &#183; Risk Scoring &amp; Analytics</h4>
+        <p>Per-employee / department / branch susceptibility index; trend lines; predictive model with explainability.</p>
+      </div>
+      <div class="mini orange">
+        <h4>7 &#183; Compliance Engine</h4>
+        <p>Immutable audit trail, consent ledger, evidence bundles, retention jobs, regulator-ready export pack.</p>
+      </div>
+      <div class="mini">
+        <h4>8 &#183; Reporting &amp; Export Hub</h4>
+        <p>Scheduled/on-demand analytics in <b>.XLSX &#183; .CSV &#183; .HTML</b>, bilingual, chart-rich executive packs.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="s3">
+    <div class="sec-head"><div class="sec-num">3</div><h2 class="sec-title">Deployment Topology â€” Production (Data Residency: Bangladesh)</h2></div>
+    <p class="lead">Defence-in-depth network zones. The phishing <b>outbound</b> path is isolated from the platform data plane so a
+      compromised simulation can never endanger core-banking or PII stores.</p>
+
+    <div class="card">
+      <div class="zone z-internet">
+        <div class="ztitle">Internet / Corporate WAN â€” Bank Staff + Admin</div>
+        <span class="node"><b>Admin Console</b><span>Browser</span></span>
+        <span class="node"><b>Target Employee</b><span>Browser</span></span>
+        <span class="node"><b>Mobile / Phone</b><span>SMS &#183; vishing target</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-perimeter">
+        <div class="ztitle">Perimeter / DMZ â€” Edge Security</div>
+        <span class="node"><b>CDN + WAF</b><span>OWASP CRS &#183; rate-limit</span></span>
+        <span class="node"><b>Nginx LB</b><span>TLS 1.3 &#183; HSTS</span></span>
+        <span class="node"><b>Reverse Proxy</b><span>SSRF guard &#183; egress allow-list</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-app">
+        <div class="ztitle">Application Zone â€” Internal, Segmented</div>
+        <span class="node"><b>Web UI SPA</b><span>React &#183; Vite</span></span>
+        <span class="node"><b>API Gateway</b><span>JWT &#183; RBAC</span></span>
+        <span class="node"><b>FastAPI Core</b><span>&#215;4 stateless replicas</span></span>
+        <span class="node"><b>Celery Workers</b><span>campaign &#183; export &#183; training</span></span>
+        <span class="node"><b>Beat Scheduler</b><span>cron campaigns &#183; retention</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-data">
+        <div class="ztitle">Data Zone â€” Encrypted &#183; Bangladesh DC &#183; No Foreign Egress</div>
+        <span class="node"><b>PostgreSQL 16</b><span>AES-256-TLS &#183; 1+2 replicas</span></span>
+        <span class="node"><b>Redis 7</b><span>cache &#183; queue &#183; sessions</span></span>
+        <span class="node"><b>Elasticsearch 8</b><span>app logs &#183; audit search</span></span>
+        <span class="node"><b>MinIO / S3</b><span>evidence &#183; exports &#183; media</span></span>
+        <span class="node"><b>Vault / KMS</b><span>secrets &#183; encrypted keys</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-external">
+        <div class="ztitle">Outbound "Lure" Fabric â€” Network-Isolated Simulation Path</div>
+        <span class="node"><b>SMTP Relay Farm</b><span>SPF/DKIM/DMARC signed &#183; throttled</span></span>
+        <span class="node"><b>SMS Gateway</b><span>BD aggregator &#183; sender-ID</span></span>
+        <span class="node"><b>Landing-Page Hosts</b><span>randomised subdomains &#183; isolated pods</span></span>
+        <span class="node"><b>Callback / Dialer</b><span>vishing scripts (opt-in)</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-data">
+        <div class="ztitle">Event Collection Sink</div>
+        <span class="node"><b>Tracking Pixel / Webhook Bus</b><span>open &#183; click &#183; submit &#183; report</span></span>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:var(--rose);"></i>Internet / trust=0</span>
+      <span><i style="background:var(--orange);"></i>Perimeter / DMZ</span>
+      <span><i style="background:var(--cyan);"></i>Application zone</span>
+      <span><i style="background:var(--green);"></i>Data zone (encrypted)</span>
+      <span><i style="background:var(--violet);"></i>Outbound lure fabric (segmented)</span>
+    </div>
+    <div class="note"><b>Key isolation rule.</b> The lure fabric has <b>no route back</b> into the data plane except the
+      signed event webhook &#8594; authenticated ingestion. It mounts campaign config read-only.</div>
+  </section>
+
+  <section id="s4">
+    <div class="sec-head"><div class="sec-num">4</div><h2 class="sec-title">Logical / Layered Architecture</h2></div>
+    <div class="card">
+      <div class="zone z-app"><div class="ztitle">Presentation Layer</div>
+        <span class="node"><b>Admin Console (RBAC)</b><span>React 18 + TS + AG-Grid</span></span>
+        <span class="node"><b>Target Portal</b><span>training &#183; quiz &#183; consent</span></span>
+        <span class="node"><b>Landing Pages</b><span>sandboxed lure pages</span></span>
+      </div>
+      <div class="arrow">&#9660; &nbsp; REST/JSON over TLS &#183; OpenAPI 3</div>
+      <div class="zone z-perimeter"><div class="ztitle">Edge Security Layer</div>
+        <span class="node"><b>CDN + WAF</b><span>OWASP CRS</span></span>
+        <span class="node"><b>API Gateway</b><span>JWT rotate &#183; authN/C</span></span>
+        <span class="node"><b>Rate / Burst Limit</b><span>per-user &#183; per-key</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-app"><div class="ztitle">Application / Services Layer â€” FastAPI modules</div>
+        <span class="node"><b>CampaignSvc</b><span>state machine</span></span>
+        <span class="node"><b>TemplateSvc</b><span>lures</span></span>
+        <span class="node"><b>TargetSvc</b><span>SCIM/HR</span></span>
+        <span class="node"><b>DeliverySvc</b><span>SMTP/SMS</span></span>
+        <span class="node"><b>TrackSvc</b><span>events</span></span>
+        <span class="node"><b>ScoreSvc</b><span>risk model</span></span>
+        <span class="node"><b>TrainSvc</b><span>LMS</span></span>
+        <span class="node"><b>ReportSvc</b><span>exports</span></span>
+        <span class="node"><b>ComplianceSvc</b><span>audit/consent</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-app"><div class="ztitle">Concurrency / Async Layer</div>
+        <span class="node"><b>Celery / Redis</b><span>fan-out &#183; retry/backoff</span></span>
+        <span class="node"><b>Beat Scheduler</b><span>launch &#183; reports &#183; purge</span></span>
+        <span class="node"><b>Export Jobs</b><span>XLSX/CSV/HTML off-thread</span></span>
+      </div>
+      <div class="arrow">&#9660;</div>
+      <div class="zone z-data"><div class="ztitle">Persistence Layer</div>
+        <span class="node"><b>PostgreSQL</b><span>OLTP &#183; replicas</span></span>
+        <span class="node"><b>Redis</b><span>cache &#183; tokens</span></span>
+        <span class="node"><b>Elasticsearch</b><span>log/audit</span></span>
+        <span class="node"><b>S3/MinIO</b><span>objects</span></span>
+      </div>
+      <div class="arrow">&#9660;&#9660;&#9660;</div>
+      <div class="zone z-data"><div class="ztitle">External Integrations â€” Outbound, Guarded</div>
+        <span class="node"><b>Mail Relay</b><span>DKIM</span></span>
+        <span class="node"><b>SMS API</b><span>gateway</span></span>
+        <span class="node"><b>HR/AD SCIM</b><span>directory</span></span>
+        <span class="node"><b>SIEM/SOC</b><span>syslog/CEF</span></span>
+        <span class="node"><b>Corporate SSO</b><span>OIDC/SAML</span></span>
+      </div>
+    </div>
+
+    <h3>Cross-Cutting Enablers</h3>
+    <div class="grid g3">
+      <div class="mini"><h4>Identity &amp; Access</h4><p>OIDC + SAML federation to bank SSO, MFA (TOTP/WebAuthn), SCIM provisioning, least-privilege RBAC + ABAC department scoping.</p></div>
+      <div class="mini teal"><h4>Observability</h4><p>Prometheus + Grafana, OpenTelemetry traces, EFK log pipeline, alerting via bank mail/chat.</p></div>
+      <div class="mini gold"><h4>Compliance Evidence</h4><p>Hash-chained audit rows, signed export bundles, retention &amp; legal-hold jobs, regulator REST query API.</p></div>
+    </div>
+  </section>
+
+  <section id="s5">
+    <div class="sec-head"><div class="sec-num">5</div><h2 class="sec-title">Component Catalogue</h2></div>
+
+    <div class="cmp"><h4><code>campaign-svc</code> &#8212; Campaign Studio &amp; State Machine</h4>
+      <p>DRAFT &#8594; REVIEW &#8594; APPROVED &#8594; SCHEDULED &#8594; RUNNING &#8594; PAUSED &#8594; COMPLETED with dual approval
+        (Security + HR/Compliance). Inherits Do-Not-Phish registry, auto traffic-shaping across branches, A/B variants.</p>
+      <div class="tags"><span class="pill blue">FastAPI</span><span class="pill green">Postgres</span><span class="pill amber">Celery tasks</span></div>
+    </div>
+    <div class="cmp"><h4><code>template-svc</code> &#8212; Lure &amp; HTML Template Engine</h4>
+      <p>Clone-fidelity templates with <code>{{.FirstName}} {{.Branch}}</code> variables, fully sandboxed rendering
+        (iframe srcdoc + CSP), deterministic link rewriting, anti-tracking headers, encoding randomisation.</p>
+      <div class="tags"><span class="pill blue">Jinja2/liquid</span><span class="pill slate">sandbox</span><span class="pill green">CSP</span></div>
+    </div>
+    <div class="cmp"><h4><code>target-svc</code> &#8212; People Directory (SCIM / HR / AD)</h4>
+      <p>Idempotent scheduled sync of employees (masked NID, email, phone, branch, division, grade). Pseudonymised internal IDs,
+        PII minimisation, opt-in/opt-out consent ledger.</p>
+      <div class="tags"><span class="pill violet">SCIM 2.0</span><span class="pill blue">LDAP/AD</span><span class="pill slate">PII</span></div>
+    </div>
+    <div class="cmp"><h4><code>delivery-svc</code> &#8212; Isolated Delivery Orchestrator</h4>
+      <p>Celery fan-out with per-wave release, per-domain rate limiting, random jitter, retry/backoff, canonical message IDs,
+        bounce/DLQ handling, Sender-Score sanity monitoring.</p>
+      <div class="tags"><span class="pill amber">SMTP</span><span class="pill amber">SMS</span><span class="pill blue">Celery</span></div>
+    </div>
+    <div class="cmp"><h4><code>track-svc</code> &#8212; Event Ingestion &amp; Attribution</h4>
+      <p>Receives pixel, click (signed one-time links), submit, report, forward events; deduplicates in Redis, enriches with
+        geo/UA, stores raw evidence, correlates to employee + campaign. Report action triggers real SOC ticket webhook.</p>
+      <div class="tags"><span class="pill blue">FastAPI</span><span class="pill green">Redis dedup</span><span class="pill slate">webhook</span></div>
+    </div>
+    <div class="cmp"><h4><code>score-svc</code> &#8212; Phishing-Minded Risk Model</h4>
+      <p>Weighted Bayesian/ML model over vector-susceptibility, time-to-action, repetition, job-value multiplier. Outputs a
+        <b>0&#8211;100 SE-Index</b> per employee / department / branch with explainability trail.</p>
+      <div class="tags"><span class="pill violet">ML/Python</span><span class="pill green">feature store</span></div>
+    </div>
+    <div class="cmp"><h4><code>train-svc</code> &#8212; Remediation &amp; Certification</h4>
+      <p>Post-fall micro-modules or policy assignments, quizzes, expiring certificates, repeat-offender escalation, LMS-style progress API.</p>
+      <div class="tags"><span class="pill blue">LMS</span><span class="pill gold">gamification</span></div>
+    </div>
+    <div class="cmp"><h4><code>report-svc</code> &#8212; Analytics &amp; Export Hub (XLSX &#183; CSV &#183; HTML)</h4>
+      <p>Dimensional queries on campaign/event data; async exporters produce styled XLSX (multi-sheet, charts, conditional
+        formatting), RFC-4180 CSV (UTF-8 BOM for Bangla), self-contained interactive HTML; signed short-lived download URLs.</p>
+      <div class="tags"><span class="pill green">openpyxl</span><span class="pill blue">csv</span><span class="pill gold">html+svg</span></div>
+    </div>
+    <div class="cmp"><h4><code>compliance-svc</code> &#8212; Audit, Consent, Evidence</h4>
+      <p>Append-only hash-chained audit store, consent registry, evidence bundles, retention/purge scheduler, regulator export pack, SIEM feed.</p>
+      <div class="tags"><span class="pill red">WORM log</span><span class="pill slate">SIEM</span></div>
+    </div>
+  </section>
+<!--__PART2__--><section id="s6">
+    <div class="sec-head"><div class="sec-num">6</div><h2 class="sec-title">Campaign Lifecycle â€” End-to-End Data Flow</h2></div>
+    <div class="card">
+      <div class="flow">
+        <div class="step"><div class="n">1</div><b>Design</b><p>Admin builds lure template + landing page in sandbox; A/B variants.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">2</div><b>Audience</b><p>SCIM feed &#8594; filtered cohort by branch/dept/grade; opt-outs removed.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">3</div><b>Approval</b><p>Security + HR/Compliance dual sign-off; consent check auto-run.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">4</div><b>Schedule</b><p>Beat scheduler sets wave windows with throttling &amp; jitter.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">5</div><b>Deliver</b><p>Celery fan-out via SMTP/SMS relays in lure fabric; DKIM signed.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">6</div><b>Track</b><p>Pixel opens &#183; clicks &#183; submits (masked/hashed).</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">7</div><b>Report</b><p>Clicked/submitted &#8594; "report phishing" &#8594; rapid training path.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">8</div><b>Score</b><p>Risk engine updates SE-Index; trends &amp; predictions.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">9</div><b>Train</b><p>Auto-assign remediation micro-modules; re-test loop.</p></div>
+        <div class="arrowmid">&#9656;</div>
+        <div class="step"><div class="n">10</div><b>Export</b><p>Reports (.XLSX / .CSV / .HTML) to Board, HR, Regulator, SOC.</p></div>
+      </div>
+      <div class="note"><b>Data-flow security.</b> Every hop is TLS/mTLS; every mutation writes an audit row; captured
+        credentials are <b>masked and hashed</b> before storage; export jobs run in isolated workers with signed short-lived URLs.</div>
+    </div>
+  </section>
+
+  <section id="s7">
+    <div class="sec-head"><div class="sec-num">7</div><h2 class="sec-title">Data Model (PostgreSQL 16)</h2></div>
+    <div class="grid g2">
+      <div>
+        <h3>Core / Campaign Entities</h3>
+        <table>
+          <tr><th>Table</th><th>Purpose</th></tr>
+          <tr><td><code>organizations</code></td><td>Multi-tenant bank/group tenancy isolation</td></tr>
+          <tr><td><code>employees</code></td><td>Directory targets (pseudonymised PII)</td></tr>
+          <tr><td><code>campaigns</code></td><td>Lifecycle state, schedules, approvals</td></tr>
+          <tr><td><code>campaign_variants</code></td><td>A/B lure/language variants + weights</td></tr>
+          <tr><td><code>email_templates</code></td><td>Clone templates (variables, sandboxed)</td></tr>
+          <tr><td><code>sms_templates</code></td><td>Short-message lures</td></tr>
+          <tr><td><code>landing_pages</code></td><td>Lure payload pages (sanitised HTML)</td></tr>
+          <tr><td><code>deliveries</code></td><td>Per employee &#215; variant state-machine row</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Events / Behaviour / Evidence</h3>
+        <table>
+          <tr><th>Table</th><th>Purpose</th></tr>
+          <tr><td><code>events</code></td><td>Raw tracking: opened / clicked / submitted / reported</td></tr>
+          <tr><td><code>submissions</code></td><td>Masked + hashed captured inputs &amp; metadata</td></tr>
+          <tr><td><code>risk_scores</code></td><td>SE-Index snapshots &amp; deltas (time series)</td></tr>
+          <tr><td><code>trainings</code></td><td>Assigned &amp; completed modules, quiz results</td></tr>
+          <tr><td><code>consent_records</code></td><td>Employee consent acknowledgement ledger</td></tr>
+          <tr><td><code>audit_logs</code></td><td>Append-only hash-chained evidence trail</td></tr>
+          <tr><td><code>report_bundles</code></td><td>Generated exports + signed-URL metadata</td></tr>
+          <tr><td><code>identities</code></td><td>Users, roles, API keys (hashed), MFA state</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="note"><b>Encryption at rest.</b> Column-level for PII/contact fields; TDE at volume level; key rotation via
+      Vault/KMS; exported files signed for tamper-evidence.</div>
+  </section>
+
+  <section id="s8">
+    <div class="sec-head"><div class="sec-num">8</div><h2 class="sec-title">API Contract (REST &#183; OpenAPI 3 &#183; Versioned)</h2></div>
+    <div class="grid g2">
+      <div>
+        <h3>Authentication &amp; Admin</h3>
+        <table>
+          <tr><th>Endpoint</th><th>Description</th></tr>
+          <tr><td><code>POST /api/v1/auth/token</code></td><td>OIDC/OAuth2 token + MFA challenge</td></tr>
+          <tr><td><code>GET /api/v1/me</code></td><td>Current user + permissions (RBAC/ABAC)</td></tr>
+          <tr><td><code>POST /api/v1/targets/sync</code></td><td>Trigger SCIM/HR import job</td></tr>
+          <tr><td><code>GET /api/v1/targets</code></td><td>Searchable paged directory</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Campaigns &amp; Operations</h3>
+        <table>
+          <tr><th>Endpoint</th><th>Description</th></tr>
+          <tr><td><code>POST /api/v1/campaigns</code></td><td>Create campaign (DRAFT)</td></tr>
+          <tr><td><code>POST /api/v1/campaigns/{id}/approve</code></td><td>Dual-approval workflow</td></tr>
+          <tr><td><code>POST /api/v1/campaigns/{id}/launch</code></td><td>Schedule + dispatch waves</td></tr>
+          <tr><td><code>GET /api/v1/deliveries</code></td><td>Per-employee delivery state</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Analytics &amp; Export</h3>
+        <table>
+          <tr><th>Endpoint</th><th>Description</th></tr>
+          <tr><td><code>GET /api/v1/metrics/summary</code></td><td>KPI aggregates + chart JSON</td></tr>
+          <tr><td><code>GET /api/v1/risk/score</code></td><td>SE-Index by employee/dept/branch</td></tr>
+          <tr><td><code>POST /api/v1/reports</code></td><td>Create export job</td></tr>
+          <tr><td><code>GET /api/v1/reports/{id}/export?format=xlsx|csv|html</code></td><td>Signed download of generated file</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Tracking / Compliance</h3>
+        <table>
+          <tr><th>Endpoint</th><th>Description</th></tr>
+          <tr><td><code>GET /t/o/{token}.png</code></td><td>Open-pixel (unauthenticated, signed)</td></tr>
+          <tr><td><code>GET /t/c/{token}</code></td><td>Click redirect (signed one-time)</td></tr>
+          <tr><td><code>POST /api/v1/events/webhook</code></td><td>Inbound lure-fabric events (mTLS)</td></tr>
+          <tr><td><code>GET /api/v1/audit</code></td><td>Audit-log query for regulators</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="s9">
+    <div class="sec-head"><div class="sec-num">9</div><h2 class="sec-title">Security Architecture &amp; Compliance</h2></div>
+
+    <h3>9.1 &#183; OWASP Top 10 (2021) â€” Control Matrix</h3>
+    <table>
+      <tr><th>#</th><th>Risk</th><th>Implemented Control</th></tr>
+      <tr><td>A01</td><td>Broken Access Control</td><td>RBAC + ABAC, per-tenant/row security in Postgres (RLS), MFA on privileged roles, signed short-lived export URLs, strict CORS.</td></tr>
+      <tr><td>A02</td><td>Crypto Failures</td><td>TLS 1.2+/1.3 everywhere, AES-256-GCM at rest, column-level PII encryption, KMS-managed key rotation, no legacy ciphers.</td></tr>
+      <tr><td>A03</td><td>Injection</td><td>Parameterised SQL via ORM, context-aware HTML escaping, NoScript on templates (lure sandbox), input schemas (Pydantic), prepared statements in ELK queries.</td></tr>
+      <tr><td>A04</td><td>Insecure Design</td><td>Threat-modeled zones, approval gates, consent-first workflow, DDoS-safe rate limiting, "secure-by-default" config.</td></tr>
+      <tr><td>A05</td><td>Security Misconfiguration</td><td>IaC + config-as-code, CIS/STIG baseline, WAF OWASP CRS, security headers (HSTS/CSP/XFO), automated config scans in CI.</td></tr>
+      <tr><td>A06</td><td>Vulnerable Components</td><td>SBOM generation, Trivy/OSV scanning in CI, image signing, pinned immutable dependencies, patching SLA &#8804;7 days for critical.</td></tr>
+      <tr><td>A07</td><td>Identification &amp; Auth Failures</td><td>Bank SSO federation (OIDC/SAML), MFA incl. WebAuthn on admins, lockout &amp; anomaly alerts, session rotation, SCIM good hygiene.</td></tr>
+      <tr><td>A08</td><td>Software &amp; Data Integrity</td><td>CI/CD code-signing, signed artifacts, tamper-evident audit hash-chain, signature validation on report bundles.</td></tr>
+      <tr><td>A09</td><td>Logging &amp; Monitoring Failure</td><td>Dual streaming to EFK + SIEM, WORM audit store, GDPR/BB-friendly data protection on logs, alerting per event type.</td></tr>
+      <tr><td>A10</td><td>SSRF</td><td>Egress allow-list proxy, per-host SSRF guard on lure rendering, deny private ranges, no user-controlled fetch.</td></tr>
+    </table>
+
+    <h3>9.2 &#183; NIST CSF 2.0 â€” Function Mapping</h3>
+    <div class="pillar">
+      <div class="col"><h5>Govern &amp; Identify</h5>
+        <ul><li>Risk register for people-risk programme</li><li>Asset inventory (services, data, feeds)</li><li>Roles &amp; responsibilities, policy mapping</li><li>Data flows &amp; supply-chain (SMTP/SMS vendors) catalogued</li></ul>
+      </div>
+      <div class="col"><h5>Protect &amp; Detect</h5>
+        <ul><li>Micro-segmentation, zero-trust identities</li><li>Data residency + encryption controls</li><li>SIEM/WAF/SOC alerting, anomaly DLP rules</li><li>Dominant practice: annual penetration tests, red-team drills</li></ul>
+      </div>
+      <div class="col"><h5>Respond &amp; Recover</h5>
+        <ul><li>Incident runbook for false-positive abuse</li><li>Backups (RPO 15 min, RTO 2 h), DR site in BD</li><li>Legal-hold, regulator notification playbook</li><li>Postmortems feed platform hardening</li></ul>
+      </div>
+    </div>
+
+    <h3>9.3 &#183; ISO/IEC 27001:2022 â€” Annex A Highlights</h3>
+    <table>
+      <tr><th>Annex-A Clause</th><th>Control</th><th>Evidence in Platform</th></tr>
+      <tr><td>A.5.1&#8211;5.3</td><td>Info-security policies &amp; roles</td><td>Board-level acceptable-use &amp; SSE programme policy, admin charter</td></tr>
+      <tr><td>A.5.10</td><td>Acceptable use of assets</td><td>Consent ledger + acknowledgement screens</td></tr>
+      <tr><td>A.5.15&#8211;16</td><td>Access control on projects / suppliers</td><td>RBAC, SCIM off-boarding, vendor risk pack for relays</td></tr>
+      <tr><td>A.5.17</td><td>Authentication info</td><td>MFA, hashed API keys, bruted-token lockout</td></tr>
+      <tr><td>A.5.24&#8211;28</td><td>Security incident mgmt</td><td>Case triage, SIEM integration, response runbooks</td></tr>
+      <tr><td>A.5.29&#8211;30</td><td>Business continuity / ICT readiness</td><td>DR drills, RPO/RTO SLAs, backup tests</td></tr>
+      <tr><td>A.6.1&#8211;6.3</td><td>Employee lifecycle &amp; awareness</td><td>This very platform â€” awareness, phishing simulation, training, quiz, certificates</td></tr>
+      <tr><td>A.7</td><td>Physical</td><td>In-country Tier-III DC with access control &amp; CCTV</td></tr>
+      <tr><td>A.8.1&#8211;8.12</td><td>Technology</td><td>Antimalware on workstations, hardened config, networking controls, log/audit WORM</td></tr>
+      <tr><td>A.8.24 etc. / A.8.25</td><td>Secure dev lifecycle</td><td>OWASP ASVS L2, SAST/DAST, SCA, secure-release signing</td></tr>
+    </table>
+
+    <h3>9.4 &#183; Bangladesh Bank Specific Controls</h3>
+    <div class="grid g3">
+      <div class="mini"><h4>Data Residency</h4><p>All behavioural/PII data resident inside Bangladesh; cross-border transfer blocked unless approved (BB circular on data localisation).</p></div>
+      <div class="mini violet"><h4>Regulator Evidence Pack</h4><p>One-click audit bundle (campaigns, consents, events, risk trends) in a BB-accepted structure â€” signed and dated.</p></div>
+      <div class="mini orange"><h4>Retention Schedule</h4><p>Config-driven retention matching BB record-keeping; legal-hold for investigations; purge jobs audited.</p></div>
+    </div>
+  </section>
+<!--__PART3__--><section id="s10">
+    <div class="sec-head"><div class="sec-num">10</div><h2 class="sec-title">Reporting &amp; Export Subsystem (XLSX &#183; CSV &#183; HTML)</h2></div>
+    <p class="lead">Async, isolated exporters produce regulator/board/HR/SOC-ready bundles. Signed exports, tamper-evidence,
+      bilingual (Bangla/English) labels, and full Excel compatibility including Bangla UTF-8.</p>
+
+    <div class="grid g3">
+      <div class="mini green">
+        <h4>.XLSX <span class="pill green">openpyxl</span></h4>
+        <p><b>Multi-sheet workbook:</b> 1) Executive Summary KPIs, 2) Campaign Performance, 3) Employee Risk Matrix
+          (colour-coded), 4) Raw Events. Native charts, conditional formatting, frozen header rows, filters, data validation.
+          <code>.xlsx</code> via <code>openpyxl</code> with autofit + number formats.</p>
+      </div>
+      <div class="mini blue">
+        <h4>.CSV <span class="pill blue">RFC 4180 Â· UTF-8</span></h4>
+        <p>Strict RFC-4180 quoting, delimiter-safe, plus <b>UTF-8 BOM</b> so Bangla renders correctly in MS Excel.
+          Split into logical files (summary/campaign/employee/events) zipped for compound deliveries.</p>
+      </div>
+      <div class="mini gold">
+        <h4>.HTML <span class="pill gold">self-contained</span></h4>
+        <p><b>Interactive dashboard-pack</b>: inline SVG charts, filters and search, drill-down tables, printable layout.
+          Zero external assets â€” GDPR/BB-safe to email. Optional password-protected (AES) variant for distribution.</p>
+      </div>
+    </div>
+
+    <h3>Export Pipeline</h3>
+    <div class="card">
+      <ol>
+        <li><b>Request</b> â€” <code>POST /api/v1/reports</code> with type + scope + format(s) + audience</li>
+        <li><b>Authorise</b> â€” RBAC + ABAC scope check; every export logged in audit trail</li>
+        <li><b>Query</b> â€” dimensional SQL over PostgreSQL / analytics views (nightly materialised rollups)</li>
+        <li><b>Render in Celery worker</b> â€” XLSX/CSV/HTML builder in an isolated export worker</li>
+        <li><b>Sign &amp; Store</b> â€” file written to S3/MinIO, sidecar signature, metadata row in <code>report_bundles</code></li>
+        <li><b>Notify &amp; Deliver</b> â€” signed short-lived URL (expiry configurable) or schedule to email distribution list</li>
+      </ol>
+      <div class="note"><b>Sample contents.</b> Per campaign: sent / opened / clicked / submitted / reported counts, click-through
+        and falling rates, top-10 at-risk employees, department &amp; branch breakdowns, SE-Index trend line, training completion,
+        and BDT-weighted exposure estimate. All labels switch Bangla &#8602; English.</div>
+    </div>
+  </section>
+
+  <section id="s11">
+    <div class="sec-head"><div class="sec-num">11</div><h2 class="sec-title">Environments &amp; CI/CD</h2></div>
+    <div class="grid g3">
+      <div class="mini"><h4>Dev</h4><p>Local; <code>docker compose</code>; seed fixtures; MailHog/Greenmail; fake SMS adapter; synthetic data generator.</p></div>
+      <div class="mini teal"><h4>Staging</h4><p>Clone of Prod with dummy bank data; full CRS WAF; OWASP ZAP + Pentest agent runs every merge to main.</p></div>
+      <div class="mini green"><h4>Production</h4><p>Bangladesh DC (on-premise/virtual private cloud) or BB-accepted local cloud; IaC + immutable images; change windows.</p></div>
+    </div>
+    <div class="cmp"><h4><code>Pipeline (GitLab CI / GitHub Actions)</code></h4>
+      <p>Branch &#8594; lint + unit + integration tests &#8594; SAST (Semgrep/Bandit) &#8594; SCA + SBOM (Trivy) &#8594; build &amp; sign image (cosign)
+        &#8594; DAST (ZAP baseline) &#8594; container scan + config scan (Kube-bench/Chekov) &#8594; deploy staging &#8594; smoke + security regression
+        &#8594; promote with approval. Infinity gates: any critical finding blocks the build.</p>
+      <div class="tags"><span class="pill slate">SAST</span><span class="pill slate">DAST</span><span class="pill amber">SCA</span><span class="pill red">signing</span></div>
+    </div>
+    <div class="note"><b>Zero-trust runtime.</b> mTLS between services, NetworkPolicies, service accounts with least privilege,
+      secrets only from Vault, no production credentials in code or images.</div>
+  </section>
+
+  <section id="s12">
+    <div class="sec-head"><div class="sec-num">12</div><h2 class="sec-title">Non-Functional Targets â€” Scale, HA, DR</h2></div>
+    <div class="grid g4">
+      <div class="kpi"><div class="v">50k</div><div class="l">employees per tenant (target scale)</div></div>
+      <div class="kpi"><div class="v">100k/day</div><div class="l">emails/SMS fan-out capacity</div></div>
+      <div class="kpi"><div class="v">99.5%</div><div class="l">monthly uptime target</div></div>
+      <div class="kpi"><div class="v">RPO 15m<br/>RTO 2h</div><div class="l">backup / recovery under DR plan</div></div>
+    </div>
+    <ul>
+      <li><b>Scalability:</b> stateless FastAPI replicas behind LB; Celery workers scale with campaign waves; read replicas for analytics; export workers isolated.</li>
+      <li><b>Availability:</b> active&#8211;active app tier in two in-country availability zones; Postgres primary + streaming replicas with automated failover (Patroni); Redis Sentinel/cluster.</li>
+      <li><b>DR:</b> site in second Bangladeshi city; PITR backups off-shifted locally (WORM) ; quarterly restore drills; playbooks for lure-integrity incident.</li>
+      <li><b>Performance budget:</b> p95 &lt; 400 ms for dashboards; exports &lt; 5 min for full-tenant bundles; pixel/click ingestion &lt; 2 s end-to-end.</li>
+    </ul>
+  </section>
+
+  <section id="s13">
+    <div class="sec-head"><div class="sec-num">13</div><h2 class="sec-title">Production Readiness Checklist</h2></div>
+    <table>
+      <tr><th>Domain</th><th>Item</th><th>Status Gate</th></tr>
+      <tr><td>Policy</td><td>Board approval, code of conduct amendment, employee consent process, union/HR notification</td><td><span class="pill amber">Prereq</span></td></tr>
+      <tr><td>Security</td><td>Pen-test report (OWASP ASVS L2), WAF live, SIEM connected, Vault secrets, TLS cert chain, SBOM reviewed</td><td><span class="pill red">Gate</span></td></tr>
+      <tr><td>Data</td><td>Data-residency assertion documented, PII minimisation verified, DLP/egress rules tested, retention policy live</td><td><span class="pill red">Gate</span></td></tr>
+      <tr><td>Delivery</td><td>DKIM/SPF/DMARC DNS records, dedicated sending domains, throttling validated, bounce handling, sender-score baseline</td><td><span class="pill amber">Gate</span></td></tr>
+      <tr><td>Resilience</td><td>DR drill executed, backups verified (restore test), failover rehearsed, runbooks printed</td><td><span class="pill red">Gate</span></td></tr>
+      <tr><td>Regulators</td><td>BB acknowledgment/approval (where applicable), legal counsel sign-off on simulation methodology</td><td><span class="pill amber">Prereq</span></td></tr>
+      <tr><td>People</td><td>SOC integration (report phishing button routes to real tickets), HR escalation workflow, communications plan</td><td><span class="pill green">Launch</span></td></tr>
+      <tr><td>Operations</td><td>Monitoring dashboards, alerting, on-call roster, incident taxonomy, monthly review cadence</td><td><span class="pill green">Launch</span></td></tr>
+    </table>
+  </section>
+
+  <section id="s14">
+    <div class="sec-head"><div class="sec-num">14</div><h2 class="sec-title">Rollout Roadmap</h2></div>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><b>Phase 0 â€” Foundations</b><p>Policy, consent, infrastructure, SSO, SCIM sync, DC readiness, legal sign-off.</p></div>
+      <div class="arrowmid">&#9656;</div>
+      <div class="step"><div class="n">2</div><b>Phase 1 â€” MVP</b><p>Email phishing only, 1 pilot branch, basic training + XLSX/CSV reports.</p></div>
+      <div class="arrowmid">&#9656;</div>
+      <div class="step"><div class="n">3</div><b>Phase 2 â€” Multivector</b><p>SMS, QR, HTML dashboards, risk scoring v1, repeat-offender loop.</p></div>
+      <div class="arrowmid">&#9656;</div>
+      <div class="step"><div class="n">4</div><b>Phase 3 â€” Predictive</b><p>ML risk model, predictive susceptibility, board BI pack, regulator API.</p></div>
+      <div class="arrowmid">&#9656;</div>
+      <div class="step"><div class="n">5</div><b>Phase 4 â€” Programme</b><p>Vishing/USB sims, group-bank-wide rollout, annual certification programme, ISO 27001 evidence exports.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <b>Redacted architecture</b> â€” Social Engineering Awareness Simulator (Internal Phishing Test Platform) &#183; Bangladeshi Banking Edition.<br/>
+      Controls mapped to: Bangladesh Bank ICT Security Guidelines &#183; ISO/IEC 27001:2022 &#183; NIST CSF 2.0 &#183; OWASP Top 10 (2021) &#183; OWASP ASVS L2.<br/>
+      Report formats: <b>.XLSX</b> (openpyxl) &#183; <b>.CSV</b> (RFC 4180, UTF-8 BOM) &#183; <b>.HTML</b> (self-contained interactive dashboard).
+    </div>
+  </footer>
+</div>
+</body>
+</html>

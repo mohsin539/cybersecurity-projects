@@ -1,0 +1,7 @@
+fastapi>=0.115
+uvicorn>=0.32
+cryptography>=42
+openpyxl>=3.1
+Jinja2>=3.1
+pydantic>=2.7
+requests>=2.31

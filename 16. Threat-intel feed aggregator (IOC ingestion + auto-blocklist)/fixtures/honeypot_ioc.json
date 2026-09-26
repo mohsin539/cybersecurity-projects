@@ -1,0 +1,6 @@
+[
+  {"value": "203.0.113.42", "ioc_type": "ipv4", "confidence": 0.9, "tlp": "white", "feed_id": "honeypot-internal", "tags": ["attacker"], "expires_at": "2026-12-31T23:59:59Z"},
+  {"value": "198.51.100.7", "ioc_type": "ipv4", "confidence": 0.6, "tlp": "white", "feed_id": "otx", "tags": ["scan"], "expires_at": "2026-12-31T23:59:59Z"},
+  {"value": "10.0.0.1", "ioc_type": "ipv4", "confidence": 0.99, "tlp": "white", "feed_id": "rogue-feed", "tags": ["internal-guard-test"], "expires_at": "2026-12-31T23:59:59Z"},
+  {"value": "evil.example.com", "ioc_type": "domain", "confidence": 0.8, "tlp": "green", "feed_id": "misp", "tags": ["c2"], "expires_at": "2026-12-31T23:59:59Z"}
+]

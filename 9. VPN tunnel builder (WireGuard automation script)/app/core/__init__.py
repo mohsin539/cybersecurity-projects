@@ -1,0 +1,1 @@
+"""Core domain layer — pure logic, no I/O, no web framework dependencies."""

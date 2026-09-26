@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bandwidth Monitor &amp; Traffic Visualizer</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%2310b981'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div id="app" class="layout">
+
+    <!-- ============ Sidebar ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <div>
+          <h1>Bandwidth <span>Monitor</span></h1>
+          <p>Traffic Visualizer</p>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="card-label">Connection</div>
+        <div id="ws-status" class="conn-status">
+          <span class="dot"></span><span id="ws-status-text">connecting…</span>
+        </div>
+        <div id="server-info" class="muted small">—</div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="card-label">Monitor</div>
+        <label class="row-between">
+          <span>Interface</span>
+          <select id="interface-select"></select>
+        </label>
+        <label class="row-between">
+          <span>Window</span>
+          <select id="range-select">
+            <option value="60">1 min</option>
+            <option value="300" selected>5 min</option>
+            <option value="900">15 min</option>
+            <option value="3600">1 hour</option>
+          </select>
+        </label>
+        <div class="timer row-between"><span>Uptime</span><span id="uptime">0s</span></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="card-label">Interfaces</div>
+        <ul id="interface-list" class="interface-list"></ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <span id="version">v—</span>
+        <span id="clock">—</span>
+      </div>
+    </aside>
+
+    <!-- ============ Main ============ -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2>Network Overview</h2>
+          <p class="muted" id="summary-line">Gathering live network data…</p>
+        </div>
+        <div class="topbar-actions">
+          <span class="live-badge"><span class="dot"></span> LIVE</span>
+          <button id="refresh-btn" title="Refresh history" type="button">⟳</button>
+        </div>
+      </header>
+
+      <!-- Live throughput gauges -->
+      <section class="card gauge-card">
+        <div class="chart-head">
+          <h3>Live throughput</h3>
+          <div class="legend">
+            <span class="lg lg-in"><i></i>Download</span>
+            <span class="lg lg-out"><i></i>Upload</span>
+          </div>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <canvas id="gauge-in"></canvas>
+            <div class="gauge-readout">
+              <span id="gauge-in-value">0 bps</span>
+              <small id="gauge-in-peak">peak 0 bps</small>
+            </div>
+          </div>
+          <div class="gauge">
+            <canvas id="gauge-out"></canvas>
+            <div class="gauge-readout">
+              <span id="gauge-out-value">0 bps</span>
+              <small id="gauge-out-peak">peak 0 bps</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI cards -->
+      <section class="kpi-grid">
+        <article class="card kpi">
+          <div class="card-label">Download</div>
+          <div class="kpi-value" id="kpi-download">0 bps</div>
+          <canvas id="spark-in"></canvas>
+          <div class="kpi-sub muted" id="kpi-download-total">0 B received</div>
+        </article>
+        <article class="card kpi">
+          <div class="card-label">Upload</div>
+          <div class="kpi-value" id="kpi-upload">0 bps</div>
+          <canvas id="spark-out"></canvas>
+          <div class="kpi-sub muted" id="kpi-upload-total">0 B sent</div>
+        </article>
+        <article class="card kpi">
+          <div class="card-label">Total Received</div>
+          <div class="kpi-value" id="kpi-rx">0 B</div>
+          <div class="kpi-sub muted" id="kpi-rx-packets">0 packets</div>
+        </article>
+        <article class="card kpi">
+          <div class="card-label">Total Sent</div>
+          <div class="kpi-value" id="kpi-tx">0 B</div>
+          <div class="kpi-sub muted" id="kpi-tx-packets">0 packets</div>
+        </article>
+      </section>
+
+      <!-- Main traffic chart -->
+      <section class="card chart-card">
+        <div class="chart-head">
+          <h3 id="chart-title">Traffic — total</h3>
+          <div class="legend">
+            <span class="lg lg-in"><i></i>Download</span>
+            <span class="lg lg-out"><i></i>Upload</span>
+          </div>
+        </div>
+        <canvas id="traffic-chart"></canvas>
+      </section>
+
+      <section class="grid-two">
+        <!-- Per-interface breakdown -->
+        <article class="card">
+          <div class="chart-head">
+            <h3>Interface breakdown</h3>
+          </div>
+          <canvas id="iface-chart"></canvas>
+        </article>
+
+        <!-- Protocol + top processes -->
+        <article class="card">
+          <div class="chart-head">
+            <h3>Protocol mix</h3>
+          </div>
+          <canvas id="proto-chart"></canvas>
+          <div class="card-label" style="margin-top:14px">Top processes (by connections)</div>
+          <ul id="process-list" class="process-list"></ul>
+        </article>
+      </section>
+
+      <section class="grid-two">
+        <!-- Per-process bandwidth attribution -->
+        <article class="card span-2">
+          <div class="chart-head">
+            <h3>Bandwidth by process</h3>
+            <span id="proc-meta" class="muted">—</span>
+          </div>
+          <canvas id="proc-chart"></canvas>
+        </article>
+      </section>
+
+      <section class="grid-two">
+        <!-- Connections table -->
+        <article class="card">
+          <div class="chart-head">
+            <h3>Active connections</h3>
+            <span id="conn-count" class="muted">—</span>
+          </div>
+          <div class="table-wrap">
+            <table id="conn-table">
+              <thead><tr>
+                <th>Process</th><th>Proto</th><th>State</th><th>Local</th><th>Remote</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- Alerts -->
+        <article class="card">
+          <div class="chart-head">
+            <h3>Alerts</h3>
+            <button id="clear-alerts" type="button" class="mini-btn">clear</button>
+          </div>
+          <ul id="alert-feed" class="alert-feed"></ul>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/js/vendor/chart.umd.min.js"></script>
+  <script src="/static/js/format.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

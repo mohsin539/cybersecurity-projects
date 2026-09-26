@@ -1,0 +1,27 @@
+{
+  "sha256": "f0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c",
+  "filename": "order_confirm_pay.aspx.cmd",
+  "family": "",
+  "verdict": "malicious",
+  "av_names": ["Win32/AgentTesla", "TrojanSpy.Win32.AGT"],
+  "yara_rules": ["agent_tesla_keylog", "ats_stealer"],
+  "network": {
+    "domains": ["smtp-agtsvc.fast-dns-us[.]net"],
+    "ips": ["45.155.205.111"]
+  },
+  "files": [
+    {
+      "path": "C:\\Users\\victim\\AppData\\Local\\Temp\\x5E2A.tmp",
+      "strings": ["keyboard hook", "getasynckeystate", "chrome login data",
+                  "data to c2", "exfil to cloud", "upload via beacon"],
+      "imports": ["GetAsyncKeyState", "SetWindowsHookExA", "InternetOpenA"]
+    }
+  ],
+  "registry": ["HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\AgentService"],
+  "processes": ["cmd.exe", "powershell.exe", "schtasks.exe"],
+  "strings": ["smtp exfil", "zip documents", "keylogger", "cookie dump",
+              "credential vault", "persistence scheduled"],
+  "behaviors": ["collection:keylog", "cred:vault", "exfil:webservice", "c2:smtp",
+                "persistence:scheduled_task", "collection:local_data"],
+  "meta": {"detected_by": "Elastic EQL + CAPE", "arch": "x86"}
+}

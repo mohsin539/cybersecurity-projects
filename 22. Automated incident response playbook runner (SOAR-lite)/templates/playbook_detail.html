@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ playbook.name }} · SOAR-Lite{% endblock %}
+{% block content %}
+<div class="breadcrumb"><a href="/playbooks">Playbooks</a> / {{ playbook.key }} v{{ playbook.version }}</div>
+<h1>{{ playbook.name }}</h1>
+<div class="toolbar">
+  {% if playbook.status != 'published' %}
+  <button class="btn btn-sm btn-primary" onclick="pbAction('publish')">Publish (immutable)</button>
+  <button class="btn btn-sm" onclick="pbAction('archive')">Archive</button>
+  {% endif %}
+  <a href="/playbooks/new?key={{ playbook.key }}" class="btn btn-sm">New revision → v{{ playbook.version + 1 }}</a>
+</div>
+<dl class="kv">
+  <dt>Description</dt><dd>{{ playbook.description or '—' }}</dd>
+  <dt>Risk</dt><dd>{{ playbook.risk }}</dd>
+  <dt>Version</dt><dd>v{{ playbook.version }} (published: {{ playbook.published_at.strftime('%Y-%m-%d') if playbook.published_at else 'never' }})</dd>
+</dl>
+<div class="grid-2">
+  <section class="card">
+    <h2>Triggers</h2>
+    <ul>{% for t in playbook.trigger or [] %}<li><code>{{ t }}</code></li>{% endfor %}</ul>
+    <h2>Compensations</h2>
+    <table>
+      <thead><tr><th>when_step</th><th>action</th></tr></thead>
+      <tbody>
+      {% for c in playbook.compensations or [] %}
+        <tr><td>{{ c.when_step }}</td><td><code>{{ c.action }}</code></td></tr>
+      {% else %}<tr><td colspan="2" class="muted">none</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>Steps (by id)</h2>
+    <table>
+      <thead><tr><th>#</th><th>Type</th><th>Action</th><th>Condition</th><th>Depends on</th></tr></thead>
+      <tbody>
+      {% for s in playbook.spec.get('steps') or [] %}
+        <tr>
+          <td><code>{{ s.id }}</code></td>
+          <td>{{ s.type }}</td>
+          <td>{% if s.action %}<code>{{ s.action }}</code>{% elif s.type == 'approval' %}<span class="muted">human approval</span>{% endif %}</td>
+          <td>{{ s.if or '—' }}</td>
+          <td>{{ s.run_after | join(', ') if s.run_after else '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function pbAction(action) {
+  const r = await fetch('/api/v1/playbooks/{{ playbook.id }}/' + action, {
+    method: 'POST', headers: {'X-CSRF-Token': CSRF()}
+  });
+  if (r.ok) location.reload();
+  else { const d = await r.json().catch(()=>({})); alert(d.detail || 'failed'); }
+}
+</script>
+{% endblock %}

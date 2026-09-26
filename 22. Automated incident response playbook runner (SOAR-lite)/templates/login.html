@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}SOAR-Lite · Sign in{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <h1>SOAR-Lite</h1>
+    <p class="muted">Automated Incident Response Playbook Runner</p>
+    {% if request.query_params.get('msg') %}<div class="notice">{{ request.query_params.get('msg') }}</div>{% endif %}
+    <form id="login-form" autocomplete="on">
+      <label>Username</label>
+      <input type="text" name="username" required autofocus autocomplete="username">
+      <label>Password</label>
+      <input type="password" name="password" required autocomplete="current-password">
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+    </form>
+    <p id="login-error" class="error" hidden></p>
+    <p class="hint">Default admin / password set via <code>ADMIN_PASSWORD</code> in your <code>.env</code>.</p>
+  </div>
+</div>
+<script>
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const err = document.getElementById('login-error');
+  err.hidden = true;
+  try {
+    const r = await fetch('/api/v1/auth/login', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: this.username.value, password: this.password.value})
+    });
+    if (r.ok) { window.location.href = '/'; return; }
+    const data = await r.json().catch(()=>({}));
+    err.textContent = data.detail || 'login failed';
+    err.hidden = false;
+  } catch (ex) {
+    err.textContent = 'network error: ' + ex.message; err.hidden = false;
+  }
+});
+</script>
+{% endblock %}

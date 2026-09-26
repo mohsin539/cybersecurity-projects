@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} evidence · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('cases.detail', cid=case['id']) }}">{{ case['case_ref'] }}</a> / {{ action }} evidence</div>
+<h1>{{ '📳 Add evidence device' if action=='Add' else '✏️ Edit evidence' }}</h1>
+
+<form method="post" class="stack">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <div class="field"><label>Device model *</label>
+    <input name="device_model" value="{{ (item['device_model'] if item else '') }}" required></div>
+  <div class="row3">
+    <div class="field"><label>Manufacturer</label><input name="manufacturer" value="{{ (item['manufacturer'] if item else '') }}"></div>
+    <div class="field"><label>Serial</label><input name="device_serial" value="{{ (item['device_serial'] if item else '') }}"></div>
+    <div class="field"><label>OS type</label><input name="os_type" value="{{ (item['os_type'] if item else '') }}"></div>
+  </div>
+  <div class="row3">
+    <div class="field"><label>IMEI</label><input name="imei" value="{{ (item['imei'] if item else '') }}"></div>
+    <div class="field"><label>Phone number</label><input name="phone_number" value="{{ (item['phone_number'] if item else '') }}"></div>
+    <div class="field"><label>Carrier</label><input name="carrier" value="{{ (item['carrier'] if item else '') }}"></div>
+  </div>
+  <div class="row3">
+    <div class="field"><label>Acquisition method</label>
+      <select name="acquisition_method">
+        {% for m in acq_methods %}
+        <option value="{{ m }}" {{ 'selected' if item and item['acquisition_method']==m }}>{{ m }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label>Acquired by</label><input name="acquired_by" value="{{ (item['acquired_by'] if item else '') }}"></div>
+    <div class="field"><label>Location / evidence room</label><input name="location" value="{{ (item['location'] if item else '') }}"></div>
+  </div>
+  {% if item %}
+  <div class="row3">
+    <div class="field"><label>Status</label>
+      <select name="status">
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if item['status']==s }}>{{ s }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label>Custodian</label><input name="custodian" value="{{ item['custodian'] }}"></div>
+    <div class="field" style="opacity:.35"><label>Acquired at</label><input value="{{ item['acquired_at'] }}" disabled></div>
+  </div>
+  {% else %}
+  <div class="field small muted">Status starts as <b>intake</b>. Record the acquisition hash below to evidence data integrity (NIST PR.DS-4).</div>
+  {% endif %}
+  <div class="row3">
+    <div class="field"><label>Storage hash</label><input name="storage_hash" value="{{ (item['storage_hash'] if item else '') }}" placeholder="hex…"></div>
+    <div class="field"><label>SHA-1</label><input name="sha1" value="{{ (item['sha1'] if item else '') }}"></div>
+    <div class="field"><label>SHA-256</label><input name="sha256" value="{{ (item['sha256'] if item else '') }}"></div>
+  </div>
+  <div class="field"><label>Notes</label><textarea name="notes">{{ (item['notes'] if item else '') }}</textarea></div>
+  <div class="actions">
+    <button class="btn success" type="submit">💾 Save evidence</button>
+    {% if item %}<a class="btn ghost" href="{{ url_for('evidence.detail', eid=item['id']) }}">Cancel</a>
+    {% else %}<a class="btn ghost" href="{{ url_for('cases.detail', cid=case['id']) }}">Cancel</a>{% endif %}
+  </div>
+</form>
+{% endblock %}

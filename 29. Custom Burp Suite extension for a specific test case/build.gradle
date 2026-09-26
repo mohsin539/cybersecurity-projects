@@ -1,0 +1,14 @@
+plugins {
+    id 'org.cyclonedx.bom' version '1.10.0'
+}
+
+allprojects {
+    group = 'com.acs.burptester'
+    version = '1.0.0'
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+}

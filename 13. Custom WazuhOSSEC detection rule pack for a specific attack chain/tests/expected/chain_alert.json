@@ -1,0 +1,11 @@
+{
+  "incident_id": "inc-chain-demo-001",
+  "rule_id": 200901,
+  "rule_name": "Multiple kill-chain phases observed on same host",
+  "severity": "critical",
+  "evidence": [
+    {"ts": "2026-09-12T14:01:01Z", "rule_id": 200020, "phase": "access"},
+    {"ts": "2026-09-12T14:03:01Z", "rule_id": 200100, "phase": "exec", "source_ip": "172.16.8.20"},
+    {"ts": "2026-09-12T14:04:00Z", "rule_id": 200200, "phase": "persist", "source_ip": "172.16.8.20"}
+  ]
+}

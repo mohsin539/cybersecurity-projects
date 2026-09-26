@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# Data artifacts
+data/audit/*.json
+data/output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Secrets - never commit
+*.env
+!example.env
+*.pem
+*.key
+
+# OS
+Thumbs.db
+.DS_Store

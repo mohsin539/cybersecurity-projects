@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Detections <small>host + network detection records</small></h1>
+
+<form method="get" class="filterbar">
+  <label>Technique
+    <select name="technique">
+      <option value="">all</option>
+      {% for t in technique_opts %}
+      <option value="{{ t }}" {{ 'selected' if selected_tech==t }}>{{ t }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Severity
+    <select name="level">
+      <option value="">all</option>
+      {% for l in ['critical','high','medium','low'] %}
+      <option value="{{ l }}" {{ 'selected' if selected_level==l }}>{{ l }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="btn" type="submit">Filter</button>
+</form>
+
+<div class="table-scroll">
+<table>
+  <tr>
+    <th>Detection</th><th>Run</th><th>Rule</th><th>Technique</th><th>Level</th><th>Confidence</th>
+    <th>Event</th><th>Source</th><th>Vector</th><th>Match</th>
+  </tr>
+  {% for d in detections %}
+  <tr>
+    <td><code>{{ d.detection_id }}</code></td>
+    <td><code>{{ d.run_id }}</code></td>
+    <td><code>{{ d.rule_id }}</code><br><small class="tag">{{ d.rule_name }}</small></td>
+    <td>{{ d.technique_id or d.rule_technique or 'behavioral' }}</td>
+    <td><span class="badge {{ d.level }}">{{ d.level }}</span></td>
+    <td>{{ d.confidence }}</td>
+    <td>{{ d.data_source }}{% if d.event_id != 'none' %}:{{ d.event_id }}{% endif %}</td>
+    <td>{{ d.src }} &rarr; {{ d.tgt }}</td>
+    <td><small>{{ d.user }}</small></td>
+    <td>{% if d.tp %}<span class="ok-chip">&#9989; ground truth</span>{% else %}<span class="badge med">fp</span>{% endif %}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="10" class="empty">No detections — run a technique first.</td></tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

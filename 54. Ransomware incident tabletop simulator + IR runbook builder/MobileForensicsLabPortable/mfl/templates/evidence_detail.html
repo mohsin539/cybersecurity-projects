@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ item['device_model'] }} · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('cases.detail', cid=case['id']) }}">{{ case['case_ref'] }}</a> / evidence #{{ item['id'] }}</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h1 style="margin-top:0">📳 {{ item['device_model'] }}
+    <span class="tag tag-{{ 'cyan' if item['status']=='intake' else ('amber' if item['status'] in ('acquired','analyzed') else 'green' if item['status']=='sealed' else 'gray') }}">{{ item['status'] }}</span>
+  </h1>
+  <div class="sub">
+    {{ item['manufacturer'] or '—' }} · {{ item['os_type'] or '—' }} · acquired {{ item['acquired_at'] }} by {{ item['acquired_by'] or '—' }}
+    · custodian <b>{{ item['custodian'] or '—' }}</b>
+  </div>
+  <div class="grid stats" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+    <div class="stat"><div class="lbl">Serial</div><div class="small mono">{{ item['device_serial'] or '—' }}</div></div>
+    <div class="stat"><div class="lbl">IMEI</div><div class="small mono">{{ item['imei'] or '—' }}</div></div>
+    <div class="stat"><div class="lbl">SHA-256</div><div class="small mono" style="color:var(--green)">{{ (item['sha256'] or '— (not yet hashed)') }}</div></div>
+    <div class="stat"><div class="lbl">Acquisition</div><div class="small">{{ item['acquisition_method'] }}</div></div>
+  </div>
+  {% if item['notes'] %}<p class="small muted">{{ item['notes'] }}</p>{% endif %}
+  <div class="actions">
+    <a class="btn primary" href="{{ url_for('custody.add', eid=item['id']) }}">🔗 Record custody event</a>
+    <a class="btn primary" href="{{ url_for('analysis.create', eid=item['id']) }}">🔬 Add artifact</a>
+    <a class="btn ghost" href="{{ url_for('evidence.update', eid=item['id']) }}">✏️ Edit</a>
+    <a class="btn ghost" href="{{ url_for('custody.timeline', eid=item['id']) }}">⏱ Custody timeline</a>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap:18px">
+  <div class="card">
+    <h3 style="margin-top:0">🔗 Custody history</h3>
+    {% if custody %}
+    <div class="timeline">
+      {% for c in custody %}
+      <div class="tl-item">
+        <b><span class="tag tag-{{ 'cyan' if c['event_type']=='INTAKE' else ('amber' if c['event_type'] in ('CHECKOUT','TRANSFER') else 'green' if c['event_type']=='CHECKIN' else 'red') }}">{{ c['event_type'] }}</span></b>
+        <div class="small muted">{{ c['occurred_at'] }}</div>
+        <div class="small">{{ c['from_location'] or '—' }} → {{ c['to_location'] or '—' }} · <b>{{ c['to_user'] or c['from_user'] or '—' }}</b></div>
+        {% if c['notes'] %}<div class="small muted">{{ c['notes'] }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<div class="empty">No custody events yet.</div>{% endif %}
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">🔬 Artifacts</h3>
+    {% if artifacts %}
+    <div class="tblwrap" style="border:0"><table>
+      <tr><th>Category</th><th>Name</th><th>Value</th><th>Severity</th></tr>
+      {% for a in artifacts %}
+      <tr>
+        <td><span class="tag tag-gray">{{ a['category'] }}</span></td>
+        <td>{{ a['name'] }}</td>
+        <td class="small">{{ a['value'] or '—' }}</td>
+        <td><span class="tag sev-{{ a['severity'] if a['severity'] in ('blocker','critical','high','medium','low','info') else 'info' }}">{{ a['severity'] }}</span></td>
+      </tr>
+      {% endfor %}
+    </table></div>
+    {% else %}<div class="empty">No artifacts yet.</div>{% endif %}
+  </div>
+</div>
+{% endblock %}

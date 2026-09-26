@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Custody event · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('evidence.detail', eid=item['id']) }}">{{ item['device_model'] }}</a> / custody event</div>
+<h1>🔗 Record custody event</h1>
+<div class="sub">Device <code>{{ item['device_model'] }}</code> · status <span class="tag tag-gray">{{ item['status'] }}</span></div>
+
+<form method="post" class="stack">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <div class="field"><label>Event type</label>
+    <select name="event_type">
+      {% for t in event_types %}
+      <option value="{{ t }}" {{ 'selected' if event and event['event_type']==t }}>{{ t }}</option>
+      {% endfor %}
+    </select></div>
+  <div class="row2">
+    <div class="field"><label>From user</label><input name="from_user"></div>
+    <div class="field"><label>To user (new custodian)</label><input name="to_user"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>From location</label><input name="from_location"></div>
+    <div class="field"><label>To location</label><input name="to_location"></div>
+  </div>
+  <div class="field"><label>Notes</label><textarea name="notes"></textarea></div>
+  <div class="actions">
+    <button class="btn success" type="submit">💾 Record event</button>
+    <a class="btn ghost" href="{{ url_for('evidence.detail', eid=item['id']) }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Custody timeline · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('evidence.detail', eid=item['id']) }}">{{ item['device_model'] }}</a> / custody timeline</div>
+<h1>⏱ Custody timeline — {{ item['device_model'] }}</h1>
+<div class="sub">Every handover is evidenced by an audit event (ISO A.8.15, NIST AU-2).</div>
+
+{% if events %}
+<div class="card"><div class="timeline">
+  {% for e in events %}
+  <div class="tl-item">
+    <b><span class="tag tag-{{ 'cyan' if e['event_type']=='INTAKE' else ('amber' if e['event_type'] in ('CHECKOUT','TRANSFER') else 'green' if e['event_type']=='CHECKIN' else 'red') }}">{{ e['event_type'] }}</span></b>
+    <div class="small muted">{{ e['occurred_at'] }}</div>
+    <div class="small">{{ e['from_location'] or '—' }} <span class="muted">→</span> {{ e['to_location'] or '—' }} ·
+      <b>{{ e['to_user'] or e['from_user'] or '—' }}</b></div>
+    {% if e['notes'] %}<div class="small muted">{{ e['notes'] }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div></div>
+{% else %}
+<div class="card"><div class="empty">No custody events for this device.</div></div>
+{% endif %}
+<div class="actions">
+  <a class="btn primary" href="{{ url_for('custody.add', eid=item['id']) }}">+ Add event</a>
+</div>
+{% endblock %}

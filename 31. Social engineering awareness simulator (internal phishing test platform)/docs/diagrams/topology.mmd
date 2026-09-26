@@ -1,0 +1,55 @@
+flowchart TB
+    subgraph EXT["Internet / Corporate WAN"]
+        A["Admin Console<br/><i>(React SPA)</i>"]
+        T["Target Employee<br/><i>(mailbox / SMS / phone)</i>"]
+    end
+
+    subgraph DMZ["Perimeter / DMZ"]
+        W["CDN + WAF<br/><i>OWASP CRS</i>"]
+        LB["Nginx LB<br/><i>TLS 1.3</i>"]
+        RP["Reverse Proxy<br/><i>SSRF guard</i>"]
+    end
+
+    subgraph APP["Application Zone"]
+        API["API Gateway<br/><i>JWT / RBAC</i>"]
+        SVC["FastAPI Core x4<br/><i>Campaign/Template/Target/Delivery/Track/Score/Train/Report/Compliance</i>"]
+        WK["Celery Workers + Beat<br/><i>fan-out / exports / retention</i>"]
+    end
+
+    subgraph DATA["Data Zone (Bangladesh DC)"]
+        PG["PostgreSQL 16<br/><i>AES-256 / RLS / replicas</i>"]
+        RD["Redis 7<br/><i>cache / queue / sessions</i>"]
+        ES["Elasticsearch 8<br/><i>logs / audit</i>"]
+        S3["MinIO / S3<br/><i>evidence / exports</i>"]
+        VT["Vault / KMS<br/><i>secrets</i>"]
+    end
+
+    subgraph LURE["Outbound Lure Fabric (isolated)"]
+        SMTP["SMTP Relay Farm<br/><i>SPF/DKIM/DMARC</i>"]
+        SMS["SMS Gateway<br/><i>BD aggregator</i>"]
+        LP["Landing-Page Hosts<br/><i>randomised subdomains</i>"]
+    end
+
+    subgraph SINK["Event Sink"]
+        EV["Tracking Pixel / Webhook Bus<br/><i>open / click / submit / report</i>"]
+    end
+
+    A --> W --> LB --> RP --> API --> SVC
+    API --> WK
+    SVC --> PG
+    SVC --> RD
+    SVC --> S3
+    SVC --> VT
+    WK --> RD
+    WK --> S3
+    PG --> ES
+    SVC -. "dispatch waves" .-> SMTP
+    SVC -. "dispatch waves" .-> SMS
+    WK -. "render lures / pages" .-> LP
+    SMTP -. "deliver lure" .-> T
+    SMS -. "deliver lure" .-> T
+    T -. "open / click / submit" .-> LP
+    T -. "signed event" .-> EV
+    LP -. "signed events" .-> EV
+    EV -. "webhook (mTLS, read-only config)" .-> SVC
+    SVC -. "audit stream" -.-> SIEM["Bank SIEM / SOC"]

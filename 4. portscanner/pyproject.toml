@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portscanner"
+version = "1.0.0"
+description = "Authorized-use TCP/UDP port scanner with GUI, CLI, and compliance controls (ISO 27001 / NIST / OWASP)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Security Engineering" }]
+dependencies = []            # stdlib-only core; scapy optional for raw engines
+optional-dependencies = { raw = ["scapy>=2.5"] }
+
+[project.scripts]
+portscan = "portscanner.cli:main"
+portscan-gui = "portscanner.gui:main"
+
+[tool.setuptools]
+packages = ["portscanner", "portscanner.engines"]

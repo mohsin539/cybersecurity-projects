@@ -1,0 +1,12 @@
+# C2 Detection Lab - portable console
+# L3 engines + reporting; GUI is stdlib tkinter (bundled with Python).
+tkinter>=8.6
+openpyxl>=3.1.2
+cryptography>=42.0.0
+jinja2>=3.1.4
+
+# build / dev
+pyinstaller>=6.6
+pytest>=8.0
+ruff>=0.5
+mypy>=1.10

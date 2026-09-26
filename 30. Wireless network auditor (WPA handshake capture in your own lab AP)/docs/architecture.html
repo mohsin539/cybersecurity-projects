@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireless Network Auditor — System Architecture</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2333; --border:#30363d;
+    --text:#e6edf3; --muted:#8b949e;
+    --cyan:#39d5ff; --green:#3fb950; --amber:#f0b429; --red:#f85149;
+    --purple:#bc8cff; --pink:#ff7bc7; --blue:#58a6ff; --teal:#56d4dd;
+    --grad1:linear-gradient(135deg,#39d5ff,#58a6ff);
+    --grad2:linear-gradient(135deg,#3fb950,#56d4dd);
+    --grad3:linear-gradient(135deg,#f0b429,#ff7bc7);
+    --grad4:linear-gradient(135deg,#bc8cff,#58a6ff);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.55;padding:32px 20px 80px}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:34px;background:var(--grad1);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.5px}
+  h2{font-size:24px;margin:46px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+  h2 .tag{font-size:13px;color:var(--bg);background:var(--grad2);padding:2px 10px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  h3{font-size:17px;margin:22px 0 8px;color:var(--cyan)}
+  h4{font-size:14.5px;color:var(--amber);margin:14px 0 6px}
+  p{color:var(--muted);max-width:900px;margin-bottom:10px}
+  code{background:#0b0f14;border:1px solid var(--border);padding:1px 6px;border-radius:5px;color:var(--pink);font-size:12.5px}
+  .chip{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;border:1px solid var(--border);background:var(--panel2)}
+  .chip.g{color:var(--green);border-color:#3fb95055}
+  .chip.c{color:var(--cyan);border-color:#39d5ff55}
+  .chip.a{color:var(--amber);border-color:#f0b42955}
+  .chip.p{color:var(--purple);border-color:#bc8cff55}
+  .chip.r{color:var(--red);border-color:#f8514955}
+  .chip.b{color:var(--blue);border-color:#58a6ff55}
+
+  /* ------- overall stack diagram ------- */
+  .stack{display:flex;flex-direction:column;gap:14px;margin:20px 0}
+  .layer{border-radius:14px;padding:16px 18px;border:1px solid var(--border);background:var(--panel)}
+  .layer .cap{font-weight:700;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px}
+  .layer .cap em{font-style:normal;font-weight:400;text-transform:none;letter-spacing:0;opacity:.7;font-size:12px}
+  .boxes{display:flex;flex-wrap:wrap;gap:10px}
+  .box{border-radius:10px;padding:10px 13px;font-size:12.8px;font-weight:600;border:1px solid transparent;min-width:130px;flex:1 1 auto}
+  .box small{display:block;font-weight:400;font-size:11px;opacity:.85;margin-top:3px}
+  .c-cyan{background:#39d5ff1a;color:var(--cyan);border-color:#39d5ff44}
+  .c-green{background:#3fb9501a;color:var(--green);border-color:#3fb95044}
+  .c-amber{background:#f0b4291a;color:var(--amber);border-color:#f0b42944}
+  .c-red{background:#f851491a;color:var(--red);border-color:#f8514944}
+  .c-purple{background:#bc8cff1a;color:var(--purple);border-color:#bc8cff44}
+  .c-blue{background:#58a6ff1a;color:var(--blue);border-color:#58a6ff44}
+  .c-pink{background:#ff7bc71a;color:var(--pink);border-color:#ff7bc744}
+  .c-teal{background:#56d4dd1a;color:var(--teal);border-color:#56d4dd44}
+
+  .flow{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:13px;font-weight:600}
+  .flow .ar{color:var(--cyan);font-size:16px}
+  .flow.lbl{justify-content:flex-start;padding-left:6px}
+
+  /* ------- tables ------- */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;background:var(--panel);border-radius:12px;overflow:hidden}
+  th{background:var(--panel2);text-align:left;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+  td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:top;color:var(--text)}
+  td.mut{color:var(--muted)}
+  .ok{color:var(--green);font-weight:600}
+  .warn{color:var(--amber);font-weight:600}
+  .bad{color:var(--red);font-weight:600}
+
+  /* ------- cards ------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .card .ico{font-size:26px}
+  .card h4{margin:8px 0 6px;color:var(--text)}
+  .card p{font-size:12.5px;margin:0}
+
+  /* ------- callouts ------- */
+  .callout{border-left:4px solid var(--cyan);background:var(--panel2);padding:14px 18px;border-radius:0 12px 12px 0;margin:18px 0}
+  .callout.warn{border-color:var(--amber)}
+  .callout.danger{border-color:var(--red)}
+  .callout.ok{border-color:var(--green)}
+  .callout b{color:var(--cyan)}
+  .callout.warn b{color:var(--amber)}
+  .callout.danger b{color:var(--red)}
+  .callout.ok b{color:var(--green)}
+
+  /* ------- timeline ------- */
+  .pipe{display:flex;flex-direction:column;gap:0;margin:18px 0}
+  .pstep{display:flex;gap:14px;position:relative;padding-bottom:18px}
+  .pstep:last-child{padding-bottom:0}
+  .pstep .dot{width:34px;height:34px;border-radius:50%;flex:0 0 34px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0d1117;font-size:13px}
+  .pstep .body{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;flex:1}
+  .pstep .body b{display:block;margin-bottom:4px;font-size:13.5px}
+  .pstep .body p{font-size:12.5px;margin:0}
+  .d1{background:var(--grad1)} .d2{background:var(--grad2)} .d3{background:var(--grad3)} .d4{background:var(--grad4)}
+  .d5{background:linear-gradient(135deg,#f85149,#ff7bc7)} .d6{background:linear-gradient(135deg,#56d4dd,#3fb950)}
+  .d7{background:linear-gradient(135deg,#f0b429,#bc8cff)}
+
+  pre.code{background:#0b0f14;border:1px solid var(--border);border-radius:12px;padding:16px;font-size:12px;overflow-x:auto;color:var(--text);line-height:1.6}
+  pre.code .k{color:var(--purple)} pre.code .s{color:var(--green)} pre.code .c{color:#6e7681} pre.code .n{color:var(--amber)}
+
+  .foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+
+  a{color:var(--cyan)}
+  .pillbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .filedot{color:var(--teal)}
+  .sec{margin-top:30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>📡 Wireless Network Auditor — System Architecture</h1>
+  <p>GUI-based <b>portable .exe</b> solution for <b>laboratory</b> WPA/WPA2 handshake capture &amp; security auditing of <b>your own lab access point</b>. Built with a hardened, privacy-aware pipeline that maps to <b>OWASP Top 10</b>, <b>ISO/IEC 27001</b>, and <b>NIST CSF</b>.</p>
+  <div class="pillbar">
+    <span class="chip c">Python + Tkinter</span>
+    <span class="chip c">Scapy / Wireshark-TShark</span>
+    <span class="chip c">sqlite3 / AES-256</span>
+    <span class="chip c">PyInstaller portable</span>
+    <span class="chip g">GDPR-aware</span>
+    <span class="chip a">Multi-report export</span>
+    <span class="chip p">Zero network egress</span>
+    <span class="chip b">Lab-scope locked</span>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <h2 id="overview">1. High-Level Overview <span class="tag">OSI / WLAN stack</span></h2>
+  <p>The tool passively and actively captures 802.11 frames, isolates the <b>WPA handshake (EAPOL 1-4)</b>, builds an encrypted on-disk evidence store, runs integrity/validation checks, and produces auditable reports. All analysis stays <b>on-device</b>.</p>
+
+  <div class="stack">
+    <div class="layer">
+      <div class="cap"><em>Layer 6 ·</em> Presentation — GUI Shell</div>
+      <div class="boxes">
+        <div class="box c-cyan">Dashboard<small>Live channel heatmap, scan table, stats</small></div>
+        <div class="box c-cyan">Capture Studio<small>Start/stop, filters, channel hop</small></div>
+        <div class="box c-cyan">Handshake Lab<small>EAPOL tracker, 4-way progress</small></div>
+        <div class="box c-cyan">Report Builder<small>HTML · CSV · XLSX · JSON export</small></div>
+      </div>
+    </div>
+    <div class="flow"><span class="ar">▲</span> UI events &amp; callbacks <span class="ar">▼</span> data models</div>
+    <div class="layer">
+      <div class="cap"><em>Layer 5 ·</em> Application — Services</div>
+      <div class="boxes">
+        <div class="box c-blue">Capture Orchestrator<small>Channel hopper, mode toggle</small></div>
+        <div class="box c-blue">EAPOL/Handshake Engine<small>Message 1-4 detection &amp; replay guard</small></div>
+        <div class="box c-blue">AP Fingerprinter<small>OUI lookup, cipher suites, PMF status</small></div>
+        <div class="box c-blue">Vulnerability Scanner<small>Open network, WPS, weak cipher, defaults</small></div>
+      </div>
+    </div>
+    <div class="flow"><span class="ar">▲</span> threads / queues <span class="ar">▼</span> time-series events</div>
+    <div class="layer">
+      <div class="cap"><em>Layer 4 ·</em> Domain — Core Engine</div>
+      <div class="boxes">
+        <div class="box c-green">Radio I/O<small>Scapy raw socket / TShark capture</small></div>
+        <div class="box c-green">Frame Decoder<small>802.11 · 802.1X · EAPOL parser</small></div>
+        <div class="box c-green">Handshake State Machine<small>PMKID / MIC cross-check</small></div>
+        <div class="box c-green">Deauth Control<small>Lab-only client deauth (opt-in)</small></div>
+      </div>
+    </div>
+    <div class="flow"><span class="ar">▲</span> packets <span class="ar">▼</span> verified artifacts</div>
+    <div class="layer">
+      <div class="cap"><em>Layer 3 ·</em> Data — Evidence Store</div>
+      <div class="boxes">
+        <div class="box c-purple">SQLite Vault<small>APs, clients, sessions, findings</small></div>
+        <div class="box c-purple">PCAP Archive<small>Rotating ring buffer, AES-256 at rest</small></div>
+        <div class="box c-purple">Key Mgmt<small>DPAPI / AES-GCM + HSM-friendly</small></div>
+        <div class="box c-purple">Evidence Log<small>Tamper-evident hash chain</small></div>
+      </div>
+    </div>
+    <div class="flow"><span class="ar">▲</span> queries <span class="ar">▼</span> materialized results</div>
+    <div class="layer">
+      <div class="cap"><em>Layer 2 ·</em> Output — Reports &amp; Scoring</div>
+      <div class="boxes">
+        <div class="box c-amber">HTML Report<small>Branded, self-contained, printable</small></div>
+        <div class="box c-amber">CSV Export<small>Machine-readable findings</small></div>
+        <div class="box c-amber">XLSX Workbook<small>Multi-sheet, formatted, charts</small></div>
+        <div class="box c-amber">JSON / PCAP<small>Raw artifact handover</small></div>
+      </div>
+    </div>
+    <div class="flow"><span class="ar">▲</span> transport <span class="ar">▼</span> consumer</div>
+    <div class="layer">
+      <div class="cap"><em>Layer 1 ·</em> Platform — Portable .exe</div>
+      <div class="boxes">
+        <div class="box c-pink">PyInstaller Onefile<small>Npcap + ext deps bundled</small></div>
+        <div class="box c-pink">UAC Elevation<small>Monitor driver rights</small></div>
+        <div class="box c-pink">Auto-update veto<small>Signed, offline-safe</small></div>
+        <div class="box c-pink">Runtime Tear-down<small>Zero residual on exit</small></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODULES ================= -->
+  <h2 id="modules">2. Component Breakdown &amp; Color Legend</h2>
+  <table>
+    <tr><th>Component</th><th>Responsibility</th><th>Key Constraints</th><th>Colors</th></tr>
+    <tr><td class="c-cyan"><b>GUI (Tkinter/ttk)</b></td><td>Dashboard, capture control, handshake tracker, report wizard</td><td>Single-process, threading via <code>queue.Queue</code>, no UI freeze</td><td>Cyan</td></tr>
+    <tr><td class="c-blue"><b>Capture Orchestrator</b></td><td>Monitor-mode control, channel hopping, mode (passive/active)</td><td>Bound to SSID/BSSID allow-list; lab-scope lock</td><td>Blue</td></tr>
+    <tr><td class="c-green"><b>EAPOL Engine</b></td><td>Parse Message 1-4, track key state, validate MIC/PMKID</td><td>Replay-attack guard; discards out-of-order EAPOL</td><td>Green</td></tr>
+    <tr><td class="c-purple"><b>Evidence Vault</b></td><td>SQLite + encrypted PCAP ring buffer + hash-chain log</td><td>AES-256-GCM at rest; per-run session keys</td><td>Purple</td></tr>
+    <tr><td class="c-amber"><b>Report Generator</b></td><td>Build HTML/CSV/XLSX/JSON outputs from findings</td><td>Deterministic render; no remote assets; sanitized XSS-safe</td><td>Amber</td></tr>
+    <tr><td class="c-pink"><b>Portable Runtime</b></td><td>PyInstaller-onefile packaging, driver deps, cleanup</td><td>Signed binary, temp-dir isolation, wipe on close</td><td>Pink</td></tr>
+  </table>
+
+  <!-- ================= PIPELINE ================= -->
+  <h2 id="pipeline">3. Capture Pipeline (Data Flow)</h2>
+  <div class="pipe">
+    <div class="pstep"><div class="dot d1">1</div><div class="body"><b>Interface Probe</b><p>Detect Wi-Fi adapter → request monitor mode via <code>netsh / nmcli</code>. Verify promiscuous+monitor support before proceeding. <span class="chip g">Enforced</span></p></div></div>
+    <div class="pstep"><div class="dot d2">2</div><div class="body"><b>Scope Register</b><p>Operator inputs only <b>lab ESSID / BSSID</b>. Allowed list stored in vault; any other BSSID is dropped at the socket.</p></div></div>
+    <div class="pstep"><div class="dot d3">3</div><div class="body"><b>Frame Capture</b><p>802.11 frames flow from radio → decode → classify (beacon / data / EAPOL / deauth / WPS). Ring-buffer PCAP snapshots every 30 s.</p></div></div>
+    <div class="pstep"><div class="dot d4">4</div><div class="body"><b>Handshake State Machine</b><p>Watch EAPOL key frames. Track sequence (M1→M2→M3→M4) per client. Persist only <b>complete</b> or <b>MIC-validated</b> handshakes. Optional MIC-of-death / deauth only on lab clients with explicit consent.</p></div></div>
+    <div class="pstep"><div class="dot d5">5</div><div class="body"><b>Analysis &amp; Findings</b><p>AP fingerprint (OUI vendor, cipher suite, PMF, WPS exposure), client inventory, open-network detection, weak-settings scoring.</p></div></div>
+    <div class="pstep"><div class="dot d6">6</div><div class="body"><b>Evidence Recording</b><p>Encrypted store + <code>SHA-256</code> hash chain (each record links previous hash). No plaintext PSK/passphrase is ever persisted.</p></div></div>
+    <div class="pstep"><div class="dot d7">7</div><div class="body"><b>Report Export</b><p>Choose <b>HTML · CSV · XLSX · JSON</b> (+ raw PCAP bundle). Reports embed a signed summary line for chain-of-custody.</p></div></div>
+  </div>
+
+  <!-- ================= FRAMEWORKS ================= -->
+  <h2 id="frameworks">4. Compliance &amp; Framework Mapping</h2>
+
+  <div class="sec">
+  <h3>🛡 OWASP Top 10 (2021) — applied to the tool itself</h3>
+  <table>
+    <tr><th>OWASP Item</th><th>Threat to this tool</th><th>Our Countermeasure</th><th>Status</th></tr>
+    <tr><td>A01 Broken Access Control</td><td>Anyone can read captured evidence</td><td>Role-pin (owner password), per-run keys, DPAPI binding</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A02 Cryptographic Failures</td><td>Weak or missing encryption at rest</td><td>AES-256-GCM, key rotation, no cleartext PCAP</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A03 Injection</td><td>SSID/BSSID strings into reports &amp; SQL</td><td>Parameterized SQL, HTML-escaped output, strict validation regex</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A04 Insecure Design</td><td>Broad capture beyond target</td><td>Lab-scope allow-list locked in kernel of engine</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A05 Security Misconfiguration</td><td>Monitor mode / driver errors</td><td>Pre-flight capability check, fail-closed defaults</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A06 Vulnerable Components</td><td>Old deps inside .exe</td><td>SBOM manifest, pinned versions, offline ban-list</td><td class="warn">Continuous</td></tr>
+    <tr><td>A07 Identification &amp; Auth Failures</td><td>Weak unlock / session</td><td>PBKDF2/HMAC-based unlock, session timeout</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A08 Integrity Failures</td><td>Tampered evidence / reports</td><td>Hash-chain evidence log + signed report digest</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A09 Logging &amp; Monitoring</td><td>No audit trail</td><td>Local-only structured audit log (rotate 30 d)</td><td class="ok">Mitigated</td></tr>
+    <tr><td>A10 SSRF</td><td>Phone-home / remote assets</td><td>All reporting is offline; zero network egress calls</td><td class="ok">Eliminated</td></tr>
+  </table>
+  </div>
+
+  <div class="sec">
+  <h3>🏛 ISO/IEC 27001:2022 control groups</h3>
+  <table>
+    <tr><th>Domain</th><th>Controls (Annex A)</th><th>How this tool satisfies</th></tr>
+    <tr><td>Information Security Policies</td><td>A.5.1</td><td>Embedded user policy screen + scope declaration wizard</td></tr>
+    <tr><td>Asset Management</td><td>A.5.9, A.5.10</td><td>Evidence Vault inventory; every AP/client has asset metadata</td></tr>
+    <tr><td>Access Control</td><td>A.5.15 – A.5.18</td><td>Owner-gated vault, least-privilege file perms, session lock</td></tr>
+    <tr><td>Cryptography</td><td>A.8.24</td><td>Approved AES-256-GCM; key handling rules in <a href="#crypto">§7</a></td></tr>
+    <tr><td>Physical &amp; Environmental</td><td>A.7.1 – A.7.14</td><td>Portable-only mode, no cloud sync, offline device guidance</td></tr>
+    <tr><td>Operations Security</td><td>A.8.9 – A.8.12</td><td>Code-signed .exe, dependency SBOM, release notes per build</td></tr>
+    <tr><td>Logging &amp; Monitoring</td><td>A.8.15, A.8.16</td><td>Local audit trail with protected log files</td></tr>
+    <tr><td>Incident Response</td><td>A.5.24 – A.5.28</td><td>Exportable incident-ready evidence pack (PCAP + JSON)</td></tr>
+    <tr><td>Supplier / Dev Security</td><td>A.8.28 – A.8.31</td><td>Pinned deps, SBOM, no unknown remote content</td></tr>
+  </table>
+  </div>
+
+  <div class="sec">
+  <h3>🎯 NIST Cybersecurity Framework (CSF 2.0 — 6 functions)</h3>
+  <table>
+    <tr><th>NIST Function</th><th>Categories</th><th>Tool feature</th></tr>
+    <tr><td><b>GOVERN</b></td><td>GV.OC – Org Context, GV.SC – Supply Chain</td><td>Scope wizard, lab-only enforcement, dependency vetting</td></tr>
+    <tr><td><b>IDENTIFY</b></td><td>ID.AM – Asset Mgmt, ID.RA – Risk Assess</td><td>AP/client/device inventory + security scoring</td></tr>
+    <tr><td><b>PROTECT</b></td><td>PR.AA – Identity, PR.DS – Data Security, PR.PS – Process</td><td>AES-256 vault, RBAC-lite access, hash-chain integrity</td></tr>
+    <tr><td><b>DETECT</b></td><td>DE.AE – Anomaly, DE.CM – Continuous Monitor</td><td>Live dashboard, channel heatmap, rogue-ap flags</td></tr>
+    <tr><td><b>RESPOND</b></td><td>RS.MA – Mitigation, RS.CO – Comms</td><td>Actionable findings, remediate guidance per risk rating</td></tr>
+    <tr><td><b>RECOVER</b></td><td>RC.RP – Recovery, RC.RT – Restoration</td><td>Restore vault from encrypted backup, re-audit templates</td></tr>
+  </table>
+  </div>
+
+  <div class="callout warn"><b>Purpose lock:</b> This tool is designed strictly for <b>authorized testing of your own lab AP</b>. The scope allow-list is enforced in code — the engine refuses to capture frames for any BSSID not on the registered lab list. Always obtain written authorization before auditing any network you do not own.</div>
+
+  <!-- ================= REPORT FORMATS ================= -->
+  <h2 id="reports">5. Report Download Formats</h2>
+  <div class="grid">
+    <div class="card"><div class="ico">🌐</div><h4>HTML Report</h4><p>Self-contained, print-ready, first. Branded executive summary, charts (CSS/SVG), findings with severity badges, chain-of-custody footer. No external assets → air-gap friendly.</p></div>
+    <div class="card"><div class="ico">📊</div><h4>CSV Export</h4><p>Flat, UTF-8 w/ BOM, RFC 4180. One file per entity: <code>aps.csv</code>, <code>clients.csv</code>, <code>eapol_sessions.csv</code>, <code>findings.csv</code>, <code>evidence_log.csv</code>.</p></div>
+    <div class="card"><div class="ico">📗</div><h4>XLSX Workbook</h4><p>Multi-sheet via <code>openpyxl</code>: Dashboard, APs, Clients, Handshakes, Findings, Mitigations, Audit Trail. Header styling, severity color fills, pivot-ready tables.</p></div>
+    <div class="card"><div class="ico">🧾</div><h4>JSON / PCAP</h4><p>Structured evidence (schema-versioned) plus encrypted PCAP bundle for forensic handover and later re-import.</p></div>
+  </div>
+
+  <h4>Report sheet matrix</h4>
+  <table>
+    <tr><th>Format</th><th>Extension</th><th>Content</th><th>Producer</th></tr>
+    <tr><td class="filedot">HTML</td><td><code>.html</code></td><td>Executive + technical detail, colored severity, remediation table</td><td><code>report_html.py</code></td></tr>
+    <tr><td class="filedot">CSV</td><td><code>.csv</code></td><td>Finding stream, AP list, client list, handshake states</td><td><code>report_csv.py</code></td></tr>
+    <tr><td class="filedot">XLSX</td><td><code>.xlsx</code></td><td>Formatted multi-sheet workbook with stats + charts</td><td><code>report_xlsx.py</code></td></tr>
+    <tr><td class="filedot">JSON</td><td><code>.json</code></td><td>Complete typed evidence object, exportable to SIEM</td><td><code>report_json.py</code></td></tr>
+    <tr><td class="filedot">PCAP</td><td><code>.pcapng</code></td><td>Raw frames (encrypted at rest, decrypted on export)</td><td>Capture engine</td></tr>
+  </table>
+
+  <!-- ================= TECH STACK ================= -->
+  <h2 id="stack">6. Recommended Technology Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Choice</th><th>Rationale</th></tr>
+    <tr><td>Language / GUI</td><td>Python 3.11 + Tkinter/ttk</td><td>Ships with stdlib, single-file friendly, cross-platform</td></tr>
+    <tr><td>Packet capture</td><td>Scapy 2.5+ or TShark subprocess</td><td>EAPOL parsing, monitor-mode control on Windows (Npcap)</td></tr>
+    <tr><td>Channel control</td><td><code>netsh wlan show interfaces</code> / WLAN API</td><td>Windows-native monitor + channel set</td></tr>
+    <tr><td>Storage</td><td>SQLite + AES-256-GCM (cryptography lib)</td><td>Zero-service, atomic, portable vault</td></tr>
+    <tr><td>Excel export</td><td>openpyxl</td><td>Streaming workbook, styled cells, charts</td></tr>
+    <tr><td>Packaging</td><td>PyInstaller <code>--onefile</code></td><td>Portable .exe; NTFS ADS + DNSCrypt check optional</td></tr>
+    <tr><td>Signing</td><td>EV / OV code signing</td><td>SmartScreen trust + tamper evidence</td></tr>
+  </table>
+
+  <pre class="code"><span class="c"># ---- module tree (illustrative) ----</span>
+wireless-auditor/
+├─ main.py                  <span class="c"># entry point → GUI</span>
+├─ app/
+│  ├─ gui/                  <span class="c"># Tkinter panels</span>
+│  ├─ core/
+│  │  ├─ capture.py         <span class="c"># Scapy/Npcap loop</span>
+│  │  ├─ eapol.py           <span class="c"># 4-way handshake state machine</span>
+│  │  ├─ scope.py           <span class="c"># lab allow-list enforcement</span>
+│  │  └─ scanner.py         <span class="c"># vuln / cipher / WPS checks</span>
+│  ├─ data/
+│  │  ├─ vault.py           <span class="c"># SQLite + AES-GCM</span>
+│  │  ├─ pcap_ring.py       <span class="c"># rotating encrypted capture</span>
+│  │  └─ hashchain.py       <span class="c"># tamper-evident log</span>
+│  └─ report/
+│     ├─ report_html.py
+│     ├─ report_csv.py
+│     ├─ report_xlsx.py
+│     └─ report_json.py
+├─ configs/                 <span class="c"># signed defaults, policy.yaml</span>
+└─ build/                   <span class="c"># PyInstaller spec + SBOM</span></pre>
+
+  <!-- ================= SECURITY ================= -->
+  <h2 id="crypto">7. Security &amp; Privacy Controls</h2>
+  <div class="grid">
+    <div class="card"><div class="ico">🔑</div><h4>Key Management</h4><p>Master key wrapped by Windows DPAPI; session sub-keys per run. Keys never logged.</p></div>
+    <div class="card"><div class="ico">🔒</div><h4>At-rest Encryption</h4><p>Every PCAP block AES-256-GCM with random IV; per-run payload keys enable clean wipe.</p></div>
+    <div class="card"><div class="ico">🧬</div><h4>Integrity</h4><p>SHA-256 hash chain per evidence row — tampering breaks the chain visibly in reports.</p></div>
+    <div class="card"><div class="ico">🌍</div><h4>Privacy-by-design</h4><p>MACs stored, no PII collection; lab-scope filtering discards foreign BSSIDs at socket.</p></div>
+    <div class="card"><div class="ico">🧹</div><h4>Clean Teardown</h4><p>Portable mode writes to temp dir; on exit all temp files shredded and deleted.</p></div>
+    <div class="card"><div class="ico">📄</div><h4>Access Log</h4><p>Local audit trail of open/lock/export events, rotated after 30 days.</p></div>
+  </div>
+
+  <h3>Security scoring rubric (per finding)</h3>
+  <table>
+    <tr><th>Severity</th><th>Rating</th><th>Example finding</th><th>Color</th></tr>
+    <tr><td class="bad">Critical</td><td>CVSS 9.0–10</td><td>Open network, all-zero WPA PSK, PMF disabled + WPS PBC exposed</td><td class="bad">Red</td></tr>
+    <tr><td class="warn">High</td><td>8.0–8.9</td><td>WPA (TKIP) legacy cipher, weak one-char passphrase</td><td class="warn">Amber</td></tr>
+    <tr><td class="ok">Medium</td><td>6.0–7.9</td><td>No WPA3 on capable hardware, default SSID broadcast</td><td class="ok">Green</td></tr>
+    <tr><td>Low / Info</td><td>0–5.9</td><td>Vendor OUI identified, channel overlap</td><td class="mut">Grey</td></tr>
+  </table>
+
+  <!-- ================= PACKAGING ================= -->
+  <h2 id="packaging">8. Portable .exe Packaging</h2>
+  <table>
+    <tr><th>Step</th><th>Action</th><th>Output</th></tr>
+    <tr><td>1. Deps lock</td><td>Pin + SHA256-verify wheels</td><td><code>requirements.lock</code> + SBOM</td></tr>
+    <tr><td>2. Build</td><td><code>pyinstaller --onefile --noconsole</code></td><td><code>WirelessAuditor.exe</code></td></tr>
+    <tr><td>3. Bundle drivers</td><td>Npcap core, OpenSSL DLLs, sample policy</td><td>Self-extract payload (RAR/SFX or onefile)</td></tr>
+    <tr><td>4. Sign</td><td>OV/EV Authenticode</td><td>Trusted, tamper-evident binary</td></tr>
+    <tr><td>5. Smoke test</td><td>CI matrix on Win10/11 x64</td><td>Pass/fail matrix report</td></tr>
+  </table>
+
+  <div class="callout ok"><b>Receipt:</b> every build embeds a build-SBOM hash printed in the HTML report footer, satisfying continuous A06 (vulnerable components) and A08 (integrity) evidence.</div>
+
+  <!-- ================= MVP ================= -->
+  <h2 id="roadmap">9. Delivery Roadmap</h2>
+  <table>
+    <tr><th>Phase</th><th>Scope</th><th>Deliverable</th></tr>
+    <tr><td><b>P0 — Skeleton</b></td><td>GUI shell, scope wizard, Npcap loop</td><td>Capture dashboard, first PCAP</td></tr>
+    <tr><td><b>P1 — Handshake</b></td><td>EAPOL engine, state machine, validation</td><td>4-way handshake capture M1–M4</td></tr>
+    <tr><td><b>P2 — Evidence</b></td><td>SQLite vault, AES-GCM, hash chain</td><td>Encrypted, tamper-evident store</td></tr>
+    <tr><td><b>P3 — Reports</b></td><td>HTML, CSV, XLSX, JSON exporters</td><td>Full report suite</td></tr>
+    <tr><td><b>P4 — Hardening</b></td><td>OWASP/ISO/NIST checklist automation</td><td>Compliance self-test module</td></tr>
+    <tr><td><b>P5 — Packaging</b></td><td>PyInstaller onefile, signing, cleanup</td><td>Portable signed .exe</td></tr>
+  </table>
+
+  <div class="foot">
+    <b>Legend:</b>
+    <span class="chip c">GUI</span> <span class="chip b">Services</span> <span class="chip g">Core</span>
+    <span class="chip p">Data</span> <span class="chip a">Reports</span> <span class="chip r">Portable</span>
+    <br>
+    Authorized lab use only · OWASP Top 10 · ISO/IEC 27001:2022 Annex A · NIST CSF 2.0 · v1.0
+  </div>
+
+</div>
+</body>
+</html>

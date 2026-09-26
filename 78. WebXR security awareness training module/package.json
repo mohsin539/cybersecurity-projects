@@ -1,0 +1,27 @@
+{
+  "name": "webxr-security-training",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebXR Security Awareness Training Module - browser-based immersive security training platform (ISO 27001 / NIST / OWASP aligned)",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/src/index.js",
+    "dev": "node --watch server/src/index.js",
+    "test": "node --test tests/server.test.js tests/http.test.js",
+    "test:server": "node --test tests/server.test.js",
+    "test:http": "node --test tests/http.test.js",
+    "retention": "node scripts/retention.js"
+  },
+  "keywords": [
+    "webxr",
+    "security-awareness",
+    "iso27001",
+    "nist-csf",
+    "owasp",
+    "xapi",
+    "zero-trust"
+  ]
+}

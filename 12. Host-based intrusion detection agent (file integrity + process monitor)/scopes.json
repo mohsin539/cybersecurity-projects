@@ -1,0 +1,14 @@
+{
+  "scopes": [
+    {
+      "root": "samples/hostfs/etc",
+      "mode": "critical",
+      "patterns": ["*"]
+    },
+    {
+      "root": "samples/hostfs/www",
+      "mode": "monitored",
+      "patterns": ["**"]
+    }
+  ]
+}

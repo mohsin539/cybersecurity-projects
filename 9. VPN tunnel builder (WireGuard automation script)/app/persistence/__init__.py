@@ -1,0 +1,1 @@
+"""Persistence layer — atomic writes, file locking, secret separation."""

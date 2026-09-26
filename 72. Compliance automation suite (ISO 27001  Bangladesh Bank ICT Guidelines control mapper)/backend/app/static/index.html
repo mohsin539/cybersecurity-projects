@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Compliance Automation Suite</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="app-body" data-view="login">
+  <!-- ======= LOGIN SCREEN ======= -->
+  <div id="login-screen" class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-mark">CB</div>
+        <div>
+          <h1>Compliance Automation Suite</h1>
+          <p>ISO 27001 · Bangladesh Bank ICT Guidelines · NIST CSF · OWASP Top 10</p>
+        </div>
+      </div>
+      <form id="login-form" autocomplete="off">
+        <label>Username
+          <input id="login-user" name="username" placeholder="admin / ciso / auditor" required />
+        </label>
+        <label>Password
+          <input id="login-pass" name="password" type="password" placeholder="••••••••" required />
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        <p class="login-hint">Demo accounts: <code>admin/Admin@12345</code> · <code>ciso/Ciso@12345</code> · <code>auditor/Audit@12345</code></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======= APP SHELL ======= -->
+  <div id="app-shell" class="shell" hidden>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark sm">CB</div>
+        <div class="sidebar-title">
+          <b>Compliance Suite</b>
+          <span>GRC Control Mapper</span>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <a data-view="dashboard" class="nav-item active">Dashboard</a>
+        <a data-view="controls" class="nav-item">Controls &amp; Mapping</a>
+        <a data-view="assessments" class="nav-item">Assessments</a>
+        <a data-view="risk" class="nav-item">Risk &amp; Remediation</a>
+        <a data-view="evidence" class="nav-item">Evidence Vault</a>
+        <a data-view="findings" class="nav-item">Findings / Assets</a>
+        <a data-view="reports" class="nav-item">Reports &amp; Downloads</a>
+        <a data-view="audit" class="nav-item">Audit Log</a>
+        <a data-view="admin" class="nav-item" id="nav-admin" hidden>Users &amp; Roles</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="user-avatar">U</div>
+          <div class="user-meta">
+            <b id="user-name">—</b>
+            <span id="user-role">—</span>
+          </div>
+          <button class="btn btn-ghost btn-xs" id="btn-logout" title="Sign out">⏻</button>
+        </div>
+        <p class="sidebar-note">v1.0.0 · WORM Vault · Hash-Chained Audit</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2 id="page-title">Dashboard</h2>
+          <p id="page-sub" class="topbar-sub">Real-time compliance posture across 4+ frameworks</p>
+        </div>
+        <div class="topbar-actions">
+          <span class="pill pill-green" id="veracity-pill">● Vault verified</span>
+          <button class="btn btn-primary" id="btn-download-soa">⬇ Executive Pack (ZIP)</button>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view active"></section>
+      <section id="view-controls" class="view"></section>
+      <section id="view-assessments" class="view"></section>
+      <section id="view-risk" class="view"></section>
+      <section id="view-evidence" class="view"></section>
+      <section id="view-findings" class="view"></section>
+      <section id="view-reports" class="view"></section>
+      <section id="view-audit" class="view"></section>
+      <section id="view-admin" class="view"></section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>

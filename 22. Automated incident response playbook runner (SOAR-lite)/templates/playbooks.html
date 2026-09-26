@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Playbooks · SOAR-Lite{% endblock %}
+{% block content %}
+<h1>Playbooks</h1>
+<div class="toolbar">
+  <a href="/playbooks/new" class="btn btn-sm btn-primary">New playbook</a>
+  <span class="hint">Published revisions are immutable — edits create versioned revisions (ISO 27001 change control).</span>
+</div>
+<table>
+  <thead><tr><th>Key</th><th>Version</th><th>Name</th><th>Risk</th><th>Status</th><th>Trigger</th><th>Steps</th></tr></thead>
+  <tbody>
+  {% for p in playbooks %}
+    <tr>
+      <td><code>{{ p.key }}</code></td>
+      <td>v{{ p.version }}</td>
+      <td><a href="/playbooks/{{ p.id }}">{{ p.name }}</a></td>
+      <td><span class="pill {% if p.risk in ('high','critical') %}bad{% elif p.risk == 'medium' %}warn{% else %}ok{% endif %}">{{ p.risk }}</span></td>
+      <td><span class="pill muted">{{ p.status }}</span></td>
+      <td><code>{{ (p.trigger or [])[0] if p.trigger else '—' }}</code></td>
+      <td>{{ (p.spec.get('steps') or []) | length }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">No playbooks seeded.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

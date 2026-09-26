@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Techniques <small>MITRE ATT&CK lateral-movement playbook</small></h1>
+
+<div class="panel">
+  <h2>Lab control plane</h2>
+  <div class="toolbar">
+    {% if not lab_up %}
+    <form method="post" action="{{ url_for('provision') }}"><button class="btn primary">&#128267; Provision isolated AD lab</button></form>
+    {% else %}
+    <span class="ok-chip">&#9989; Lab is up — hosts reachable inside air-gapped vNet</span>
+    <form method="post" action="{{ url_for('teardown') }}"><button class="btn danger">&#128273; Teardown lab</button></form>
+    {% endif %}
+  </div>
+</div>
+
+<table>
+  <tr>
+    <th>Technique</th><th>Name</th><th>Severity</th><th>Status</th><th>Coverage</th><th>Action</th>
+  </tr>
+  {% for t in techniques %}
+  <tr>
+    <td><code>{{ t.technique_id }}</code></td>
+    <td>
+      <b>{{ t.name }}</b><br>
+      <small class="tag">{{ t.tactic }} · {{ t.data_sources|join(', ') }}</small><br>
+      <small class="tag">{{ t.notes }}</small>
+    </td>
+    <td><span class="badge {{ t.severity }}">{{ t.severity }}</span></td>
+    <td>
+      {% if t.technique_id in ran_ids %}
+        <span class="ok-chip">&#9989; run</span>
+      {% else %}
+        <span class="muted">not run</span>
+      {% endif %}
+    </td>
+    <td>
+      {% set c = cov_by_id.get(t.technique_id) %}
+      {% if c %}
+        <div class="bar"><i style="width:{{ (c.ratio*100)|int }}%"></i></div>
+        <small>{{ c.covered }}/{{ c.expected }}</small>
+      {% else %}<small class="muted">—</small>{% endif %}
+    </td>
+    <td>
+      {% if lab_up %}
+      <form method="post" action="{{ url_for('run_route') }}" class="inline">
+        <input type="hidden" name="technique_id" value="{{ t.technique_id }}">
+        <span class="target-picker">
+          <select name="source">{{ run_map.get(t.technique_id, [])|length and '' }}
+            <option>{{ t.source }}</option>
+          </select>
+          &rarr;
+          <select name="target">
+            <option>{{ t.target }}</option>
+          </select>
+        </span>
+        <button class="btn small" onclick="return confirm('Replay {{ t.technique_id }} inside the air-gapped lab?')">&#9654; Run</button>
+      </form>
+      {% else %}
+      <span class="muted">provision lab first</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

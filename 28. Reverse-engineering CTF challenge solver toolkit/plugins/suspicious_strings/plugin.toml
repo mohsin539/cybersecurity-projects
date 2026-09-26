@@ -1,0 +1,6 @@
+name = "suspicious_strings"
+version = "1.0.0"
+api = 1
+entry = "plugin.py"
+description = "Flags strings that often indicate encoded secrets in CTF binaries."
+author = "rekt-first-party"

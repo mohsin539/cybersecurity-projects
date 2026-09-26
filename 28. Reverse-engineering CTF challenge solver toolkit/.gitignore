@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+rekt-portable/
+*.spec.bak
+REKT-LOCAL/
+trust.key

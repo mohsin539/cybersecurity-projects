@@ -1,0 +1,11 @@
+{
+  "name": "siem-correlator",
+  "version": "0.1.0",
+  "description": "Lightweight SIEM log correlator (ingest -> normalize -> correlate -> alert)",
+  "language": "python",
+  "python": ">=3.10",
+  "dependencies": "stdlib only",
+  "entrypoints": {
+    "cli": "python main.py --ingest-dir ../samples --rules rules --run-once"
+  }
+}

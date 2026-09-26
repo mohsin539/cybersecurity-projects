@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDM-Lite Compliance Checker — Architecture</title>
+<style>
+:root{
+  --bg:#060a14; --panel:#0d1526; --line:#1d2a45;
+  --txt:#e8eef9; --muted:#8a99b5;
+  --violet:#8b5cf6; --indigo:#6366f1; --blue:#3b82f6; --cyan:#22d3ee;
+  --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --pink:#ec4899; --lime:#a3e635;
+  --grad1:linear-gradient(135deg,#8b5cf6,#6366f1);
+  --grad2:linear-gradient(135deg,#3b82f6,#22d3ee);
+  --grad3:linear-gradient(135deg,#22c55e,#a3e635);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,Arial,sans-serif;background:radial-gradient(1200px 700px at 80% -10%,#101a33 0%,var(--bg) 55%);color:var(--txt);min-height:100vh;overflow-x:hidden}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 26px 80px}
+
+header{display:flex;gap:18px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:26px;flex-wrap:wrap}
+.logo{width:56px;height:56px;border-radius:16px;background:var(--grad1);display:grid;place-items:center;font-size:28px;box-shadow:0 8px 30px rgba(139,92,246,.45)}
+h1{font-size:24px;background:linear-gradient(90deg,#c4b5fd,#93c5fd,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 small{display:block;font-size:12.5px;color:var(--muted);-webkit-text-fill-color:currentColor;background:none;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:30px 0 14px;display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.chip{padding:7px 13px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid var(--line);background:#0e1830;color:var(--muted)}
+.chip b{color:var(--cyan)}
+
+/* ---------- layer rows ---------- */
+.stage{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.layer{border:1px solid var(--line);border-radius:18px;padding:16px 18px;background:linear-gradient(180deg,rgba(20,32,58,.75),rgba(10,16,30,.9));box-shadow:0 10px 34px rgba(0,0,0,.35);position:relative}
+.layer h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.layer h3 .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:14px}
+.layer h3 .bar{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.layer h3 .ln{font-family:Consolas,monospace;font-size:10px;color:var(--cyan);letter-spacing:0}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:12px}
+.box{border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);transition:.18s;position:relative;overflow:hidden}
+.box:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.box::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--bc,var(--grad1))}
+.box .t{font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px}
+.box .t .e{font-size:15px}
+.box .d{color:var(--muted);font-size:11.5px;margin-top:7px;line-height:1.5}
+.box .k{margin-top:9px;display:flex;gap:5px;flex-wrap:wrap}
+.box .k span{font-family:Consolas,monospace;font-size:9.5px;color:var(--cyan);background:#0a1426;border:1px solid var(--line);padding:2px 7px;border-radius:6px}
+.cV{--bc:var(--grad1)}.cB{--bc:var(--grad2)}.cG{--bc:linear-gradient(135deg,#22c55e,#a3e635)}.cA{--bc:linear-gradient(135deg,#f59e0b,#f97316)}.cR{--bc:linear-gradient(135deg,#ef4444,#ec4899)}.cC{--bc:linear-gradient(90deg,#22d3ee,#3b82f6)}
+
+/* legend of groups */
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.group{border:1px solid var(--line);border-radius:14px;padding:14px;background:#0d1526}
+.group .tt{font-size:12px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.group ul{list-style:none;font-size:11.5px;color:var(--muted);line-height:1.7}
+.group li::before{content:"▸ ";color:var(--ac);}
+.group li b{color:var(--txt)}
+
+.pill-row{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 4px}
+.pill{border:1px solid var(--line);background:#0e1830;border-radius:999px;padding:8px 14px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.pill .sw{width:9px;height:9px;border-radius:50%}
+.pill b{color:var(--txt)}
+
+table.dt{width:100%;border-collapse:collapse;font-size:12.5px;background:#0d1526;border-radius:14px;overflow:hidden}
+.dt th{text-align:left;color:var(--muted);text-transform:uppercase;font-size:10.5px;letter-spacing:.08em;padding:11px 14px;background:#101b33;border-bottom:1px solid var(--line)}
+.dt td{padding:10px 14px;border-bottom:1px solid rgba(29,42,69,.6);vertical-align:top}
+.dt tr:hover td{background:#111d38}
+.dt code{font-family:Consolas,monospace;color:var(--cyan);font-size:11px;word-break:break-all}
+.dt i{color:var(--muted);font-style:normal}
+.wf{background:#111d38;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px}
+.step{display:flex;align-items:center;gap:9px}
+.step .n{width:26px;height:26px;border-radius:50%;background:var(--grad1);display:grid;place-items:center;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(139,92,246,.4)}
+.arrow{color:var(--muted);font-weight:700}
+.foot{text-align:center;color:#5b6b8c;font-size:11.5px;margin-top:44px;border-top:1px solid var(--line);padding-top:18px}
+strong.g{color:#6ee7b7}.strong r{color:#fca5a5}
+.real{font-family:Consolas,monospace;font-size:10px;color:#5b6b8c}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">🛡️</div>
+  <div>
+    <h1>Mobile MDM-lite Device Compliance Checker
+      <small>Portable · Local-first · Policy-driven fleet compliance on your own machine</small>
+    </h1>
+  </div>
+  <div class="chips">
+    <span class="chip">App <b>v1.0.0</b></span>
+    <span class="chip">State <b>state.json</b></span>
+    <span class="chip">Transport <b>127.0.0.1 loopback</b></span>
+    <span class="chip">Distribution <b>single portable .EXE</b></span>
+  </div>
+</header>
+
+<!-- ================= LAYER 1 ================= -->
+<div class="stage">
+  <div class="layer">
+    <h3><span class="ic" style="background:rgba(139,92,246,.2)">📱</span> Managed Device Layer — On-Device Agents <span class="bar"></span><span class="ln">android · ios · byod fleet</span></h3>
+    <div class="boxes">
+      <div class="box cV"><div class="t"><span class="e">🤖</span> Android Agent</div><div class="d">Collects OS version, SDK, build, package list, root indicators, security-settings flags.</div><div class="k"><span>ADB bridge</span><span>getprop</span><span>pm list</span></div></div>
+      <div class="box cV"><div class="t"><span class="e">🍎</span> iOS Agent</div><div class="d">Device passcode, data-protection, jailbreak signal and managed application inventory.</div><div class="k"><span>MDM profile</span><span>managed apps</span></div></div>
+      <div class="box cV"><div class="t"><span class="e">🧪</span> Demo Telemetry Generator</div><div class="d">Deterministic per-device simulated profiles for offline demos and onboarding.</div><div class="k"><span>SHA-256 seed</span><span>offline</span></div></div>
+      <div class="box cV"><div class="t"><span class="e">🔌</span> Real-device BRIDGE</div><div class="d">Optional live collection over ADB for physically attached Android hardware.</div><div class="k"><span>adb devices</span><span>best-effort</span></div></div>
+    </div>
+  </div>
+
+  <!-- connector -->
+  <div class="layer" style="padding:8px 18px;border-style:dashed;background:transparent;box-shadow:none">
+    <div style="display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap">
+      <span style="color:var(--cyan)">▼ per-device telemetry JSON</span>
+      <span class="real">{"os":{...},"apps":{...},"security":{...},"network":{...},"agent":{...}}</span>
+    </div>
+  </div>
+
+  <!-- ================= LAYER 2 ================= -->
+  <div class="layer">
+    <h3><span class="ic" style="background:rgba(59,130,246,.2)">🌐</span> Collection &amp; Interface Layer — Local API Surface <span class="bar"></span><span class="ln">127.0.0.1 only — nothing egresses</span></h3>
+    <div class="boxes">
+      <div class="box cB"><div class="t"><span class="e">🔌</span> RESTful Management API</div><div class="d">Enroll, scan, policy, report and audit endpoints served by the embedded HTTP server.</div><div class="k"><span>/api/devices</span><span>/api/policy</span><span>/api/scan</span></div></div>
+      <div class="box cB"><div class="t"><span class="e">🖥️</span> Dashboard UI (hosted)</div><div class="d">Single-file HTML/CSS/JS control center — stats, donut, drill-down, policy editor.</div><div class="k"><span>index.html</span><span>vanilla JS</span></div></div>
+      <div class="box cB"><div class="t"><span class="e">🎫</span> Demo / Bootstrap Scanner</div><div class="d">One-click fleet scans that synthesize telemetry for every enrolled device.</div><div class="k"><span>POST /api/scan</span></div></div>
+      <div class="box cB"><div class="t"><span class="e">⛑️</span> Health &amp; Lifecycle</div><div class="d">Health probe, shutdown handshake, telemetry import for manual device feeds.</div><div class="k"><span>/api/health</span><span>/api/shutdown</span></div></div>
+    </div>
+  </div>
+
+  <!-- ================= LAYER 3 ================= -->
+  <div class="layer">
+    <h3><span class="ic" style="background:rgba(34,211,238,.18)">⚙️</span> Core Services <span class="bar"></span><span class="ln">local-first business logic</span></h3>
+    <div class="boxes">
+      <div class="box cC"><div class="t"><span class="e">🗂️</span> Device Registry</div><div class="d">Identity, platform, model, owner, department, enrollment timestamps and scan history.</div><div class="k"><span>CRUD</span><span>20-deep history</span></div></div>
+      <div class="box cC"><div class="t"><span class="e">📜</span> Policy Manager</div><div class="d">Versioned rule sets with validation, baseline reset and JSON editing.</div><div class="k"><span>validate</span><span>versioned</span></div></div>
+      <div class="box cC"><div class="t"><span class="e">🔁</span> Scan Orchestrator</div><div class="d">Picks collector (demo / adb / manual), gathers telemetry, triggers evaluation.</div><div class="k"><span>mode switch</span><span>re-scan</span></div></div>
+      <div class="box cC"><div class="t"><span class="e">📔</span> Audit &amp; Security Log</div><div class="d">Append-only-in-view trail of enroll, scan, policy and lifecycle events (capped).</div><div class="k"><span>info·warn·critical</span><span>500 cap</span></div></div>
+    </div>
+  </div>
+
+  <!-- ================= LAYER 4 ================= -->
+  <div class="layer">
+    <h3><span class="ic" style="background:rgba(34,197,94,.18)">🧠</span> Compliance Engine — The Decision Core <span class="bar"></span><span class="ln">severity-weighted · threshold verdict</span></h3>
+    <div class="boxes">
+      <div class="box cG"><div class="t"><span class="e">⚖️</span> Rule Evaluator</div><div class="d">Five rule kinds: version_gte, boolean, allowlist, denylist, list_contains → PASS / FAIL / NA.</div><div class="k"><span>platform-aware</span><span>N/A skip</span></div></div>
+      <div class="box cG"><div class="t"><span class="e">🧮</span> Severity Scoring</div><div class="d">Weights low 1 · medium 2 · high 3 · critical 4 and computes a weighted pass ratio.</div><div class="k"><span>weighted score</span></div></div>
+      <div class="box cG"><div class="t"><span class="e">🚦</span> Verdict Synthesis</div><div class="d">COMPLIANT iff ① no critical failure AND ② weighted score ≥ policy threshold (80%).</div><div class="k"><span>COMPLIANT</span><span>NON_COMPLIANT</span></div></div>
+      <div class="box cG"><div class="t"><span class="e">🩹</span> Remediation Guidance</div><div class="d">Every rule carries actionable, human-readable remediation steps surfaced in detail view.</div><div class="k"><span>per-rule text</span></div></div>
+    </div>
+  </div>
+
+  <!-- ================= LAYER 5 ================= -->
+  <div class="layer">
+    <h3><span class="ic" style="background:rgba(245,158,11,.16)">🗄️</span> State &amp; Persistence Layer <span class="bar"></span><span class="ln">atomic · corruption-safe · local</span></h3>
+    <div class="boxes">
+      <div class="box cA"><div class="t"><span class="e">💾</span> State Store (state.json)</div><div class="d">Policy, device registry, scan results, history and audit log in one portable JSON file.</div><div class="k"><span>schema v1.0.0</span><span>RWLOCK guard</span></div></div>
+      <div class="box cA"><div class="t"><span class="e">🛡️</span> Atomic Writes</div><div class="d">Write-to-temp → replace. A torn write can never corrupt the live state file.</div><div class="k"><span>tmp + os.replace</span></div></div>
+      <div class="box cA"><div class="t"><span class="e">🚑</span> Corruption Recovery</div><div class="d">Bad state is quarantined to state.json.corrupt-N, logged, and rebuilt fresh.</div><div class="k"><span>auto-heal</span><span>quarantine</span></div></div>
+      <div class="box cA"><div class="t"><span class="e">📸</span> Snapshot Semantics</div><div class="d">Read APIs never hand out live references — deep clones keep callers consistent.</div><div class="k"><span>json round-trip</span></div></div>
+    </div>
+  </div>
+
+  <!-- ================= LAYER 6 ================= -->
+  <div class="layer">
+    <h3><span class="ic" style="background:rgba(236,72,153,.16)">📊</span> Presentation &amp; Reporting Layer <span class="bar"></span><span class="ln">human + machine readable</span></h3>
+    <div class="boxes">
+      <div class="box cR"><div class="t"><span class="e">🌓</span> Dark Dashboard</div><div class="d">KPI stat cards, SVG compliance donut, fleet health bars, status chips, live log.</div><div class="k"><span>CSS grid</span><span>vanilla JS</span></div></div>
+      <div class="box cR"><div class="t"><span class="e">📑</span> HTML Report</div><div class="d">Branded, printable compliance report with fleet table and per-device rule matrix.</div><div class="k"><span>utf-8 · escaped</span></div></div>
+      <div class="box cR"><div class="t"><span class="e">🌐</span> JSON Report</div><div class="d">Machine-consumable full state export for scripting and deeper analytics.</div><div class="k"><span>summary + devices</span></div></div>
+      <div class="box cR"><div class="t"><span class="e">🔎</span> Device Drill-down</div><div class="d">Per-device verdict matrix, score, scan history and remediation guidance.</div><div class="k"><span>rule matrix</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GROUPS / LEGEND ================= -->
+<h2>🔄 Reference Architecture — components &amp; responsibilities</h2>
+<div class="groups">
+  <div class="group"><div class="tt"><span class="sw" style="background:var(--violet);width:10px;height:10px;border-radius:50%;display:inline-block"></span> Device / Agent</div><ul>
+    <li><b>Android agent</b> — OS, SDK, packages, root flags</li>
+    <li><b>iOS agent</b> — security posture, managed apps</li>
+    <li><b>Demo generator</b> — deterministic offline telemetry</li>
+    <li><b>ADB bridge</b> — live hardware collection</li></ul></div>
+  <div class="group"><div class="tt"><span class="sw" style="background:var(--blue);width:10px;height:10px;border-radius:50%;display:inline-block"></span> Collection / API</div><ul>
+    <li><b>REST API</b> — loopback-bound management surface</li>
+    <li><b>Dashboard UI</b> — served single-file control center</li>
+    <li><b>Health &amp; shutdown</b> — lifecycle control plane</li></ul></div>
+  <div class="group"><div class="tt"><span style="color:var(--cyan)">●</span> Core Services</div><ul>
+    <li><b>Device registry</b> — identity &amp; enrollment</li>
+    <li><b>Policy manager</b> — versioned rule sets</li>
+    <li><b>Scan orchestrator</b> — collector dispatch</li>
+    <li><b>Audit log</b> — immutable-view events</li></ul></div>
+  <div class="group"><div class="tt"><span style="color:var(--green)">●</span> Compliance Engine</div><ul>
+    <li><b>Rule evaluator</b> — 5 rule kinds</li>
+    <li><b>Weighted scoring</b> — severity weights 1–4</li>
+    <li><b>Threshold verdict</b> — 80% + no critical fail</li>
+    <li><b>Remediation</b> — actionable guidance text</li></ul></div>
+  <div class="group"><div class="tt"><span style="color:var(--amber)">●</span> Persistence</div><ul>
+    <li><b>state.json</b> — single portable file</li>
+    <li><b>Atomic writes</b> — temp + replace</li>
+    <li><b>Auto-heal</b> — quarantine &amp; rebuild</li>
+    <li><b>Snapshots</b> — deep-copy semantics</li></ul></div>
+  <div class="group"><div class="tt"><span style="color:var(--pink)">●</span> Presentation</div><ul>
+    <li><b>Dashboard</b> — KPIs, donut, health bars</li>
+    <li><b>HTML / JSON reports</b> — audit outputs</li>
+    <li><b>Drill-down</b> — rule matrix + remediation</li></ul></div>
+</div>
+
+<!-- ================= FLOW ================= -->
+<h2>🧭 Request / Scan flow — end to end</h2>
+<div class="wf">
+  <div class="step"><span class="n">1</span> Enroll device via <code>POST /api/devices</code> → Device Registry</div><span class="arrow">→</span>
+  <div class="step"><span class="n">2</span> Scan dispatch: demo | adb | manual → telemetry assembled</div><span class="arrow">→</span>
+  <div class="step"><span class="n">3</span> Rule Evaluator walks policy per platform</div><span class="arrow">→</span>
+  <div class="step"><span class="n">4</span> Weighted score &amp; critical-fail gate → verdict</div><span class="arrow">→</span>
+  <div class="step"><span class="n">5</span> Result persisted + audited → dashboard + reports refresh</div>
+</div>
+
+<h2>⭐ Score &amp; verdict rules</h2>
+<div class="pill-row">
+  <span class="pill"><span class="sw" style="background:var(--green)"></span><b>COMPLIANT</b> &nbsp;score ≥ 80% &amp; zero critical FAILs</span>
+  <span class="pill"><span class="sw" style="background:var(--red)"></span><b>NON_COMPLIANT</b> &nbsp;any critical FAIL or score &lt; 80%</span>
+  <span class="pill"><span class="sw" style="background:var(--amber)"></span><b>PENDING</b> &nbsp;enrolled, never scanned</span>
+  <span class="pill"><span class="sw" style="background:#64748b"></span><b>ERROR</b> &nbsp;collector failure</span>
+</div>
+<p style="color:var(--muted);font-size:12px;margin-top:6px">Severity weights: low = 1 · medium = 2 · high = 3 · critical = 4. Rules not applicable to a platform are excluded (NA).</p>
+
+<h2>🔐 Security posture highlights</h2>
+<table class="dt">
+<tr><th>Concern</th><th>Control</th></tr>
+<tr><td>Network exposure</td><td>Bind to <code>127.0.0.1</code> only — no route from outside the machine.</td></tr>
+<tr><td>Telemetry privacy</td><td>Device data never leaves the host; reports are local files / tabs.</td></tr>
+<tr><td>Web hardening</td><td><code>X-Frame-Options: DENY</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Cache-Control: no-store</code>.</td></tr>
+<tr><td>Persistence integrity</td><td>Atomic writes + quarantine of corrupt <code>state.json</code>.</td></tr>
+<tr><td>Auditability</td><td>Security log records every enroll / scan / policy / removal event.</td></tr>
+<tr><td>Supply-chain</td><td>Python 3.12 stdlib only — zero runtime dependency for the app itself.</td></tr>
+</table>
+
+<h2>🗺️ Guidance on scaling to a real MDM deployment</h2>
+<div class="groups">
+  <div class="group"><div class="tt"><span style="color:var(--cyan)">●</span> From local to server</div><ul>
+    <li>Move registry + policy to a central service</li>
+    <li>Agent SDK cleanup of this engine</li>
+    <li>TLS + mutual auth for plan sync</li>
+    <li>PGP/SMIME signed onboarding payloads</li></ul></div>
+  <div class="group"><div class="tt"><span style="color:var(--green)">●</span> Deepen telemetry</div><ul>
+    <li>Patch-level inventory, cert posture</li>
+    <li>Network, geofence and compliance plugin checks</li>
+    <li>Continuous collection vs scan-on-demand</li></ul></div>
+  <div class="group"><div class="tt"><span style="color:var(--violet)">●</span> Scale engine</div><ul>
+    <li>Pluggable rule providers (YAML/JSON DSL)</li>
+    <li>Versioned policy history &amp; preview</li>
+    <li>Scheduled scans + push notifications</li></ul></div>
+</div>
+
+<div class="foot">MDM-Lite Compliance Checker · local-first architecture · generated for project “67. Mobile MDM-lite device compliance checker app” · all rendering is static HTML, no external assets</div>
+</div>
+</body>
+</html>

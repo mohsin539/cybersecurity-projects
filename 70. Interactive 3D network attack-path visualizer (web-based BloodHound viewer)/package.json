@@ -1,0 +1,30 @@
+{
+  "name": "pathsphere-3d",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PathSphere 3D - Interactive 3D network attack-path visualizer (web-based BloodHound viewer)",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build:packages && npm run build:services",
+    "build:packages": "tsc -p packages/shared-types && tsc -p packages/security-utils && tsc -p packages/demo-data && tsc -p packages/server-kit",
+    "build:services": "npm run build --workspaces --if-present --prefix services",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:packages && node --test tests/*.test.mjs",
+    "dev:web": "npm run dev -w apps/web",
+    "start:auth": "npm run start -w services/auth-service",
+    "start:graph": "npm run start -w services/graph-query-api",
+    "start:path": "npm run start -w services/path-analysis",
+    "start:audit": "npm run start -w services/audit-ledger",
+    "start:ingest": "npm run start -w services/ingestion-service",
+    "start:report": "npm run start -w services/report-engine",
+    "start:all": "concurrently -k \"npm run start:auth\" \"npm run start:graph\" \"npm run start:path\" \"npm run start:audit\" \"npm run start:ingest\" \"npm run start:report\""
+  }
+}

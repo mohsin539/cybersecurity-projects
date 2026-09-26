@@ -1,0 +1,12 @@
+{
+  "name": "hids-agent",
+  "version": "0.1.0",
+  "description": "Host-based intrusion detection agent: file integrity monitoring + process monitoring",
+  "language": "python",
+  "python": ">=3.10",
+  "dependencies": "stdlib only",
+  "entrypoints": {
+    "gui": "python gui.py",
+    "cli": "python main.py --scopes scopes.json --rules rules --state data"
+  }
+}

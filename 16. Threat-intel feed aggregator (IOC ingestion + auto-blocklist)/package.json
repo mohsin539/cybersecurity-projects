@@ -1,0 +1,13 @@
+{
+  "name": "threat-intel-aggregator",
+  "version": "0.1.0",
+  "description": "Threat-intel feed aggregator: IOC ingestion + normalisation + auto-blocklist with tiering and rollback",
+  "language": "python",
+  "python": ">=3.10",
+  "dependencies": "stdlib only",
+  "entrypoints": {
+    "cli": "python main.py --config config/feeds.yaml --state data --ingest-fixture fixtures/honeypot_ioc.json",
+    "self-test": "python main.py --self-test",
+    "gui": "python gui.py"
+  }
+}

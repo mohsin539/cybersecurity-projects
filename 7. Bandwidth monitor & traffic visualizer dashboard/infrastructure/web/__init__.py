@@ -1,0 +1,1 @@
+"""Package infrastructure.web: HTTP REST API, WebSocket and static assets."""

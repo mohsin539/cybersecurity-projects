@@ -1,0 +1,13 @@
+{
+  "name": "fw-auditor",
+  "version": "0.1.0",
+  "description": "Firewall rule auditor & misconfiguration checker (shadowing, redundancy, broad rules, default policy)",
+  "language": "python",
+  "python": ">=3.10",
+  "dependencies": "stdlib only",
+  "entrypoints": {
+    "cli": "python main.py --rules fixtures/aws_sg.json --out data",
+    "validate": "python main.py --self-test",
+    "gui": "python gui.py"
+  }
+}

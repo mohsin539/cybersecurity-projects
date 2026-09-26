@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'">
+  <title>xtester - XSS payload tester for your lab</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">xtester <span class="ghost">authorized-lab only</span></div>
+    <div class="userbox" id="userbox" hidden>
+      <span id="username"></span>
+      <select id="roleBadge" title="your role" disabled></select>
+      <button id="logoutBtn" type="button">Logout</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section id="loginView" hidden>
+      <form id="loginForm" class="card">
+        <h1>Sign in</h1>
+        <p class="muted">Dashboards and scans are for your own lab endpoints only.</p>
+        <label>Username <input id="loginUser" name="username" autocomplete="username" required></label>
+        <label>Password <input id="loginPass" name="password" type="password" autocomplete="current-password" required minlength="12"></label>
+        <button type="submit" class="primary">Sign in</button>
+        <p class="err" id="loginErr"></p>
+      </form>
+    </section>
+
+    <section id="appView" hidden>
+      <nav class="tabs">
+        <button class="tab active" data-tab="scans">Scans</button>
+        <button class="tab" data-tab="new">New scan</button>
+        <button class="tab admin-only" data-tab="targets">Targets</button>
+        <button class="tab admin-only" data-tab="users">Users &amp; keys</button>
+        <button class="tab admin-only" data-tab="audit">Audit log</button>
+      </nav>
+
+      <div id="tab-scans" class="tabpane"></div>
+      <div id="tab-new" class="tabpane" hidden>
+        <form id="scanForm" class="card">
+          <h2>Launch an XSS scan</h2>
+          <label>Target URL
+            <input id="scanUrl" name="url" placeholder="http://localhost:5001/html?name=TEST" required>
+          </label>
+          <label>Context
+            <select id="scanContext" name="context">
+              <option value="auto">Auto (all contexts)</option>
+              <option value="html">HTML element</option>
+              <option value="attribute">Attribute</option>
+              <option value="script">Script context</option>
+              <option value="url">URL / redirect</option>
+              <option value="dom">DOM sink</option>
+            </select>
+          </label>
+          <button type="submit" class="primary">Start scan</button>
+          <p class="muted">Hosts are validated against ALLOWED_TARGET_HOSTS before scanning.</p>
+          <p class="err" id="scanErr"></p>
+        </form>
+      </div>
+      <div id="tab-targets" class="tabpane" hidden></div>
+      <div id="tab-users" class="tabpane" hidden></div>
+      <div id="tab-audit" class="tabpane" hidden></div>
+    </section>
+
+    <section id="scanDetailView" hidden>
+      <button id="backBtn" type="button">&larr; Back</button>
+      <div id="scanDetail"></div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

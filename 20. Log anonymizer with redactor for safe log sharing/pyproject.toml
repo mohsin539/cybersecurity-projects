@@ -1,0 +1,29 @@
+[project]
+name = "log-anonymizer"
+version = "1.0.0"
+description = "Log Anonymizer with Redactor for safe log sharing (OWASP/NIST/ISO 27001 aligned)"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+ml = ["spacy>=3.7"]
+cli = ["click>=8.1"]
+dev = ["pytest>=8.0", "httpx>=0.27", "ruff>=0.4"]
+
+[project.scripts]
+log-anonymizer = "anonymizer.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

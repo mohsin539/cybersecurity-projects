@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Chain of custody · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<h1>🔗 Chain of Custody</h1>
+<div class="sub">Immutable custody log per evidence device (INTAKE → CHECKOUT/TRANSFER → CHECKIN → SEAL/DESTRUCTION).</div>
+
+{% if events %}
+<div class="tblwrap"><table>
+  <tr><th>Case</th><th>Device</th><th>Event</th><th>Location</th><th>Handed to</th><th>Occurred</th><th></th></tr>
+  {% for e in events %}
+  <tr>
+    <td><code>{{ e['case_ref'] }}</code></td>
+    <td>{{ e['device_model'] }}</td>
+    <td><span class="tag tag-{{ 'cyan' if e['event_type']=='INTAKE' else ('amber' if e['event_type'] in ('CHECKOUT','TRANSFER') else 'green' if e['event_type']=='CHECKIN' else 'red') }}">{{ e['event_type'] }}</span></td>
+    <td>{{ e['from_location'] or '—' }} <span class="muted">→</span> {{ e['to_location'] or '—' }}</td>
+    <td>{{ e['to_user'] or '—' }}</td>
+    <td class="small muted">{{ e['occurred_at'] }}</td>
+    <td><a href="{{ url_for('custody.detail', cuid=e['id']) }}">View →</a></td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% else %}
+<div class="card"><div class="empty">No custody events recorded yet.</div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AegisLB — Load Balancer Simulator</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>AegisLB</h1>
+    <span class="tagline">security-hardened load balancer simulator with health checks</span>
+  </div>
+  <div class="runbar">
+    <span id="runStatus" class="badge st-off">stopped</span>
+    <span id="runId" class="mono small"></span>
+    <span id="simTime" class="mono small"></span>
+  </div>
+</header>
+
+<section id="controls" class="panel">
+  <div class="ctl-row">
+    <label>seed <input id="inSeed" type="number" min="0" step="1" value="41451"></label>
+    <label>rps <input id="inRps" type="number" min="0" step="1" value="80"></label>
+    <label>speed <input id="inSpeed" type="number" min="0.1" step="0.1" value="1"></label>
+    <label>policy
+      <select id="inPolicy">
+        <option value="ROUND_ROBIN">Round Robin</option>
+        <option value="WEIGHTED_ROUND_ROBIN">Weighted RR</option>
+        <option value="LEAST_CONNECTIONS" selected>Least Connections</option>
+        <option value="LEAST_RESPONSE_TIME">Least Response Time</option>
+        <option value="POWER_OF_TWO_CHOICES">Power of Two Choices</option>
+        <option value="RANDOM">Random</option>
+        <option value="IP_HASH">IP Hash</option>
+        <option value="CONSISTENT_HASH">Consistent Hash</option>
+      </select>
+    </label>
+    <label>arrival
+      <select id="inModel">
+        <option value="POISSON" selected>Poisson</option>
+        <option value="CONSTANT">Constant</option>
+        <option value="MMPP">MMPP (burst)</option>
+      </select>
+    </label>
+  </div>
+  <div class="ctl-row">
+    <button id="btnStart" class="btn primary">Start Run</button>
+    <button id="btnApply" class="btn">Apply</button>
+    <button id="btnPause" class="btn">Pause</button>
+    <button id="btnStop" class="btn danger">Stop</button>
+    <span class="spacer"></span>
+    <label class="keyin">X-Aegis-Key <input id="inKey" type="password" placeholder="scoped API key for writes"></label>
+  </div>
+</section>
+
+<section id="metrics" class="panel strip">
+  <span class="metric">rps <b id="mRps">0</b></span>
+  <span class="metric">sessions <b id="mSessions">0</b></span>
+  <span class="metric">errors <b id="mErrors">0</b></span>
+  <span class="metric">rejects <b id="mRejects">0</b></span>
+  <span class="metric">probes ok <b id="mProbesOk">0</b></span>
+  <span class="metric">probes fail <b id="mProbesFail">0</b></span>
+  <span class="metric">decisions <b id="mDecisions">0</b></span>
+  <span class="metric">eligible <b id="mEligible">0</b></span>
+</section>
+
+<section id="alerts" class="panel"><div class="panel-title">Alerts</div><div id="alertList" class="alert-list"></div></section>
+
+<section id="pool" class="panel">
+  <div class="panel-title">Backend Pool</div>
+  <div class="ctl-row addrow">
+    <label>name <input id="inName" value="web-n" placeholder="backend name"></label>
+    <label>weight <input id="inWeight" type="number" value="100" min="1"></label>
+    <label>capacity <input id="inCap" type="number" value="800" min="1"></label>
+    <label>latency(ms) <input id="inLat" type="number" value="45" min="1"></label>
+    <label>model
+      <select id="inLatModel">
+        <option value="FIXED">Fixed</option>
+        <option value="EXP" selected>Exp</option>
+        <option value="NORMAL">Normal</option>
+        <option value="PARETO">Pareto</option>
+      </select>
+    </label>
+    <button id="btnAdd" class="btn">Add Backend</button>
+  </div>
+  <div id="backendCards" class="cards"></div>
+</section>
+
+<section class="split">
+  <div class="panel">
+    <div class="panel-title">Event Log</div>
+    <div id="eventLog" class="log"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Memory Notes (persisted to memory.md)</div>
+    <textarea id="notesBox" placeholder="Operator notes persisted to memory.md..."></textarea>
+    <button id="btnNotes" class="btn">Save Notes</button>
+    <div class="panel-title sec">Security Posture</div>
+    <pre id="secStatus" class="mono small"></pre>
+  </div>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

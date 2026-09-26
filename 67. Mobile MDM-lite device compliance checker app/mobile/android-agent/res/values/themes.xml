@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MDMLite" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#070B16</item>
+        <item name="android:colorAccent">@color/brand_violet</item>
+        <item name="android:statusBarColor">#060A14</item>
+        <item name="android:navigationBarColor">#060A14</item>
+        <item name="android:textColorPrimary">#E7ECF5</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

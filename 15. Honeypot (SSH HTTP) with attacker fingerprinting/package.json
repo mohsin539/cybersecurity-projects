@@ -1,0 +1,15 @@
+{
+  "name": "honeypot",
+  "version": "0.1.0",
+  "description": "Deception host: fake SSH + HTTP with attacker fingerprinting",
+  "language": "python",
+  "python": ">=3.10",
+  "dependencies": "stdlib only",
+  "entrypoints": {
+    "gui": "Honeypot.exe",
+    "gui dev": "python honeypot_gui.py",
+    "cli": "python main.py --config config/doors.yaml --state data --run-once",
+    "replay": "python scripts/attacker_sim.py 127.0.0.1 2222",
+    "serve": "python main.py --config config/doors.yaml --state data"
+  }
+}

@@ -1,0 +1,1 @@
+"""Package presentation: the browser-based dashboard and static assets."""

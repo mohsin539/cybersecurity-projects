@@ -1,0 +1,5 @@
+/* AEGIS-SENTINEL — style entry */
+@import './fonts.css';
+@import './tokens.css';
+@import './base.css';
+@import './app.css';

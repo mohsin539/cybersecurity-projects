@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Reports & Evidence <small>multi-format download</small></h1>
+
+<section class="panel">
+  <h2>Generate evidence bundle</h2>
+  <p class="tag">Exports a full audit bundle: <b>.xlsx</b> (workbook, 6 sheets) · <b>.xls</b> (legacy) ·
+     <b>.csv</b> bundle (alerts · techniques · metrics · compliance · evidence) · <b>.html</b> (dashboard)</p>
+  <div class="toolbar">
+    <form method="post" action="{{ url_for('generate') }}">
+      <button class="btn primary" onclick="return confirm('Generate all report artifacts?')">&#128229; Generate bundle</button>
+    </form>
+    <span class="tag">{{ data_meta.techniques }} techniques · {{ data_meta.rules }} rules · {{ data_meta.compliance_rows }} compliance rows</span>
+  </div>
+</section>
+
+{% if reports %}
+<section class="panel">
+  <h2>Generated artifacts</h2>
+  <div class="table-scroll">
+  <table>
+    <tr><th>Report</th><th>Kind</th><th>Format</th><th>Size</th><th>SHA-256</th><th>Download</th></tr>
+    {% for r in reports %}
+    <tr>
+      <td><code>{{ r.report_id }}</code></td>
+      <td>{{ r.kind }}</td>
+      <td><span class="badge med">{{ r.format }}</span></td>
+      <td>{{ (r.size / 1024)|round(1) }} KB</td>
+      <td><small><code>{{ r.sha256[:16] }}…</code></small></td>
+      <td>
+        <a class="btn small" href="{{ url_for('download', report_id=r.report_id) }}">
+          &#11015; {{ {'xlsx':'Excel','xls':'Excel97','csv':'CSV','html':'HTML'}.get(r.format, r.format) }}
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>Recent audit activity</h2>
+  <table class="compact">
+    <tr><th>When</th><th>Actor</th><th>Action</th><th>Detail</th></tr>
+    {% for a in audit %}
+    <tr>
+      <td>{{ a.ts|int }}</td>
+      <td>{{ a.actor }}</td>
+      <td><code>{{ a.action }}</code></td>
+      <td class="tag">{{ a.detail }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="tag">Full trail in <code>Out</code> storage and <code>{{ out_dir }}</code> report directory.</p>
+</section>
+{% endblock %}

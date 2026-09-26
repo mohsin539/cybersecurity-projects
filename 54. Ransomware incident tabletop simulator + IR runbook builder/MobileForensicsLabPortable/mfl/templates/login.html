@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login · MobileForensicsLabPortable</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="card">
+      <div class="brand" style="margin-bottom:18px">
+        <div class="logo">📱</div>
+        <div><b>MobileForensicsLab</b><small style="color:var(--muted);font-size:12px;display:block">Portable · evidence-grade console</small></div>
+      </div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flashes">
+          {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+      <form method="post" class="stack">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <div class="field"><label>Username</label><input name="username" autocomplete="username" required></div>
+        <div class="field"><label>Password</label><input type="password" name="password" autocomplete="current-password" required></div>
+        <button class="btn primary" type="submit">🔐 Authenticate</button>
+      </form>
+      <p class="small muted" style="margin-top:14px">Session cookies are <code>HttpOnly</code> + <code>SameSite=Lax</code>. Login failures are rate-limited and hash-chained into the audit trail (ISO A.8.16).</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

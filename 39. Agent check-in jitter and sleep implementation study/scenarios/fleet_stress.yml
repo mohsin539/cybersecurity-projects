@@ -1,0 +1,16 @@
+agents: 10000
+interval_sec: 60
+jitter_pct: 50
+jitter_type: gaussian
+sleep_mode: adaptive
+sleep_base_sec: 50
+run_length_sec: 3600
+replicas: 3
+seed: 1337
+engine: fast
+server_workers: 50
+server_service_ms: 8
+server_queue_cap: 5000
+power_active_ma: 35
+power_sleep_ua: 640
+compare_baseline: true

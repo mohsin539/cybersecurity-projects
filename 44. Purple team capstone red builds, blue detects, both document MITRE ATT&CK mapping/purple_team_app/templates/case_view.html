@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ case.title }} · Case Workspace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>🧬 {{ case.title }}</h1>
+    <p class="muted">Owner {{ case.owner }} · started {{ case.created_at.strftime('%Y-%m-%d') }} · <span class="pill {{ case.status }}">{{ case.status }}</span></p>
+    <p class="muted">{{ case.scope }}</p>
+    <p class="muted">⚠️ Rules of engagement: {{ case.rules_of_engagement }}</p>
+  </div>
+  <div class="overall">
+    <div class="ring" style="--p:{{ case.alignment_score }}"><b>{{ case.alignment_score }}%</b><span>alignment</span></div>
+  </div>
+</div>
+
+<div class="two">
+  <div class="card red">
+    <h3>🔴 Red Console — Build &amp; launch</h3>
+    <form method="post" action="/case/{{ case.id }}/attack" class="vf">
+      <select name="technique_id" required>
+        <option value="">Pick a MITRE technique…</option>
+        {% for t in techniques %}<option value="{{ t.id }}">{{ t.id }} — {{ t.name }} ({{ t.tactic }})</option>{% endfor %}
+      </select>
+      <input name="title" placeholder="Step title (optional)">
+      <input name="payload" placeholder="payload / command line">
+      <select name="status"><option value="running">running</option><option value="success">success</option><option value="failed">failed</option></select>
+      <button class="btn rd">Launch attack</button>
+    </form>
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Technique</th><th>Title</th><th>Status</th><th>Payload</th></tr></thead>
+      <tbody>
+      {% for a in case.attacks %}
+        <tr><td>{{ a.id }}</td>
+        <td class="tid">{{ a.technique_id }} · {{ a.technique.name }}</td>
+        <td>{{ a.title }}</td>
+        <td><span class="pill {{ a.status }}">{{ a.status }}</span></td>
+        <td class="mono">{{ a.payload or '—' }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card blue">
+    <h3>🔵 Blue Console — Detect &amp; document</h3>
+    <form method="post" action="/case/{{ case.id }}/detect" class="vf">
+      <select name="technique_id" required>
+        <option value="">Attributed technique…</option>
+        {% for t in techniques %}<option value="{{ t.id }}">{{ t.id }} — {{ t.name }}</option>{% endfor %}
+      </select>
+      <select name="attack_id">
+        <option value="">map to red attack (optional)</option>
+        {% for a in case.attacks %}<option value="{{ a.id }}">attack #{{ a.id }} · {{ a.technique_id }}</option>{% endfor %}
+      </select>
+      <select name="status"><option value="detected">detected</option><option value="partial">partial</option><option value="missed">missed</option></select>
+      <input name="rule_ref" placeholder="SIEM rule ref (e.g. SIGMA-…)">
+      <input name="analyst" placeholder="analyst handle">
+      <button class="btn bl">Record detection</button>
+    </form>
+    <table class="tbl">
+      <thead><tr><th>Technique</th><th>Verdict</th><th>Rule</th><th>Analyst</th></tr></thead>
+      <tbody>
+      {% for d in case.detections %}
+        <tr><td class="tid">{{ d.technique_id }} · {{ d.technique.name }}</td>
+        <td><span class="pill {{ d.status }}">{{ d.status }}</span></td>
+        <td class="mono">{{ d.rule_ref or '—' }}</td>
+        <td>{{ d.analyst }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3>🧾 Evidence Chain ({{ case.attacks|map(attribute='evidence')|map('length')|sum }})</h3>
+  <div class="chips">
+    {% for a in case.attacks %}{% for ev in a.evidence %}
+    <span class="chip ev"><b>{{ ev.kind }}</b> → {{ ev.file_ref }} <em>{{ ev.sha256 }}</em></span>
+    {% endfor %}{% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <h3>⬇ Export this case</h3>
+  <div class="btns">
+    <a class="btn pu" href="/export/xlsx?case_id={{ case.id }}">⬇ .XLSX workbook</a>
+    <a class="btn bl" href="/export/csv?kind=mapping&case_id={{ case.id }}">⬇ .CSV mapping</a>
+    <a class="btn green" href="/export/html?case_id={{ case.id }}">⬇ .HTML DOSS report</a>
+    <a class="btn rd" href="/export/csv?kind=controls">⬇ .CSV controls</a>
+  </div>
+</div>
+{% endblock %}

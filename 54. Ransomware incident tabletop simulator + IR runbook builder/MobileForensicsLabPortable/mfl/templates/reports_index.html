@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Reports & downloads · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<h1>📤 Reports & Downloads</h1>
+<div class="sub">Generate tamper-evident exports. Every download is signed (SHA-256 header) and logged to the audit trail.</div>
+
+<div class="card" style="max-width:760px">
+  <h3 style="margin-top:0">Generate a case report</h3>
+  <form method="post" action="{{ url_for('reports.generate') }}" class="stack">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="field"><label>Case</label>
+      <select name="case_id" required>
+        {% for c in cases %}
+        <option value="{{ c['id'] }}">{{ c['case_ref'] }} — {{ c['title'] }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="row3">
+      <div class="field"><label>Report kind</label>
+        <select name="kind">
+          <option value="executive">Executive (PDF-style print)</option>
+          <option value="technical">Technical</option>
+        </select></div>
+      <div class="field"><label>Format</label>
+        <select name="format" id="fmt">
+          <option value="html">HTML (print → PDF)</option>
+          <option value="json">JSON (full case dump)</option>
+          <option value="csv">CSV (by table)</option>
+          <option value="auditxml">Audit pack (XML, all events)</option>
+        </select></div>
+      <div class="field" id="entityfield"><label>CSV table</label>
+        <select name="entity">
+          <option value="evidence">Evidence</option>
+          <option value="artifacts">Artifacts</option>
+          <option value="custody">Custody</option>
+        </select></div>
+    </div>
+    <div><button class="btn primary" type="submit">⚡ Generate download</button></div>
+    <p class="small muted">HTML reports embed a compliance mapping excerpt + integrity manifest hash. All exports include <code>Content-SHA256</code> header for end-to-end verification.</p>
+  </form>
+</div>
+
+<div class="card mt" style="max-width:760px">
+  <h3 style="margin-top:0">🧾 Audit & governance exports</h3>
+  <div class="actions">
+    <a class="btn success" href="{{ url_for('audit.export', fmt='json') }}">⬇ Audit JSON</a>
+    <a class="btn success" href="{{ url_for('audit.export', fmt='csv') }}">⬇ Audit CSV</a>
+    <a class="btn success" href="{{ url_for('audit.export', fmt='xml') }}">⬇ Audit XML pack</a>
+    <a class="btn ghost" href="{{ url_for('main.verify_chain') }}">🔍 Verify hash chain</a>
+  </div>
+  <p class="small muted">Auditor/admin only. Exports are restricted and recorded as <code>AUDIT_EXPORT</code> high-severity events.</p>
+</div>
+
+<script>
+  var fmt = document.getElementById('fmt');
+  var ent = document.getElementById('entityfield');
+  function sync(){ ent.style.display = fmt.value === 'csv' ? '' : 'none'; }
+  fmt.addEventListener('change', sync); sync();
+</script>
+{% endblock %}

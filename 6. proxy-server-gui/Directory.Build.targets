@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ProxyCore.Tests'">
+    <EnableWpfProject>true</EnableWpfProject>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if case else 'New' }} Case · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('cases.index') }}">Cases</a> / {{ 'Edit' if case else 'New case' }}</div>
+<h1>{{ '✏️ Edit case' if case else '➕ New case' }}</h1>
+
+<form method="post" class="stack">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <div class="row2">
+    <div class="field"><label>Case reference (unique)</label>
+      <input name="case_ref" value="{{ (case['case_ref'] if case else '') }}" maxlength="40" {{ 'readonly' if case }} required></div>
+    <div class="field"><label>Status</label>
+      <select name="status" {{ 'disabled' if not case }}>
+        {% for s in ['open','active','closed','shelved'] %}
+        <option value="{{ s }}" {{ 'selected' if case and case['status']==s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      {% if not case %}<input type="hidden" name="status" value="open">{% endif %}</div>
+  </div>
+  <div class="field"><label>Title</label>
+    <input name="title" value="{{ (case['title'] if case else '') }}" required></div>
+  <div class="row2">
+    <div class="field"><label>Severity</label>
+      <select name="severity">
+        {% for s in ['low','medium','high','critical'] %}
+        <option value="{{ s }}" {{ 'selected' if case and case['severity']==s }}>{{ s }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label>Lead examiner</label>
+      <input name="lead_examiner" value="{{ (case['lead_examiner'] if case else '') }}"></div>
+  </div>
+  <div class="field"><label>Description</label>
+    <textarea name="description">{{ (case['description'] if case else '') }}</textarea></div>
+  <div class="actions">
+    <button class="btn success" type="submit">💾 Save case</button>
+    {% if case %}<a class="btn ghost" href="{{ url_for('cases.detail', cid=case['id']) }}">Cancel</a>{% endif %}
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} artifact · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('evidence.detail', eid=item['id']) }}">{{ item['device_model'] }}</a> / {{ action }} artifact</div>
+<h1>{{ '🔬 Add artifact' if action=='Add' else '✏️ Edit artifact' }}</h1>
+<div class="sub">Device <code>{{ item['device_model'] }}</code> · case evidence #{{ item['id'] }}</div>
+
+<form method="post" class="stack">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <div class="row2">
+    <div class="field"><label>Category</label>
+      <select name="category">
+        {% for c in categories %}
+        <option value="{{ c }}" {{ 'selected' if artifact and artifact['category']==c }}>{{ c|replace('_',' ') }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label>Severity</label>
+      <select name="severity">
+        {% for s in severities %}
+        <option value="{{ s }}" {{ 'selected' if artifact and artifact['severity']==s }}>{{ s }}</option>
+        {% endfor %}
+      </select></div>
+  </div>
+  <div class="field"><label>Artifact name *</label>
+    <input name="name" value="{{ (artifact['name'] if artifact else '') }}" required></div>
+  <div class="row2">
+    <div class="field"><label>Value / evidence string</label><input name="value" value="{{ (artifact['value'] if artifact else '') }}"></div>
+    <div class="field"><label>Timestamp (UTC)</label><input name="timestamp" value="{{ (artifact['timestamp'] if artifact else '') }}" placeholder="2026-09-21 10:15:00"></div>
+  </div>
+  <div class="field"><label>Detail</label>
+    <textarea name="detail">{{ (artifact['detail'] if artifact else '') }}</textarea></div>
+  <div class="row2">
+    <div class="field"><label>Source path (extraction)</label><input name="source_path" value="{{ (artifact['source_path'] if artifact else '') }}"></div>
+    <div class="field"><label>Artifact hash (SHA-256 head ok)</label><input name="artifact_hash" value="{{ (artifact['artifact_hash'] if artifact else '') }}"></div>
+  </div>
+  <div class="actions">
+    <button class="btn success" type="submit">💾 Save artifact</button>
+    <a class="btn ghost" href="{{ url_for('evidence.detail', eid=item['id']) }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

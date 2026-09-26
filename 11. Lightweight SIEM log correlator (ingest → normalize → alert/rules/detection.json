@@ -1,0 +1,42 @@
+[
+  {
+    "id": "BRUTE_FORCE_SSH",
+    "name": "SSH brute-force attempt",
+    "severity": "high",
+    "type": "threshold",
+    "window_s": 60,
+    "threshold": 4,
+    "group_by": ["source_ip", "dest_port"],
+    "filter": {
+      "action": "auth_failure",
+      "category": "authentication",
+      "dest_port": 22
+    }
+  },
+  {
+    "id": "HTTP_ERROR_FLOOD",
+    "name": "Elevated HTTP 5xx errors from single source",
+    "severity": "medium",
+    "type": "threshold",
+    "window_s": 120,
+    "threshold": 10,
+    "group_by": ["source_ip"],
+    "filter": {
+      "action": "error",
+      "category": "network"
+    }
+  },
+  {
+    "id": "AUTH_SUCCESS_AFTER_FAIL",
+    "name": "Authentication success following failures (same source)",
+    "severity": "high",
+    "type": "threshold",
+    "window_s": 300,
+    "threshold": 1,
+    "group_by": ["source_ip", "user"],
+    "filter": {
+      "action": "auth_success",
+      "category": "authentication"
+    }
+  }
+]

@@ -1,0 +1,2 @@
+pefile>=2024.8.26
+pyinstaller>=6.0; sys_platform == "win32"

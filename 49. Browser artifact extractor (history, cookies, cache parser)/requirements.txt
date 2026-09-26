@@ -1,0 +1,13 @@
+# Browser Artifact Extractor - dependencies
+# GUI + extraction rely on Python standard library (tkinter, sqlite3, ctypes).
+# The following are used for optional high-fidelity features and report output.
+
+cryptography>=42.0        # AES-GCM (v10/v11/v20 Chromium cookie & key decryption)
+openpyxl>=3.1             # .xlsx spreadsheet report export
+reportlab>=4.0            # PDF report export
+pillow>=10.0              # image handling / icons
+pyinstaller>=6.0          # portable one-file Windows .exe build
+
+# pywin32-ctypes is optional - DPAPI is accessed through ctypes directly,
+# so the tool works even when pywin32 is unavailable.
+# pywin32-ctypes>=0.2

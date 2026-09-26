@@ -1,0 +1,30 @@
+{
+  "service": "ProxySuite-Python",
+  "version": "1.0.0",
+  "uptimeSec": 0,
+  "listenersUp": true,
+  "pid": 9884,
+  "listeners": {
+    "http": {
+      "bind": "127.0.0.1",
+      "port": 18099,
+      "authMode": "None",
+      "resolvedBind": "127.0.0.1"
+    },
+    "socks5": {
+      "bind": "127.0.0.1",
+      "port": 11099,
+      "authMode": "None",
+      "resolvedBind": "127.0.0.1"
+    }
+  },
+  "metrics": {
+    "sessionsActive": 0,
+    "sessionsTotal": 0,
+    "deniedTotal": 0,
+    "errorsTotal": 0,
+    "bytesUp": 0,
+    "bytesDown": 0
+  },
+  "ts": "2026-09-15T16:48:32.089587+00:00"
+}

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VulnLab Sentinel - Design Blueprint</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#111733; --bg3:#172141; --panel:#0f1530;
+    --line:#233052; --line2:#2e3f6b;
+    --txt:#e8ecf8; --muted:#9aa7c7; --faint:#5d6a8f;
+    --accent:#00e5ff; --accent2:#7c4dff; --good:#00e676; --warn:#ffb300;
+    --crit:#ff1744; --high:#ff6d00; --med:#ffc400; --low:#40c4ff; --info:#90a4ae;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+    --glow:0 0 18px rgba(0,229,255,.35);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:
+    radial-gradient(1200px 600px at 80% -10%, #1a2150 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, #12203f 0%, transparent 55%),
+    var(--bg);color:var(--txt);min-height:100vh;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 22px;background:linear-gradient(90deg,#0d1330,#101a44 60%,#0d1330);border-bottom:1px solid var(--line2);position:sticky;top:0;z-index:20}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.5px;font-size:15px}
+  .logo .mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:900;color:#04101a;
+    background:conic-gradient(from 210deg,var(--accent),var(--accent2),var(--good),var(--accent));box-shadow:var(--glow)}
+  .topbar .spacer{flex:1}
+  .chip{font-size:11px;padding:5px 12px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);
+    background:linear-gradient(180deg,#131b3d,#0d1330);letter-spacing:.4px}
+  .chip.on{color:#04121a;background:linear-gradient(180deg,var(--good),#00c853);border-color:#00e676;font-weight:700}
+  .chip.off{color:#ffb3b3;border-color:#7a2a2a;background:#221418}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+  .dot.g{background:var(--good);box-shadow:0 0 8px var(--good)}
+  .dot.r{background:var(--crit);box-shadow:0 0 8px var(--crit)}
+  .dot.y{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+
+  .layout{display:flex;min-height:calc(100vh - 64px)}
+  nav{width:230px;flex-shrink:0;padding:18px 12px;border-right:1px solid var(--line);background:var(--bg2)}
+  nav .grp{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--faint);margin:16px 10px 8px}
+  nav a{display:flex;align-items:center;gap:10px;color:var(--muted);text-decoration:none;padding:9px 12px;border-radius:9px;font-size:13px;margin-bottom:2px;transition:.15s}
+  nav a .ic{width:18px;text-align:center;opacity:.85}
+  nav a:hover{background:#182448;color:var(--txt)}
+  nav a.act{background:linear-gradient(90deg,#143052,#0b1b3a);color:#fff;border:1px solid #1d3a6b;box-shadow:inset 3px 0 0 var(--accent)}
+  nav a.act .ic{color:var(--accent)}
+
+  main{flex:1;padding:22px 24px 60px;overflow:hidden}
+  h1{font-size:20px;font-weight:700;letter-spacing:.3px}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+  .kpi{background:linear-gradient(180deg,var(--bg3),var(--panel));border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi::after{content:"";position:absolute;right:-20px;top:-20px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,.15),transparent 65%)}
+  .kpi .lab{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px}
+  .kpi .val{font-size:27px;font-weight:800;margin-top:6px}
+  .kpi .subv{font-size:11px;color:var(--muted);margin-top:3px}
+  .kpi.crit .val{color:var(--crit)} .kpi.high .val{color:var(--high)} .kpi.med .val{color:var(--med)} .kpi.low .val{color:var(--low)}
+  .kpi.ok .val{color:var(--good)}
+
+  .grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .panel{background:linear-gradient(180deg,var(--bg3),var(--panel));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .panel h2{font-size:14px;letter-spacing:.4px;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .panel h2 .bar{width:4px;height:15px;border-radius:2px;background:linear-gradient(180deg,var(--accent),var(--accent2))}
+
+  .table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .table th{color:var(--faint);text-align:left;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;padding:8px 10px;border-bottom:1px solid var(--line2)}
+  .table td{padding:9px 10px;border-bottom:1px solid var(--line)}
+  .table tr:hover td{background:#151e45}
+  .sev{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px}
+  .sev::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .s-critical{color:#ff5473;background:rgba(255,23,68,.12);border:1px solid rgba(255,23,68,.4)}
+  .s-high{color:#ff9b54;background:rgba(255,109,0,.12);border:1px solid rgba(255,109,0,.4)}
+  .s-medium{color:#ffcf54;background:rgba(255,196,0,.12);border:1px solid rgba(255,196,0,.4)}
+  .s-low{color:#6fd2ff;background:rgba(64,196,255,.12);border:1px solid rgba(64,196,255,.4)}
+  .s-info{color:#aebdc9;background:rgba(144,164,174,.12);border:1px solid rgba(144,164,174,.4)}
+  .tag{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:6px;border:1px solid var(--line2);color:var(--muted);margin-right:4px;background:#0b1128}
+  .tl{display:flex;flex-direction:column;gap:12px}
+  .tl .ev{position:relative;padding-left:24px}
+  .tl .ev::before{content:"";position:absolute;left:7px;top:4px;bottom:-14px;width:2px;background:linear-gradient(180deg,var(--line2),transparent)}
+  .tl .ev:last-child::before{display:none}
+  .tl .pnt{position:absolute;left:2px;top:3px;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent);background:var(--bg);box-shadow:var(--glow)}
+  .tl .ev.done .pnt{border-color:var(--good)} .tl .ev.warn .pnt{border-color:var(--warn)}
+  .tl .t{font-size:12.5px;font-weight:600}
+  .tl .m{font-size:11px;color:var(--muted);margin-top:2px}
+  .tl .tm{font-size:10px;color:var(--faint);float:right}
+
+  .console{background:#070b18;border:1px solid #1b2547;border-radius:10px;padding:14px;font-family:Consolas,monospace;font-size:11.5px;line-height:1.7;box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
+  .console .row{white-space:pre-wrap;word-break:break-word}
+  .c-neutral{color:#8fa3c8} .c-ok{color:var(--good)} .c-warn{color:var(--warn)}
+  .c-target{color:var(--accent)} .c-err{color:#ff5470} .c-in{color:#c9a7ff} .c-pay{color:#ff78e0}
+  .console .promptline{color:var(--faint)}
+
+  .ctrl{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn{font-size:12px;font-weight:600;padding:8px 15px;border-radius:8px;border:1px solid var(--line2);cursor:pointer;color:var(--txt);background:linear-gradient(180deg,#18234f,#0e1634);transition:.15s}
+  .btn:hover{border-color:var(--accent);box-shadow:var(--glow)}
+  .btn.primary{color:#04101a;background:linear-gradient(180deg,var(--accent),#00b8d4);border:none}
+  .btn.danger{color:#fff;background:linear-gradient(180deg,#ff2d55,#c0132f);border:none}
+  .btn.ok{color:#041010;background:linear-gradient(180deg,var(--good),#00c853);border:none}
+  .btn.ghost{border-color:#2a3a68;color:#aebff0}
+  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+
+  .bar90{height:8px;border-radius:6px;background:#0b1128;overflow:hidden;position:relative}
+  .bar90 i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+  .lg{display:flex;align-items:center;gap:10px;font-size:11.5px;margin-bottom:8px}
+  .lg .nm{width:130px;color:var(--muted);flex-shrink:0}
+  .lg .bar90{flex:1}
+  .lg b{width:44px;text-align:right}
+
+  .ctrl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+  .ctrl-card{border:1px solid var(--line);border-radius:10px;padding:11px;background:#0d1430;font-size:12px}
+  .ctrl-card .cv2{font-size:10px;color:var(--faint);letter-spacing:.8px;text-transform:uppercase}
+  .ctrl-card .cn{font-weight:700;color:var(--accent);margin:3px 0}
+  .ctrl-card .ok{color:var(--good);font-size:10.5px}
+  .ctrl-card.fail .cn{color:var(--crit)}
+
+  .fmt{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .fmt .card{border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;background:linear-gradient(180deg,#101a3e,#0c1330);transition:.15s}
+  .fmt .card:hover{transform:translateY(-3px);border-color:var(--accent2);box-shadow:0 12px 26px rgba(124,77,255,.25)}
+  .fmt .icf{font-size:30px}
+  .fmt .fn{font-weight:700;margin-top:8px}
+  .fmt .fd{font-size:11px;color:var(--muted);margin-top:4px}
+  .fmt .fw{font-size:10.5px;color:var(--faint);margin-top:8px}
+
+  .palette{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .sw{width:120px;border-radius:10px;padding:10px 0 8px;text-align:center;border:1px solid rgba(255,255,255,.12);color:#fff}
+  .sw b{font-size:11px;font-weight:700} .sw span{display:block;font-size:9.5px;opacity:.85;margin-top:2px}
+  footer{margin-top:26px;padding:16px;text-align:center;font-size:11px;color:var(--faint);border-top:1px solid var(--line)}
+  .badge{font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--line2);color:var(--muted);background:#0b1128}
+  .warnbanner{border:1px solid rgba(255,179,0,.5);background:linear-gradient(90deg,rgba(255,179,0,.12),rgba(255,109,0,.08));color:#ffcf8f;font-size:12px;padding:9px 12px;border-radius:10px;margin-bottom:14px;letter-spacing:.2px}
+  .eyebrow{color:var(--accent2);font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-top:26px;margin-bottom:6px}
+  .cmap{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:10.5px}
+  .cmap .cell{border:1px solid var(--line);border-radius:8px;padding:8px;background:#0d1430}
+  .cmap .cell .fh{color:var(--faint);font-size:9px;text-transform:uppercase;letter-spacing:.8px}
+  .cmap .cell.pass{border-color:rgba(0,230,118,.5)}
+  .cmap .cell.pass .fh{color:var(--good)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="mark">VS</div> VulnLab Sentinel</div>
+  <div class="spacer"></div>
+  <span class="chip"><span class="dot g"></span>MSGRPC 127.0.0.1:55553</span>
+  <span class="chip on"><span class="dot g"></span>Module: vulnlab_cmd loaded</span>
+  <span class="chip off"><span class="dot r"></span>EXPLOIT MODE LOCKED</span>
+</div>
+
+<div class="layout">
+  <nav>
+    <div class="grp">Workspace</div>
+    <a class="act"><span class="ic">&#9632;</span> Dashboard</a>
+    <a><span class="ic">&#9678;</span> Targets <span class="badge" style="margin-left:auto">3</span></a>
+    <a><span class="ic">&#9654;</span> Run Module</a>
+    <a><span class="ic">&#8999;</span> Module Console</a>
+    <div class="grp">Analysis</div>
+    <a><span class="ic">&#9888;</span> Findings <span class="badge" style="margin-left:auto;color:#ff6d00;border-color:#7a3a00">4</span></a>
+    <a><span class="ic">&#9644;</span> Compliance Map</a>
+    <a><span class="ic">&#9998;</span> Reports</a>
+    <div class="grp">System</div>
+    <a><span class="ic">&#9208;</span> Audit Log</a>
+    <a><span class="ic">&#9881;</span> Settings</a>
+    <a><span class="ic">&#9209;</span> Stop &amp; Purge</a>
+  </nav>
+
+  <main>
+    <div class="warnbanner">&#9888; LAB-ONLY SCOPE &middot; Isolated VLAN 10.10.10.0/24 &middot; Consent attestation verified @ 09:41 &middot; No payloads until explicitly unlocked in Run Module.</div>
+
+    <div class="eyebrow">Design Blueprint &middot; View 01 &mdash; Dashboard</div>
+    <h1>Dashboard</h1>
+    <div class="sub">Live posture of the lab scan against vulnlab-target.lab:1337</div>
+
+    <div class="kpis">
+      <div class="kpi ok"><div class="lab">Scan Status</div><div class="val">RUNNING</div><div class="subv">sink: inject &middot; 42% complete</div></div>
+      <div class="kpi crit"><div class="lab">Critical</div><div class="val">1</div><div class="subv">CVSS 9.8 &middot; RCE</div></div>
+      <div class="kpi high"><div class="lab">High</div><div class="val">2</div><div class="subv">5.0&ndash;8.9 &middot; exploit path</div></div>
+      <div class="kpi med"><div class="lab">Medium</div><div class="val">1</div><div class="subv">4.0&ndash;6.9 &middot; misconfig</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h2><span class="bar"></span> OWASP Top 10 Radar &mdash; Coverage</h2>
+        <svg viewBox="0 0 320 182" width="100%" style="max-height:182px">
+          <g fill="none" stroke="#233052" stroke-width="1">
+            <circle cx="160" cy="95" r="70" stroke-dasharray="3 4"/>
+            <circle cx="160" cy="95" r="50" stroke-dasharray="3 4"/>
+            <circle cx="160" cy="95" r="30" stroke-dasharray="3 4"/>
+            <line x1="20" y1="95" x2="300" y2="95" stroke="#1c2746"/>
+            <line x1="160" y1="10" x2="160" y2="180" stroke="#1c2746"/>
+          </g>
+          <g fill="#00e5ff">
+            <circle cx="160" cy="35" r="4"/><circle cx="80" cy="80" r="4"/>
+            <circle cx="240" cy="80" r="4"/><circle cx="110" cy="145" r="4"/>
+            <circle cx="210" cy="145" r="4"/>
+          </g>
+          <g fill="#ffc400">
+            <circle cx="60" cy="120" r="4"/><circle cx="262" cy="120" r="4"/>
+          </g>
+          <path d="M160 95 L 80 80 L 110 145 L 210 145 L 240 80 Z" fill="rgba(124,77,255,.14)" stroke="#7c4dff" stroke-width="1.6"/>
+          <g font-size="8.5" fill="#9aa7c7">
+            <text x="150" y="20">A03 Injection</text><text x="40" y="74">A01</text><text x="238" y="74">A05</text>
+            <text x="72" y="162">A07</text><text x="196" y="162">A10</text><text x="24" y="116">A04</text><text x="250" y="116">A06</text>
+          </g>
+        </svg>
+        <div class="lg"><span class="nm">A03 Injection</span><span class="bar90"><i style="width:92%;background:linear-gradient(90deg,#ff1744,#7c4dff)"></i></span><b>3</b></div>
+        <div class="lg"><span class="nm">A05 Misconfig</span><span class="bar90"><i style="width:55%;background:linear-gradient(90deg,#ff6d00,#ffb300)"></i></span><b>2</b></div>
+        <div class="lg"><span class="nm">A07 Auth Flaw</span><span class="bar90"><i style="width:30%;background:linear-gradient(90deg,#ffc400,#40c4ff)"></i></span><b>1</b></div>
+        <div class="lg"><span class="nm">A10 SSRF</span><span class="bar90"><i style="width:18%;background:linear-gradient(90deg,#40c4ff,#90a4ae)"></i></span><b>1</b></div>
+      </div>
+      <div class="panel">
+        <h2><span class="bar"></span> Run Timeline (SP 800-115 lifecycle)</h2>
+        <div class="tl">
+          <div class="ev done"><span class="pnt"></span><span class="tm">09:41</span><div class="t">Discovery &amp; fingerprinting</div><div class="m">banner + debug flag identified</div></div>
+          <div class="ev done"><span class="pnt"></span><span class="tm">09:44</span><div class="t">Probing &amp; enumeration</div><div class="m">sinks: auth, inject, trace</div></div>
+          <div class="ev warn"><span class="pnt"></span><span class="tm">09:47</span><div class="t">Exploit planning (check)</div><div class="m">module check = Vulnerable</div></div>
+          <div class="ev"><span class="pnt"></span><span class="tm">--:--</span><div class="t">POC &amp; validation</div><div class="m">consent + scope gate armed</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2><span class="bar"></span> Findings &mdash; severity sorted &middot; compliance-tagged</h2>
+      <table class="table">
+        <tr><th>Finding</th><th>Severity</th><th>CVSS</th><th>OWASP</th><th style="text-align:center">NIST</th><th style="text-align:center">ISO</th></tr>
+        <tr><td><b>Command injection in header</b><br><span class="tag">sink: inject</span><span class="tag">evidence_0012.json</span></td><td><span class="sev s-critical">Critical</span></td><td>9.8</td><td>A03</td><td style="text-align:center">800-115 &sect;5.2</td><td style="text-align:center">A.8.8</td></tr>
+        <tr><td><b>Weak default credentials</b><br><span class="tag">sink: auth</span><span class="tag">password spray</span></td><td><span class="sev s-high">High</span></td><td>8.1</td><td>A07</td><td style="text-align:center">800-115 &sect;4.3</td><td style="text-align:center">A.5.15</td></tr>
+        <tr><td><b>Verbose debug disclosure</b><br><span class="tag">sink: trace</span></td><td><span class="sev s-high">High</span></td><td>7.5</td><td>A05</td><td style="text-align:center">CSF DETECT</td><td style="text-align:center">A.8.9</td></tr>
+        <tr><td><b>Blind SSRF probe</b><br><span class="tag">sink: ssrf</span></td><td><span class="sev s-medium">Medium</span></td><td>5.3</td><td>A10</td><td style="text-align:center">800-115 &sect;5.1</td><td style="text-align:center">A.8.8</td></tr>
+      </table>
+    </div>
+<div class="eyebrow" style="margin-top:34px">Design Blueprint &middot; View 02 &mdash; Module Console</div>
+    <div class="panel">
+      <h2><span class="bar"></span> Custom Module Console <span style="margin-left:auto" class="badge">live stream over WebSocket</span></h2>
+      <div class="console">
+        <div class="promptline">msf6 exploit(lab/vulnlab_cmd) &gt; <span class="c-in">set RHOSTS 10.10.10.5</span></div>
+        <div class="row c-neutral">RHOSTS =&gt; 10.10.10.5</div>
+        <div class="promptline">msf6 exploit(lab/vulnlab_cmd) &gt; <span class="c-in">set FLAG_MODE inject</span></div>
+        <div class="row c-neutral">FLAG_MODE =&gt; inject</div>
+        <div class="promptline">msf6 exploit(lab/vulnlab_cmd) &gt; <span class="c-in">check</span></div>
+        <div class="row c-target"><span class="dot g"></span>[+] 10.10.10.5:1337 - The target is vulnerable. sink=inject banner=VulnLab/1.0 (debug)</div>
+        <div class="row c-neutral">[*] 10.10.10.5:1337 - Sending probe payload to /api/echo header X-Cmd</div>
+        <div class="row c-ok"><span class="dot g"></span>[+] Command output captured: uid=0(root) gid=0(root)</div>
+        <div class="row c-warn"><span class="dot y"></span>[!] Evidence saved to findings/evidence_0012.json</div>
+        <div class="row c-pay">session 1 opened (127.0.0.1:4444 -&gt; 10.10.10.5:1337)</div>
+      </div>
+      <div class="ctrl">
+        <button class="btn ok">Run Check (safe)</button>
+        <button class="btn primary">Run Verify</button>
+        <button class="btn danger" disabled>&#128274; Unlock Exploit (required)</button>
+        <button class="btn ghost">Capture Evidence</button>
+      </div>
+    </div>
+
+    <div class="eyebrow">Design Blueprint &middot; View 03 &mdash; Compliance Map</div>
+    <div class="panel">
+      <h2><span class="bar"></span> Finding &harr; Control Evidence Matrix</h2>
+      <div class="cmap">
+        <div class="cell pass"><div class="fh">OWASP 2021</div>A03 Injection &middot; A07 Auth &middot; A05 &middot; A10</div>
+        <div class="cell pass"><div class="fh">NIST CSF 2.0</div>Govern &middot; Identify &middot; Detect &middot; Respond</div>
+        <div class="cell pass"><div class="fh">NIST SP 800-115</div>&sect;4.3 enum &middot; &sect;5.2 POC &middot; &sect;5.1 SSRF</div>
+        <div class="cell pass"><div class="fh">ISO 27001:2022</div>A.8.8 &middot; A.8.9 &middot; A.5.15 &middot; A.8.28</div>
+      </div>
+      <table class="table" style="margin-top:12px">
+        <tr><th>Finding</th><th>OWASP</th><th>NIST 800-115</th><th>ISO Annex A</th><th>Status</th></tr>
+        <tr><td>Command injection in header</td><td><span class="sev s-critical">A03</span></td><td>&sect;5.2 Exploitation</td><td>A.8.8 + A.8.28</td><td><span class="sev s-critical">Confirmed</span></td></tr>
+        <tr><td>Weak default credentials</td><td><span class="sev s-high">A07</span></td><td>&sect;4.3 Probing</td><td>A.5.15</td><td><span class="sev s-high">Confirmed</span></td></tr>
+        <tr><td>Verbose debug disclosure</td><td><span class="sev s-high">A05</span></td><td>CSF DETECT.DE.CM-7</td><td>A.8.9</td><td><span class="sev s-high">Confirmed</span></td></tr>
+      </table>
+    </div>
+
+    <div class="eyebrow">Design Blueprint &middot; View 04 &mdash; Reporting</div>
+    <div class="panel">
+      <h2><span class="bar"></span> Report Engine &mdash; one click, three formats</h2>
+      <div class="fmt">
+        <div class="card"><div class="icf" style="color:#00e676">&#9633;X</div><div class="fn">.xlsx</div><div class="fd">Multi-sheet workbook &middot; severity color fills &middot; auto-filters &middot; chartsheet</div><div class="fw">openpyxl &middot; ~148 KB &middot; 4 sheets</div><button class="btn ok" style="margin-top:10px">Generate</button></div>
+        <div class="card"><div class="icf" style="color:#40c4ff">&#9650;</div><div class="fn">.csv</div><div class="fd">Flat normalized rows &middot; machine-readable &middot; SIEM import-ready</div><div class="fw">stdlib csv &middot; 9 columns</div><button class="btn primary" style="margin-top:10px">Generate</button></div>
+        <div class="card"><div class="icf" style="color:#7c4dff">&#9660;</div><div class="fn">.html</div><div class="fd">Self-contained executive + technical + compliance appendix</div><div class="fw">Jinja2 + inline Chart.js</div><button class="btn" style="margin-top:10px">Generate</button></div>
+      </div>
+    </div>
+
+    <div class="eyebrow">Design System &mdash; Color Palette &amp; Typography</div>
+    <div class="panel">
+      <h2><span class="bar"></span> Severity &amp; Accent Tokens</h2>
+      <div class="palette">
+        <div class="sw" style="background:#ff1744"><b>CRITICAL</b><span>#FF1744</span></div>
+        <div class="sw" style="background:#ff6d00"><b>HIGH</b><span>#FF6D00</span></div>
+        <div class="sw" style="background:#ffc400"><b>MEDIUM</b><span>#FFC400</span></div>
+        <div class="sw" style="background:#40c4ff"><b>LOW</b><span>#40C4FF</span></div>
+        <div class="sw" style="background:#64748b"><b>INFO</b><span>#90A4AE</span></div>
+        <div class="sw" style="background:#00e676;color:#041a10"><b>GOOD / PASS</b><span>#00E676</span></div>
+        <div class="sw" style="background:#00e5ff;color:#041a24"><b>ACCENT</b><span>#00E5FF</span></div>
+        <div class="sw" style="background:#7c4dff"><b>ACCENT 2</b><span>#7C4DFF</span></div>
+      </div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--muted)">
+        Background <b style="color:#0b1020">#0B1020</b> / Panel <b style="color:#172141">#172141</b> / Borders <b style="color:#233052">#233052</b> / Text <b style="color:#e8ecf8">#E8ECF8</b> &middot; Type: Segoe UI (system) UI, Consolas (console) &middot; Radius 14px &middot; Glow shadow on interactive states.
+      </div>
+    </div>
+
+    <footer>VulnLab Sentinel &middot; design blueprint &middot; OWASP Top 10 (2021) &middot; NIST CSF v2.0 / SP 800-115 / SP 800-53 &middot; ISO/IEC 27001:2022 Annex A &middot; lab-only use</footer>
+  </main>
+</div>
+</body>
+</html>

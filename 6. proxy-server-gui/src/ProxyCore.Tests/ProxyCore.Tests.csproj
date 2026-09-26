@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWpfProject>true</UseWpfProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ProxyCore\ProxyCore.csproj" />
+    <ProjectReference Include="..\ProxyGui\ProxyGui.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C2 Deconfliction Lab — Evidence Report</title>
+<style>
+  body{font-family:'Segoe UI',system-ui,sans-serif;margin:0;background:#0b1220;color:#e5e7eb}
+  header{background:linear-gradient(90deg,#1e3a8a,#0f766e);padding:28px 40px;color:#fff}
+  header h1{margin:0 0 6px;font-size:26px}
+  .chip{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);padding:3px 12px;border-radius:14px;font-size:12px;margin-right:6px}
+  main{padding:28px 40px;max-width:1300px;margin:0 auto}
+  h2{color:#93c5fd;border-bottom:2px solid #334155;padding-bottom:6px;margin-top:40px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+  .card{background:#121c33;border:1px solid #25324d;border-radius:12px;padding:14px}
+  .card .num{font-size:28px;font-weight:800;color:#67e8f9}
+  .card .lab{color:#94a3b8;font-size:12px;text-transform:uppercase}
+  table{width:100%;border-collapse:collapse;font-size:13px;background:#0d1526}
+  th{background:#1e293b;color:#f8fafc;text-align:left;padding:8px 10px}
+  td{padding:7px 10px;border-bottom:1px solid #1e293b}
+  tr:hover td{background:#16213b}
+  .pill{padding:2px 10px;border-radius:12px;font-weight:700;font-size:11px}
+  .h{background:#ffe4e6;color:#9f1239}.m{background:#fef3c7;color:#b45309}.n{background:#dcfce7;color:#166534}
+  .ok{color:#4ade80}.bad{color:#f87171}.warn{color:#fbbf24}
+  footer{padding:24px 40px;color:#64748b;font-size:12px}
+  pre,code{background:#0a0f1c;border:1px solid #263349;border-radius:6px;padding:2px 6px;color:#a5b4fc}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔐 C2 Deconfliction Lab — Blue Team Evidence Report</h1>
+  <span class="chip">Generated {{ generated }}</span>
+  <span class="chip">Scope: {{ data.stats.sessions_total }} sessions</span>
+  <span class="chip">Same-origin lab evidence — authorized use only</span>
+</header>
+<main>
+  <section>
+    <h2>📊 At-a-Glance</h2>
+    <div class="cards">
+      <div class="card"><div class="num">{{ data.stats.sessions_total }}</div><div class="lab">Sessions</div></div>
+      <div class="card"><div class="num">{{ data.stats.sessions_flagged }}</div><div class="lab">Flagged</div></div>
+      <div class="card"><div class="num">{{ data.stats.traffic_records }}</div><div class="lab">TLS Records</div></div>
+      <div class="card"><div class="num">{{ data.stats.traffic_decrypted }}</div><div class="lab">Decrypted</div></div>
+      <div class="card"><div class="num">{{ data.stats.alerts_total }}</div><div class="lab">Alerts</div></div>
+      <div class="card"><div class="num" style="color:#fbbf24">{{ data.stats.highest_risk }}</div><div class="lab">Peak Risk (0-100)</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>🖥️ Sessions (Zone C registry)</h2>
+    <table>
+      <thead><tr><th>UUID</th><th>Agent</th><th>Status</th><th>Risk</th><th>OS</th><th>First Seen</th><th>Last Seen</th></tr></thead>
+      <tbody>
+      {% for s in data.sessions %}
+        <tr>
+          <td><code>{{ s.uuid }}</code></td>
+          <td>{{ s.agent_name }}</td>
+          <td>{{ s.status }}</td>
+          <td>{{ s.risk_score }}</td>
+          <td>{{ s.os }}</td>
+          <td>{{ s.first_seen }}</td>
+          <td>{{ s.last_seen }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>🌐 Encrypted Traffic — Decrypted Replay (Zone B/D)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Session</th><th>TS</th><th>Event</th><th>Src</th><th>Dst</th><th>Len</th><th>Decrypted</th><th>Plaintext</th></tr></thead>
+      <tbody>
+      {% for t in data.traffic %}
+        <tr>
+          <td>{{ t.id }}</td>
+          <td><code>{{ t.session_uuid }}</code></td>
+          <td>{{ t.ts }}</td>
+          <td>{{ t.event }}</td>
+          <td>{{ t.src_ip }}</td>
+          <td>{{ t.dst_ip }}</td>
+          <td>{{ t.record_len }}</td>
+          <td>{% if t.decrypted %}<span class="ok">YES</span>{% else %}<span class="bad">no</span>{% endif %}</td>
+          <td>{{ t.plaintext or '' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>📦 Task &amp; Result Correlation (Zone C tasking)</h2>
+    <table>
+      <thead><tr><th>Task ID</th><th>Session</th><th>Command</th><th>Status</th><th>Issued</th><th>Result Size</th><th>Result</th></tr></thead>
+      <tbody>
+      {% for t in data.tasks %}
+        <tr>
+          <td><code>{{ t.task_id }}</code></td>
+          <td><code>{{ t.session_uuid }}</code></td>
+          <td>{{ t.command }}</td>
+          <td>{{ t.status }}</td>
+          <td>{{ t.issued_at or '' }}</td>
+          <td>{{ t.result_size or '' }}</td>
+          <td>{{ t.result_data or '' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>🚨 Detection &amp; Correlation Findings (Zone D)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Rule</th><th>MITRE</th><th>Severity</th><th>Score</th><th>Session</th><th>Detail</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for a in data.alerts %}
+        <tr>
+          <td>{{ a.id }}</td>
+          <td>{{ a.rule_name }}</td>
+          <td><code>{{ a.mitre_id }}</code></td>
+          <td>{% if a.severity=='high' %}<span class="pill h">HIGH</span>{% elif a.severity=='medium' %}<span class="pill m">MED</span>{% else %}<span class="pill n">LOW</span>{% endif %}</td>
+          <td>{{ a.score }}</td>
+          <td><code>{{ a.session_uuid }}</code></td>
+          <td>{{ a.detail }}</td>
+          <td>{{ a.status }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>🗝️ Key Custodian Escrow Log (simulated SSLKEYLOG)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Session</th><th>Type</th><th>Label</th><th>Created</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for k in data["keys"] %}
+        <tr><td>{{ k.id }}</td><td><code>{{ k.session_uuid }}</code></td><td>{{ k.key_type }}</td><td>{{ k.label }}</td><td>{{ k.created_at }}</td><td>{{ k.status }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>✅ Compliance Traceability (OWASP · NIST · ISO 27001)</h2>
+    {% for fw, rows in compliance.items() %}
+      <h3 style="color:#bbb">{{ fw|upper }}</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Area</th><th>Architecture Response</th></tr></thead>
+        <tbody>
+        {% for rid, area, mapping in rows %}
+          <tr><td><code>{{ rid }}</code></td><td>{{ area }}</td><td>{{ mapping }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endfor %}
+  </section>
+</main>
+<footer>Generated by C2 Deconfliction Lab v1.0.0 · Authorized lab study only · Evidence is for blue-team education.</footer>
+</body>
+</html>

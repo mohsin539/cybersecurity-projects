@@ -1,0 +1,22 @@
+﻿Engagement,Project Helios - Annual Red Team Engagement
+Customer,Acme Financial Services
+Period,August 2026
+Scope,"Payment portal, customer API gateway, corporate VPN, cloud identity stack"
+Total Findings,9
+Average CVSS,7.6
+Maximum CVSS,10.0
+Risk Index,68/100
+Risk Rating,High
+
+Recommendations
+"Remediate Critical/High findings within 14-30 days, prioritizing externally reachable assets."
+Schedule Medium findings into the next 1-2 release cycles with an owner and due date per work-item.
+Establish a software composition analysis (SCA) program for dependency and component hygiene.
+"Operationalize centralized logging, correlation rules and 24x7 alerting to close logging and monitoring gaps."
+Re-verify authorization and authentication flows across all administrative interfaces and enforce least privilege.
+"Adopt parameterized queries, prepared statements and strict output encoding for all untrusted input."
+"Harden cryptographic posture: enforce TLS 1.2+, modern cipher suites and centralized key management."
+"Restrict outbound application traffic, deny access to internal metadata services and validate destination hosts."
+
+Executive Narrative
+"During the assessment period, 9 findings were documented across Payment portal, customer API gateway, corporate VPN, cloud identity stack. Of these, 2 were rated Critical, 3 High, 4 Medium and 0 Low. The average base CVSS v3.1 score was 7.6; the most severe finding reached 10.0. Taken together, the findings place the organization at a High risk posture (index 68/100). Immediate executive attention is warranted: 5 findings fall into the Critical or High bands and present realistic paths to system, data, or business compromise. Concentrated weaknesses appear in the OWASP Top 10 categories: A01 Broken Access Control, A02 Cryptographic Failures, A03 Injection. Scores follow CVSS v3.1 base metrics; framework alignment uses OWASP Top 10 (2021), NIST SP 800-53 Rev.5 and ISO/IEC 27001:2022, so each recommendation traces to a defensible control."

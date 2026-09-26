@@ -1,0 +1,10 @@
+﻿ts,event,actor,subject,severity,detail
+2026-09-20T08:13:43.319116+00:00,listener.started,console,127.0.0.1:17081,info,{}
+2026-09-20T08:13:43.467012+00:00,beacon.checkin,demo-beacon-1,/api/v1/checkin,info,"{""ip"": ""127.0.0.1"", ""os"": ""Windows-11-10.0.26200-SP0""}"
+2026-09-20T08:13:43.890836+00:00,beacon.checkin,demo-beacon-1,/api/v1/checkin,info,"{""ip"": ""127.0.0.1"", ""os"": ""Windows-11-10.0.26200-SP0""}"
+2026-09-20T08:13:43.891786+00:00,task.enqueue,console,demo-beacon-1,info,"{""task"": ""get-sysinfo"", ""task_id"": ""task-ce9aeb364d9d""}"
+2026-09-20T08:13:43.906250+00:00,beacon.checkin,demo-beacon-1,/api/v1/checkin,info,"{""ip"": ""127.0.0.1"", ""os"": ""Windows-11-10.0.26200-SP0""}"
+2026-09-20T08:13:43.921863+00:00,task.result,demo-beacon-1,/task/task-ce9aeb364d9d,info,"{""ok"": true}"
+2026-09-20T08:13:43.923863+00:00,task.enqueue,console,demo-beacon-1,info,"{""task"": ""heartbeat-test"", ""task_id"": ""task-ab81f6e7e10f""}"
+2026-09-20T08:13:43.927910+00:00,beacon.checkin,demo-beacon-1,/api/v1/checkin,info,"{""ip"": ""127.0.0.1"", ""os"": ""Windows-11-10.0.26200-SP0""}"
+2026-09-20T08:13:43.952426+00:00,task.result,demo-beacon-1,/task/task-ab81f6e7e10f,info,"{""ok"": true}"

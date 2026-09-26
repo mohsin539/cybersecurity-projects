@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Audit chain verification · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<h1>🔍 Audit Chain Verification</h1>
+<div class="sub">Hash-chain integrity check — any tampering with the audit store breaks the recomputed SHA-256 chain (NIST AU-10).</div>
+
+<div class="card" style="max-width:640px">
+  {% if result['intact'] %}
+  <p class="chain-ok" style="font-size:18px">✅ CHAIN INTACT</p>
+  <p class="small">Recomputed {{ result['checked'] }} of {{ result['total'] }} audit events — every <code>prev_hash → hash</code> link verified. No tampering detected.</p>
+  {% else %}
+  <p class="chain-bad" style="font-size:18px">⚠️ CHAIN BROKEN</p>
+  <p class="small">Issue at event #{{ result['issues'][0]['id'] }} — reason: <code>{{ result['issues'][0]['reason'] }}</code>. The audit log may have been modified out-of-band. Cybersec teams should treat any active case affected as compromised.</p>
+  {% endif %}
+  <table>
+    <tr><th>Total records</th><td>{{ result['total'] }}</td></tr>
+    <tr><th>Checked</th><td>{{ result['checked'] }}</td></tr>
+    <tr><th>Status</th><td>{{ 'Intact' if result['intact'] else 'Tampered' }}</td></tr>
+  </table>
+  <div class="actions">
+    <a class="btn ghost" href="{{ url_for('compliance.index') }}">← Compliance</a>
+    <a class="btn ghost" href="{{ url_for('audit.export', fmt='json') }}">⬇ Export trail</a>
+  </div>
+</div>
+{% endblock %}

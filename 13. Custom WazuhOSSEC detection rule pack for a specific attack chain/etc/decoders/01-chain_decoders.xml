@@ -1,0 +1,39 @@
+<!--
+  Custom Chain Decoders — Project 13
+  Target attack chain: web access -> encoded cmd -> persistence -> C2 -> exfil
+  Decoder naming: chain-<source>. IDs reserved 200010-200999.
+
+  PLACEMENT: /var/ossec/etc/decoders (OSSEC) / var/ossec/etc/load (Wazuh image)
+  Loaded AFTER stock decoders; anchored regexes avoid shadowing defaults.
+-->
+<group name="chain,">
+
+  <!-- 1. Web app request line (Nginx/APACHE-style) --->
+  <decoder name="chain-web-access">
+    <prematch>^\S+ \S+ \[|^\S+ \S+ \S+ - </premature>
+    <regex>"\S+" (\S+ \S+ [^"]*)</regex>
+    <order>url,status</order>
+  </decoder>
+
+  <!-- 2. Encoded command shell (PowerShell / bash variants) --->
+  <decoder name="chain-cmdline">
+    <prematch>\[hids-agent|auditd|cmdline</prematch>
+    <regex>cmdline="(\S+)"|cmdline=(\S+)</regex>
+    <order>cmdline</order>
+  </decoder>
+
+  <!-- 3. Persistence: new cron / scheduled task / registry --->
+  <decoder name="chain-persistence">
+    <prematch>crontab|scheduledtask|runkey|persist</prematch>
+    <regex>persist=(.+)</regex>
+    <order>persist_action</order>
+  </decoder>
+
+  <!-- 4. C2 beacon pattern in HTTP headers --->
+  <decoder name="chain-c2">
+    <prematch>\b(beacon|c2|/api/|/cmd|/upload)\b</prematch>
+    <regex>method:(\S+) path:(\S+)</regex>
+    <order>c2_method,c2_path</order>
+  </decoder>
+
+</group>

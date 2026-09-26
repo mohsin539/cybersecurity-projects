@@ -1,0 +1,45 @@
+# SOAR-Lite playbook — draft template.
+# Hint: use the YAML editor at /playbooks/new; JSON is also accepted.
+
+apiVersion: irr/v1
+kind: Playbook
+metadata:
+  key: my-playbook-key            # unique, stable identifier (lowercase, dashes)
+  name: My Playbook
+  description: Short description of intent.
+  risk: medium                    # low | medium | high | critical
+  trigger:
+    - alert.category in ["demo", "phishing"]
+spec:
+  steps:
+    - id: enrich
+      type: enrichment           # enrichment | containment | remediation | notification | ticket | approval | decision | evidence
+      action: simulator.enrich_ip     # <connector>.<action>
+      args:
+        value: sender_ip
+      if: alert.severity >= 3
+      run_after: []
+      retries: 1                 # max automatic retries on failure
+    - id: contain
+      type: containment
+      action: simulator.block_sender
+      args:
+        value: sender_email
+      run_after: [enrich]
+      retries: 0
+    - id: approval_keep
+      type: approval             # human gate; four-eyes principle (SoD)
+      reason: Confirm containment before proceeding
+      run_after: [contain]
+    - id: notify
+      type: notification
+      action: simulator.notify
+      args:
+        message: Incident auto-enriched and contained
+        channel: "#soc"
+      run_after: [approval_keep]
+compensations:                    # rollback when a step fails (saga pattern)
+  - when_step: contain
+    action: simulator.unblock_sender
+    args:
+      value: sender_email

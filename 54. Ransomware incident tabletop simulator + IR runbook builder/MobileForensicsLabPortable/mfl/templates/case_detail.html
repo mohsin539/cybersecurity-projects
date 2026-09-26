@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ case['case_ref'] }} · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('cases.index') }}">Cases</a> / <code>{{ case['case_ref'] }}</code></div>
+
+<div class="card" style="margin-bottom:18px">
+  <h1 style="margin-top:0">{{ case['title'] }}
+    <span class="tag tag-{{ 'cyan' if case['status']=='open' else ('amber' if case['status']=='active' else 'green' if case['status']=='closed' else 'gray') }}">{{ case['status'] }}</span>
+    <span class="tag sev-{{ case['severity'] if case['severity'] in ('blocker','critical','high','medium','low','info') else 'info' }}">{{ case['severity'] }}</span>
+  </h1>
+  <div class="sub">
+    Opened {{ case['created_at'] }} · Lead: <b>{{ case['lead_examiner'] or '—' }}</b>
+    {% if case['closed_at'] %} · Closed {{ case['closed_at'] }}{% endif %}
+  </div>
+  {% if case['description'] %}<p>{{ case['description'] }}</p>{% endif %}
+  <div class="actions">
+    <a class="btn primary" href="{{ url_for('evidence.create', cid=case['id']) }}">➕ Add evidence</a>
+    <a class="btn ghost" href="{{ url_for('cases.update', cid=case['id']) }}">✏️ Edit case</a>
+    <a class="btn ghost" href="{{ url_for('reports.index') }}">📤 Reports</a>
+    {% if case['status'] != 'closed' %}
+    <form method="post" action="{{ url_for('cases.close', cid=case['id']) }}" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <button class="btn warn">✔ Close case</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap:18px">
+  <div class="card">
+    <h3 style="margin-top:0">📳 Evidence intake</h3>
+    {% if evidence %}
+    <div class="tblwrap" style="border:0"><table>
+      <tr><th>Device</th><th>Acquisition</th><th>Status</th><th></th></tr>
+      {% for e in evidence %}
+      <tr>
+        <td>{{ e['device_model'] }} <span class="small muted">{{ e['os_type'] }}</span></td>
+        <td>{{ e['acquisition_method'] }}</td>
+        <td><span class="tag tag-{{ 'cyan' if e['status']=='intake' else ('amber' if e['status'] in ('acquired','analyzed') else 'green' if e['status']=='sealed' else 'gray') }}">{{ e['status'] }}</span></td>
+        <td><a href="{{ url_for('evidence.detail', eid=e['id']) }}">Open →</a></td>
+      </tr>
+      {% endfor %}
+    </table></div>
+    {% else %}<div class="empty">No evidence recorded yet.</div>{% endif %}
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">🔬 Artifacts & findings</h3>
+    {% if artifacts %}
+    <div class="tblwrap" style="border:0"><table>
+      <tr><th>Device</th><th>Category</th><th>Name</th><th>Severity</th></tr>
+      {% for a in artifacts %}
+      <tr>
+        <td class="small">{{ a['device_model'] }}</td>
+        <td><span class="tag tag-gray">{{ a['category'] }}</span></td>
+        <td>{{ a['name'] }}</td>
+        <td><span class="tag sev-{{ a['severity'] if a['severity'] in ('blocker','critical','high','medium','low','info') else 'info' }}">{{ a['severity'] }}</span></td>
+      </tr>
+      {% endfor %}
+    </table></div>
+    {% else %}<div class="empty">No artifacts yet.</div>{% endif %}
+  </div>
+</div>
+
+<div class="card mt">
+  <h3 style="margin-top:0">🔗 Chain of custody</h3>
+  {% if custody %}
+  <div class="tblwrap" style="border:0"><table>
+    <tr><th>Device</th><th>Event</th><th>Location</th><th>Custodian</th><th>Occurred</th></tr>
+    {% for cu in custody %}
+    <tr>
+      <td>{{ cu['device_model'] }}</td>
+      <td><span class="tag tag-{{ 'cyan' if cu['event_type']=='INTAKE' else ('amber' if cu['event_type'] in ('CHECKOUT','TRANSFER') else 'green' if cu['event_type']=='CHECKIN' else 'red') }}">{{ cu['event_type'] }}</span></td>
+      <td>{{ cu['from_location'] or '—' }} <span class="muted">→</span> {{ cu['to_location'] or '—' }}</td>
+      <td>{{ cu['to_user'] or cu['from_user'] or '—' }}</td>
+      <td class="small muted">{{ cu['occurred_at'] }}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  {% else %}<div class="empty">No custody events yet.</div>{% endif %}
+</div>
+
+{% endblock %}

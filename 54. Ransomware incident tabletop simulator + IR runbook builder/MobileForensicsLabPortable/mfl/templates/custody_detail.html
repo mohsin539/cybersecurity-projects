@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Custody event #{{ event['id'] }} · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('custody.index') }}">Chain of custody</a> / event #{{ event['id'] }}</div>
+
+<div class="card" style="max-width:640px">
+  <h1 style="margin-top:0">🔗 {{ event['event_type'] }}
+    <span class="tag tag-gray">{{ event['case_ref'] }}</span>
+  </h1>
+  <div class="grid stats" style="grid-template-columns:1fr 1fr; row-gap:14px">
+    <div class="stat"><div class="lbl">Device</div><div class="small">{{ event['device_model'] }}</div></div>
+    <div class="stat"><div class="lbl">Occurred</div><div class="small">{{ event['occurred_at'] }}</div></div>
+    <div class="stat"><div class="lbl">From</div><div class="small">{{ event['from_user'] or '—' }} · {{ event['from_location'] or '—' }}</div></div>
+    <div class="stat"><div class="lbl">To</div><div class="small"><b>{{ event['to_user'] or '—' }}</b> · {{ event['to_location'] or '—' }}</div></div>
+    <div class="stat"><div class="lbl">Recorded</div><div class="small">{{ event['created_at'] }} (hash-chained)</div></div>
+  </div>
+  {% if event['notes'] %}<div class="field" style="margin-top:12px"><label>Notes</label><div class="small">{{ event['notes'] }}</div></div>{% endif %}
+  <div class="actions"><a class="btn ghost" href="{{ url_for('evidence.detail', eid=event['evidence_id']) }}">← Evidence</a></div>
+</div>
+{% endblock %}

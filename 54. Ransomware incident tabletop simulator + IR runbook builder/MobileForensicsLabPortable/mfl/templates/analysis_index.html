@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Artifact analysis · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<h1>🔬 Artifact Analysis</h1>
+<div class="sub">Recovered artifacts across all cases — filter by finding severity.</div>
+<div class="actions">
+  {% for s in severities %}
+  <a class="btn {{ 'primary' if active==s else 'ghost' }}" href="{{ url_for('analysis.index', severity=s) }}">{{ s }}</a>
+  {% endfor %}
+  <a class="btn ghost" href="{{ url_for('analysis.index') }}">All</a>
+</div>
+
+{% if artifacts %}
+<div class="tblwrap"><table>
+  <tr><th>Case</th><th>Device</th><th>Category</th><th>Artifact</th><th>Value</th><th>Severity</th><th>Timestamp</th></tr>
+  {% for a in artifacts %}
+  <tr>
+    <td><code>{{ a['case_ref'] }}</code></td>
+    <td>{{ a['device_model'] }}</td>
+    <td><span class="tag tag-gray">{{ a['category'] }}</span></td>
+    <td>{{ a['name'] }}
+      {% if a['artifact_hash'] %}<div class="small hash-cell"><code>{{ a['artifact_hash'][:16] }}…</code></div>{% endif %}
+    </td>
+    <td class="small">{{ a['value'] or '—' }}</td>
+    <td><span class="tag sev-{{ a['severity'] if a['severity'] in ('blocker','critical','high','medium','low','info') else 'info' }}">{{ a['severity'] }}</span></td>
+    <td class="small muted">{{ a['timestamp'] or '—' }}</td>
+  </tr>
+  {% endfor %}
+</table></div>
+{% else %}
+<div class="card"><div class="empty">No artifacts recorded yet.</div></div>
+{% endif %}
+{% endblock %}

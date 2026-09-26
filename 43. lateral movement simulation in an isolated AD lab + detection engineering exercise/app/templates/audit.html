@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Audit Trail <small>append-only evidence ledger</small></h1>
+<section class="panel">
+  <table class="compact">
+    <tr><th>ID</th><th>Timestamp</th><th>Actor</th><th>Action</th><th>Detail</th></tr>
+    {% for a in audit %}
+    <tr>
+      <td>{{ a.id }}</td>
+      <td>{{ a.ts|int }}</td>
+      <td>{{ a.actor }}</td>
+      <td><code>{{ a.action }}</code></td>
+      <td>{{ a.detail }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="empty">No audit events yet.</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+# Core (offline-first): the pipeline runs on the Python stdlib + pefile for PE parsing.
+pefile>=2023.2.7
+
+# Optional depth / integrations (each safely degrades if absent):
+# lief>=0.14          # dual-backend PE cross-validation (architecture.md §13)
+# yara-python>=4.3    # YARA rule bundles
+# cryptography>=42    # Ed25519 signing + AES-256-GCM package sealing
+# PySide6>=6.6        # GUI triage console
+
+# Build / release:
+# pyinstaller>=6.0    # portable .exe
+# pip-audit          # supply-chain gate

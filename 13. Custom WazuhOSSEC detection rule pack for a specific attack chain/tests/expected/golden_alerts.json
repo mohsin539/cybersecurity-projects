@@ -1,0 +1,11 @@
+[
+  {"rule_id": "200010", "level": 6, "source": "web-access.log", "note": "recon 4xx"},
+  {"rule_id": "200011", "level": 7, "source": "web-access.log", "note": "5xx burst"},
+  {"rule_id": "200020", "level": 7, "source": "web-access.log", "note": "traversal"},
+  {"rule_id": "200100", "level": 6, "source": "hids-cmdline.log", "note": "encoded pwsh"},
+  {"rule_id": "200101", "level": 7, "source": "hids-cmdline.log", "note": "curl download cradle"},
+  {"rule_id": "200200", "level": 7, "source": "hids-cmdline.log", "note": "crontab persist"},
+  {"rule_id": "200300", "level": 8, "source": "hids-cmdline.log", "note": "c2 path"},
+  {"rule_id": "200400", "level": 9, "source": "hids-cmdline.log", "note": "exfil POST"},
+  {"rule_id": "200901", "level": 12, "source": "phasefinal", "note": "chain fulfulled"}
+]

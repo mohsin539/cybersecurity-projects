@@ -1,0 +1,1 @@
+"""Report generation & export (architecture §7)."""

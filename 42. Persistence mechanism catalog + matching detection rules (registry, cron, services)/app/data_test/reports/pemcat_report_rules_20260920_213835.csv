@@ -1,0 +1,10 @@
+﻿rule_id,name,technique,severity,status,owner
+PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,active,builtin
+PEM-CAT-0002,Service binary hosted in writable user directory,T1543.003,high,active,builtin
+PEM-CAT-0003,Cron job executing from world-writable directory,T1053.003,medium,active,builtin
+PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,active,builtin
+PEM-CAT-0005,WMI Event Subscription with command-line consumer,T1546.001,critical,active,builtin
+PEM-CAT-0006,Startup folder payload in AppData,T1547.001,medium,active,builtin
+PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,active,builtin
+PEM-CAT-0008,Obfuscated command line (encoded powershell),T1059.001,medium,active,builtin
+PEM-CAT-0009,System binary name impersonated in writable path,T1036.005,high,active,builtin

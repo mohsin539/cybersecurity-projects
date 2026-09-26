@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+workspace/
+dist/
+build/
+reports/
+*.db
+*.db-wal
+*.db-shm
+*.spec
+docsassets/*.png
+*.log

@@ -1,0 +1,46 @@
+{
+  "policies": [
+    {
+      "id": "default",
+      "description": "Secure-by-default: all PII fully redacted",
+      "allowed_data_classes": ["SAFE", "LOW"],
+      "redaction_rules": [
+        {
+          "strategy": "FULL_REDACT",
+          "apply_to": ["SSN", "PASSWORD_SUSPECT", "API_KEY_SUSPECT", "MEDICAL_RECORD"]
+        }
+      ],
+      "export_format": "json",
+      "retention_days": 30,
+      "approval_required": false,
+      "audit_all_access": true
+    },
+    {
+      "id": "share-with-vendor",
+      "description": "External vendor support sharing (limited, tokenized)",
+      "allowed_data_classes": ["SAFE", "LOW"],
+      "redaction_rules": [
+        { "strategy": "TOKENIZE", "data_classes": ["MEDIUM", "HIGH"] },
+        { "strategy": "FULL_REDACT", "data_classes": ["CRITICAL"] }
+      ],
+      "export_format": "json",
+      "retention_days": 14,
+      "approval_required": true,
+      "audit_all_access": true
+    },
+    {
+      "id": "share-with-analytics",
+      "description": "Internal analytics - generalized and pseudonymized",
+      "allowed_data_classes": ["SAFE", "LOW", "MEDIUM"],
+      "redaction_rules": [
+        { "strategy": "GENERALIZE", "data_classes": ["MEDIUM"] },
+        { "strategy": "PSEUDONYMIZE", "data_classes": ["HIGH"] },
+        { "strategy": "FULL_REDACT", "data_classes": ["CRITICAL"] }
+      ],
+      "export_format": "parquet",
+      "retention_days": 365,
+      "approval_required": false,
+      "audit_all_access": true
+    }
+  ]
+}

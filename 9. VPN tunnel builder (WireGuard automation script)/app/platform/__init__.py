@@ -1,0 +1,1 @@
+"""Platform layer — OS integration adapters (ports & adapters)."""

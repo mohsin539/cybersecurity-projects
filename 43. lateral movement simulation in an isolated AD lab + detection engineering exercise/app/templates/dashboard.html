@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard <small>lateral movement detection lab · corp.local</small></h1>
+
+<div class="cards">
+  <div class="card"><b>{{ metrics.runs }}</b><span>Runs executed</span></div>
+  <div class="card"><b>{{ metrics.techniques_covered }}</b><span>Techniques covered</span></div>
+  <div class="card"><b>{{ detections_count }}</b><span>Detections</span></div>
+  <div class="card good"><b>{{ metrics.precision }}</b><span>Precision</span></div>
+  <div class="card good"><b>{{ metrics.recall }}</b><span>Recall</span></div>
+  <div class="card good"><b>{{ metrics.f1 }}</b><span>F1 score</span></div>
+  <div class="card warn"><b>TP {{ metrics.tp }}</b><span>True positive</span></div>
+  <div class="card bad"><b>FP {{ metrics.fp }}</b><span>False positive</span></div>
+  <div class="card bad"><b>FN {{ metrics.fn }}</b><span>False negative</span></div>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h2>Technique coverage</h2>
+    {% if coverage %}
+    <table class="compact">
+      <tr><th>Technique</th><th>Name</th><th>Severity</th><th>Coverage</th></tr>
+      {% for c in coverage %}
+      <tr>
+        <td><code>{{ c.technique_id }}</code></td>
+        <td>{{ c.name }}</td>
+        <td><span class="badge {{ c.severity }}">{{ c.severity }}</span></td>
+        <td><div class="bar"><i style="width:{{ (c.ratio*100)|int }}%"></i></div>
+            <small>{{ c.covered }}/{{ c.expected }}</small></td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p class="empty">Run techniques to populate coverage. <a href="{{ url_for('techniques') }}">Go to Techniques &rarr;</a></p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Latest detections</h2>
+    {% if recent %}
+    <table class="compact">
+      <tr><th>Rule</th><th>Technique</th><th>Level</th><th>Vector</th></tr>
+      {% for d in recent %}
+      <tr>
+        <td><code>{{ d.rule_id }}</code></td>
+        <td>{{ d.technique_id or d.rule_technique or 'behavioral' }}</td>
+        <td><span class="badge {{ d.level }}">{{ d.level }}</span></td>
+        <td>{{ d.src }} &rarr; {{ d.tgt }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p class="empty">No detections yet.</p>
+    {% endif %}
+  </section>
+</div>
+
+<section class="panel">
+  <h2>Lab catalog</h2>
+  <div class="kvgrid">
+    <div><span>Techniques catalogued</span><b>{{ engine.techniques }}</b></div>
+    <div><span>Detection rules</span><b>{{ rules.total }}</b></div>
+    <div><span>Lab hosts</span><b>{{ engine.hosts }}</b></div>
+    <div><span>Synthetic identities</span><b>{{ engine.identities }}</b></div>
+  </div>
+</section>
+{% endblock %}

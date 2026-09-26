@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@pathsphere/shared-types": ["../../packages/shared-types/src"],
+      "@pathsphere/security-utils": ["../../packages/security-utils/src"]
+    }
+  },
+  "include": ["src"]
+}

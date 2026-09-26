@@ -1,0 +1,25 @@
+<!--
+  Phase 5 — Exfiltration (T1041 / T1567). Levels 9-10.
+-->
+<group name="chain_exfil,exfiltration,">
+  <rule id="200400" level="9">
+    <decoded_as>chain-c2</decoded_as>
+    <and>
+      <match>POST</match>
+      <regex>/\S{30,}</regex>  <!-- long-ish URL payload -->
+    </and>
+    <description>Large POST body to suspicious host (data egress)</description>
+    <group>chain_exfil,</group>
+    <mitre>
+      <id>T1041</id>
+      <tactic>Exfiltration</tactic>
+    </mitre>
+  </rule>
+
+  <rule id="200401" level="10">
+    <decoded_as>chain-c2</decoded_as>
+    <match>/login/process|/api/collect</match>
+    <description>Known exfil sink endpoint (app-specific)</description>
+    <group>chain_exfil,</group>
+  </rule>
+</group>

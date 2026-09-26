@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Cases · SOAR-Lite{% endblock %}
+{% block content %}
+<h1>Cases</h1>
+<table>
+  <thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>NIST phase</th><th>SLA</th><th>Last update</th></tr></thead>
+  <tbody>
+  {% for c in cases %}
+    <tr>
+      <td><a href="/cases/{{ c.id }}">#{{ c.id }}</a></td>
+      <td>{{ c.title[:70] }}</td>
+      <td>{% if c.severity >= 4 %}<span class="pill bad">{{ c.severity }}</span>{% else %}<span class="pill">{{ c.severity }}</span>{% endif %}</td>
+      <td>{{ c.status }}</td>
+      <td><span class="pill muted">{{ c.nist_phase }}</span></td>
+      <td>{% if c.sla_breached %}<span class="pill bad">BREACHED</span>{% else %}ok{% endif %}</td>
+      <td>{{ c.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">No cases yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}VPN Tunnel Builder{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">&#128275;</span>
+    <div>
+      <strong>VPN Tunnel Builder</strong>
+      <small>WireGuard automation console</small>
+    </div>
+  </div>
+  <nav class="nav">
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint=='dashboard' }}">Dashboard</a>
+    <a href="{{ url_for('tunnels_page') }}" class="{{ 'active' if request.endpoint in ['tunnels_page','tunnel_detail'] }}">Tunnels</a>
+    <a href="{{ url_for('audit_page') }}" class="{{ 'active' if request.endpoint=='audit_page' }}">Audit</a>
+    <a href="{{ url_for('settings_page') }}" class="{{ 'active' if request.endpoint=='settings_page' }}">Settings</a>
+  </nav>
+  <div class="topbar-right">
+    {% if auth_enabled %}
+      <span class="user">{{ current_user() }}</span>
+      <form method="post" action="{{ url_for('logout') }}" class="inline">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <button class="btn ghost sm" type="submit">Logout</button>
+      </form>
+    {% else %}
+      <span class="badge warn">auth disabled — local only</span>
+    {% endif %}
+    {% if backend_is_simulated %}
+      <span class="badge info">simulated backend</span>
+    {% else %}
+      <span class="badge ok">real backend</span>
+    {% endif %}
+  </div>
+</header>
+
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <span>VPN Tunnel Builder v1.0 — see <code>ARCHITECTURE.md</code>, <code>security.md</code></span>
+</footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

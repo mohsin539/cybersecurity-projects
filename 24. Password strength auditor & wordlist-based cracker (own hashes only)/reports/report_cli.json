@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "tool": "PasswordGuardian",
+    "version": "1.0.0",
+    "operator": "alice@acme",
+    "session_id": "cli-session",
+    "workspace": "D:\\AI Masterclass\\Project\\18-09-2026\\24. Password strength auditor & wordlist-based cracker (own hashes only)",
+    "generated_utc": "2026-09-18T17:49:50Z"
+  },
+  "summary": {
+    "targets": 6,
+    "cracked": 0,
+    "unresolved": 6,
+    "scope": "OWN / AUTHORIZED DATA ONLY"
+  },
+  "items": [
+    {
+      "pos": 1,
+      "token": "5f4dcc3b5aa765d61d8327deb882cf99",
+      "algos": [
+        "NTLM"
+      ],
+      "salt": "",
+      "candidate": "",
+      "algo_matched": ""
+    },
+    {
+      "pos": 2,
+      "token": "72b302bf297a228a75730123efef7c41",
+      "algos": [
+        "NTLM"
+      ],
+      "salt": "",
+      "candidate": "",
+      "algo_matched": ""
+    },
+    {
+      "pos": 3,
+      "token": "2ab96390c7dbe3439de74d0c9b0b1767",
+      "algos": [
+        "NTLM"
+      ],
+      "salt": "",
+      "candidate": "",
+      "algo_matched": ""
+    },
+    {
+      "pos": 4,
+      "token": "a4f49c406510bdcab6824ee7c30fd852",
+      "algos": [
+        "NTLM"
+      ],
+      "salt": "",
+      "candidate": "",
+      "algo_matched": ""
+    },
+    {
+      "pos": 5,
+      "token": "b7a875fc1ea228b9061041b7cec4bd3c52ab3ce3",
+      "algos": [
+        "SHA1"
+      ],
+      "salt": "",
+      "candidate": "",
+      "algo_matched": ""
+    },
+    {
+      "pos": 6,
+      "token": "daaad6e5604e8e17bd9f108d91e26afe6281dac8fda0091040a7a6d7bd9b43b5",
+      "algos": [
+        "SHA256"
+      ],
+      "salt": "",
+      "candidate": "",
+      "algo_matched": ""
+    }
+  ]
+}

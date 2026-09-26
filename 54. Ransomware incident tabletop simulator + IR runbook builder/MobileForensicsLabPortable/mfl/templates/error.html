@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<div class="card" style="max-width:560px">
+  <h1 style="color:var(--red)">{{ code }}</h1>
+  <p>{{ message }}</p>
+  <div class="actions"><a class="btn primary" href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a></div>
+  <p class="small muted">Details are intentionally limited to avoid leaking internal information (OWASP A05).</p>
+</div>
+{% endblock %}

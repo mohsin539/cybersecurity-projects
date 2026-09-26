@@ -1,0 +1,34 @@
+<!--
+  Phase 3 — Persistence (T1547 / T1053 / T1505). Levels 7-8.
+-->
+<group name="chain_persist,persistence,">
+  <rule id="200200" level="7">
+    <decoded_as>chain-persistence</decoded_as>
+    <field name="persist_action">crontab</field>
+    <description>New crontab entry</description>
+    <group>chain_persist,</group>
+    <mitre>
+      <id>T1053.003</id>
+      <tactic>Persistence</tactic>
+    </mitre>
+  </rule>
+
+  <rule id="200201" level="7">
+    <decoded_as>chain-persistence</decoded_as>
+    <field name="persist_action">autorun</field>
+    <description>Autorun/registry persistence point changed</description>
+    <group>chain_persist,</group>
+    <mitre>
+      <id>T1547.001</id>
+      <tactic>Persistence</tactic>
+    </mitre>
+  </rule>
+
+  <!-- Persistence while chain_exec group firing -> higher signal -->
+  <rule id="200220" level="8">
+    <if_group>chain_exec</if_group>
+    <decoded_as>chain-persistence</decoded_as>
+    <description>Persistence install during active execution chain</description>
+    <group>chain_persist,</group>
+  </rule>
+</group>

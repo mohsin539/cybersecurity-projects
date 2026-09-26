@@ -1,0 +1,48 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:00000000-0000-4000-8000-000000000000",
+  "metadata": {
+    "timestamp": "1970-01-01T00:00:00Z",
+    "tools": ["burptester-gradle-cyclonedx"],
+    "component": {
+      "type": "application",
+      "bom-ref": "burptester",
+      "name": "BurpTester portable extension + launcher",
+      "version": "1.0.0",
+      "description": "Custom Burp Suite extension for scoped security test cases, packaged as a GUI portable exe",
+      "licenses": [{"license": {"id": "Apache-2.0"}}]
+    },
+    "properties": [
+      {"name": "burptester.montoyaApiVersion", "value": "2026.7"},
+      {"name": "burptester.testCaseReference", "value": "WSTG-SESS-10"},
+      {"name": "burptester.runtimeMin", "value": "17"}
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/net.portswigger.burp.extensions/montoya-api@2026.7",
+      "purl": "pkg:maven/net.portswigger.burp.extensions/montoya-api@2026.7",
+      "name": "montoya-api",
+      "version": "2026.7",
+      "scope": "provided"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.openjfx/javafx-controls@21.0.4",
+      "purl": "pkg:maven/org.openjfx/javafx-controls@21.0.4",
+      "name": "javafx-controls",
+      "version": "21.0.4",
+      "scope": "runtime"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.google.code.gson/gson@2.11.0",
+      "purl": "pkg:maven/com.google.code.gson/gson@2.11.0",
+      "name": "gson",
+      "version": "2.11.0",
+      "scope": "runtime"
+    }
+  ]
+}

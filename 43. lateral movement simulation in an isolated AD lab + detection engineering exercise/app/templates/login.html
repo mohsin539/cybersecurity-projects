@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAMDEX · Sign in</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+  <div class="login-card">
+    <div class="brand center">
+      <span class="logo big">&#128270;</span>
+      <div><b>LAMDEX</b><small>Lateral Active-Movement Detection eXercise</small></div>
+    </div>
+    <p class="center tag">Authorized lab console · isolated AD domain <b>corp.local</b></p>
+    {% if locked %}
+    <div class="alert-alert">Temporary lockout triggered after multiple failures. Restart the service.</div>
+    {% elif error %}
+    <div class="alert-alert">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="{{ url_for('login') }}">
+      <label for="pin">Access PIN</label>
+      <input type="password" id="pin" name="pin" inputmode="numeric" maxlength="12" autofocus required autocomplete="current-password">
+      <button type="submit" class="btn primary block">Unlock console</button>
+    </form>
+    <p class="center tag">Set via env <code>LAMDEX_PIN</code> · default <code>1234</code> (change for any shared demo)</p>
+  </div>
+</body>
+</html>

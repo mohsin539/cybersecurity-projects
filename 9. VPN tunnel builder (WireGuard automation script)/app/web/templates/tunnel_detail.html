@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}{{ tunnel.interface }} — VPN Tunnel Builder{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Tunnel <span class="mono">{{ tunnel.interface }}</span></h1>
+  <p>{{ tunnel.role }} · port {{ tunnel.listen_port }} · {{ tunnel.addresses|join(', ') }}</p>
+</div>
+
+<div class="toolbar">
+  <form method="post" action="{{ url_for('tunnel_action', interface=tunnel.interface, action='start') }}" class="inline">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Start</button>
+  </form>
+  <form method="post" action="{{ url_for('tunnel_action', interface=tunnel.interface, action='stop') }}" class="inline">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Stop</button>
+  </form>
+  <form method="post" action="{{ url_for('tunnel_action', interface=tunnel.interface, action='validate') }}" class="inline">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Validate config</button>
+  </form>
+  <form method="post" action="{{ url_for('tunnel_action', interface=tunnel.interface, action='snapshot') }}" class="inline">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Snapshot</button>
+  </form>
+  <form method="post" action="{{ url_for('tunnel_action', interface=tunnel.interface, action='rollback') }}" class="inline"
+        onsubmit="return confirm('Restore the latest snapshot for this tunnel?')">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Rollback</button>
+  </form>
+  <a class="btn" href="{{ url_for('tunnel_conf_download', interface=tunnel.interface) }}">Download .conf</a>
+  <form method="post" action="{{ url_for('tunnel_action', interface=tunnel.interface, action='delete') }}" class="inline"
+        onsubmit="return confirm('Delete this tunnel and all its peers? This cannot be undone without a snapshot.')">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <button class="btn danger" type="submit">Delete</button>
+  </form>
+</div>
+
+<div class="two-col wide">
+  <section class="panel">
+    <h2>Live status <button class="btn ghost sm" id="refresh-status">refresh</button></h2>
+    <div id="status-box" data-interface="{{ tunnel.interface }}" data-refresh="{{ app_settings.monitor_interval_sec }}">
+      {% if status.running %}
+        <div class="banner ok">Interface is UP</div>
+      {% else %}
+        <div class="banner warn">Interface is DOWN{% if status.error %} — {{ status.error }}{% endif %}</div>
+      {% endif %}
+      {% if status.interface and status.interface.public_key %}
+      <p>Server public key: <code class="mono">{{ status.interface.public_key }}</code></p>
+      {% endif %}
+      {% if status.peers %}
+      <table class="tbl small">
+        <thead><tr><th>Peer</th><th>Handshake</th><th>RX</th><th>TX</th><th>Endpoint</th></tr></thead>
+        <tbody>
+          {% for p in status.peers %}
+          <tr>
+            <td class="mono small">{{ p.public_key[:16] }}…</td>
+            <td>{{ p.latest_handshake }}</td>
+            <td>{{ p.transfer_rx }}</td>
+            <td>{{ p.transfer_tx }}</td>
+            <td>{{ p.endpoint or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="muted">No active peer sessions.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Peers ({{ peers|length }})</h2>
+    {% if peers %}
+    <table class="tbl small">
+      <thead><tr><th>Name</th><th>Fingerprint</th><th>AllowedIPs</th><th>PSK</th><th>Enabled</th><th></th></tr></thead>
+      <tbody>
+        {% for p in peers %}
+        <tr>
+          <td><strong>{{ p.name }}</strong></td>
+          <td class="mono small">{{ p.fingerprint }}</td>
+          <td class="mono small">{{ p.allowed_ips|join(', ') }}</td>
+          <td>{% if p.has_psk %}<span class="badge ok">rotatable</span>{% else %}<span class="muted">-</span>{% endif %}</td>
+          <td>{% if p.enabled %}<span class="badge ok">on</span>{% else %}<span class="badge off">off</span>{% endif %}</td>
+          <td class="actions">
+            <form method="post" action="{{ url_for('peer_action', peer_id=p.id, action='toggle') }}" class="inline">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <button class="btn ghost sm">{{ 'Disable' if p.enabled else 'Enable' }}</button>
+            </form>
+            <form method="post" action="{{ url_for('peer_action', peer_id=p.id, action='rotate-psk') }}" class="inline">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <button class="btn ghost sm" title="Rotate preshared key">Rotate PSK</button>
+            </form>
+            <form method="post" action="{{ url_for('peer_action', peer_id=p.id, action='delete') }}" class="inline"
+                  onsubmit="return confirm('Remove peer {{ p.name }}?')">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <button class="btn ghost danger sm" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No peers configured for {{ tunnel.interface }}.</p>
+    {% endif %}
+
+    <h3>Add peer</h3>
+    <form method="post" action="{{ url_for('peers_add') }}" class="form grid2">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="tunnel" value="{{ tunnel.interface }}">
+      <label>Name <input name="name" placeholder="laptop-eve" required></label>
+      <label>Client public key (or leave blank to auto-generate)
+        <input name="public_key" placeholder="base64 Curve25519 key" class="mono"></label>
+      <label class="check"><input type="checkbox" name="auto_key" value="1" checked> Auto-generate a new keypair for this peer</label>
+      <label>Allowed IPs (comma-separated; blank = auto next /32)
+        <input name="allowed_ips" placeholder="10.9.0.3/32"></label>
+      <label>Endpoint (client role dialing a server) <input name="endpoint" placeholder="vps.example.com:51820"></label>
+      <label>Persistent keepalive <input name="persistent_keepalive" type="number" value="25" min="0" max="65535"></label>
+      <label>Notes <input name="notes" placeholder="Eve's corporate laptop"></label>
+      <label class="check"><input type="checkbox" name="no_psk"> Disable preshared key for this peer</label>
+      <button class="btn primary" type="submit">Add peer</button>
+    </form>
+  </section>
+</div>
+
+<div class="two-col wide">
+  <section class="panel">
+    <h2>Generated config (keys redacted)</h2>
+    <pre class="code">{{ conf_preview or '(no interface config yet)' }}</pre>
+    <p class="hint">Use <a href="{{ url_for('tunnel_conf_download', interface=tunnel.interface) }}">Download .conf</a> to
+      get the full file including the interface private key — handle it like a secret.</p>
+  </section>
+  <section class="panel">
+    <h2>Snapshots</h2>
+    {% if snapshots %}
+    <table class="tbl small">
+      <thead><tr><th>ID</th><th>Created</th><th></th></tr></thead>
+      <tbody>
+        {% for s in snapshots %}
+        <tr>
+          <td class="mono small">{{ s.id }}</td>
+          <td>{{ s.ts }}</td>
+          <td class="mono small">{{ s.sha256[:16] }}…</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No snapshots yet. Take one before destructive changes.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

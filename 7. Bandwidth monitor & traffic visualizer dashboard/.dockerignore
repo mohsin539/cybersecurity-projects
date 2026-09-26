@@ -1,0 +1,21 @@
+# Keep local secrets/overrides out of image builds.
+.env
+
+# Version control / tooling
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+playwright-report
+test-results
+
+# Local artifacts
+bwmon_history.db
+bwmon_history.db-*
+*.log
+.DS_Store

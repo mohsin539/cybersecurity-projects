@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "listeners": {
+    "http":   { "bind": "127.0.0.1", "port": 8080, "authMode": "None" },
+    "socks5": { "bind": "127.0.0.1", "port": 1080, "authMode": "None" }
+  },
+  "upstreams": [ { "name": "direct", "type": "Direct" } ],
+  "routing": { "default": "direct", "failover": [] },
+  "rules": [
+    { "id": 1, "action": "Allow", "match": {} }
+  ],
+  "limits": {
+    "maxConnections": 2000,
+    "maxConnectionsPerClient": 128,
+    "connectRatePerMinute": 240,
+    "rateBlockSeconds": 60,
+    "idleTimeoutSec": 300,
+    "connectTimeoutSec": 15,
+    "maxHeaderBytes": 32768
+  },
+  "security": {
+    "denyPrivateTargets": false,
+    "resolveViaUpstream": false,
+    "httpRatePerMinute": 600,
+    "socks5Users": { "alice": "change-me" },
+    "clients": {
+      "allow": [],
+      "deny": []
+    }
+  },
+  "logging": { "level": "info", "directory": "logs", "maxFileBytes": 104857600, "maxFiles": 14 }
+}

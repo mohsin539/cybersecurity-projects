@@ -1,0 +1,12 @@
+{
+  "name": "custom-chain-pack",
+  "version": "1.0.0",
+  "description": "Custom Wazuh/OSSEC detection rule pack for a specific attack chain (initial access -> execution -> persistence -> C2 -> exfil)",
+  "target": ["Wazuh 4.x", "OSSEC 3.x"],
+  "id_range": [200010, 200999],
+  "expected_alerts": 12,
+  "entrypoints": {
+    "validate": "py scripts/validate_pack.py --pack-dir .",
+    "enrich": "py scripts/chain_enrich.py --alert-file tests/expected/chain_alert.json"
+  }
+}

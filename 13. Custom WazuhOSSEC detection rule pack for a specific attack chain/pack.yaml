@@ -1,0 +1,34 @@
+# Custom Chain Pack metadata (canonical definition of the pack)
+
+pack:
+  name: custom-chain-pack
+  version: 1.0.0
+  target_chain: "Initial Access -> Execution -> Persistence -> C2 -> Exfil"
+  id_range: [200010, 200999]
+  author: security-tools
+  license: internal-use
+
+phases:
+  access:
+    rule_file: 20-chain_access_rules.xml
+    mitre: [T1190, T1566]
+  exec:
+    rule_file: 20-chain_exec_rules.xml
+    mitre: [T1059, T1203]
+  persist:
+    rule_file: 20-chain_persist_rules.xml
+    mitre: [T1547, T1053]
+  c2:
+    rule_file: 20-chain_c2_rules.xml
+    mitre: [T1071, T1573]
+  exfil:
+    rule_file: 20-chain_exfil_rules.xml
+    mitre: [T1041]
+  phasefinal:
+    rule_file: 20-chain_phasefinal.xml
+    mitre: [T1480]
+
+tuning:
+  noise_budget_alerts_per_day: 50
+  phasefinal_min_phases: 3
+  level_overrides: {}

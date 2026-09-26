@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Alert · {{ alert.title[:40] }}{% endblock %}
+{% block content %}
+<div class="breadcrumb"><a href="/alerts">Alerts</a> / <span>{{ alert.id[:8] }}</span></div>
+<h1>{{ alert.title }}</h1>
+<div class="grid-2">
+  <section class="card">
+    <h2>Details</h2>
+    <dl class="kv">
+      <dt>Created</dt><dd>{{ alert.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</dd>
+      <dt>Source</dt><dd>{{ alert.source }}</dd>
+      <dt>Category</dt><dd>{{ alert.category or '—' }}{% if alert.subcategory %} / {{ alert.subcategory }}{% endif %}</dd>
+      <dt>Severity</dt><dd>{{ alert.severity }} / 5 (vendor: {{ alert.vendor_severity or '—' }})</dd>
+      <dt>Score</dt><dd>{{ alert.score }}</dd>
+      <dt>Asset</dt><dd>{{ alert.asset_id or '—' }} (crit: {{ alert.raw_json.get('asset_criticality', 'unknown') }})</dd>
+      <dt>ATT&CK</dt><dd>{{ alert.attack_tactic or '—' }} {% if alert.attack_technique %}→ {{ alert.attack_technique }}{% endif %}</dd>
+      <dt>Case</dt><dd>{% if alert.case_id %}<a href="/cases/{{ alert.case_id }}">#{{ alert.case_id }}</a>{% else %}not assigned{% endif %}</dd>
+      <dt>Redacted</dt><dd>{{ 'yes' if alert.redacted else 'no' }} <span class="hint">(PII policy applied)</span></dd>
+    </dl>
+    {% if alert.description %}<h3>Description</h3><p>{{ alert.description }}</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Indicators</h2>
+    <table>
+      <thead><tr><th>Type</th><th>Value</th></tr></thead>
+      <tbody>
+      {% for i in alert.indicators or [] %}
+        <tr><td>{{ i.type }}</td><td><code>{{ i.value }}</code></td></tr>
+      {% else %}
+        <tr><td colspan="2" class="muted">No indicators.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <h2>Raw payload (redacted)</h2>
+    <pre class="json">{{ alert.raw_json | tojson(indent=2) }}</pre>
+  </section>
+</div>
+{% endblock %}

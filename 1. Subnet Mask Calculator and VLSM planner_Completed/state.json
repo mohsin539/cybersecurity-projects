@@ -1,0 +1,24 @@
+{
+  "calc_ip": "10.20.90.1",
+  "calc_prefix": "/16",
+  "vlsm_base_ip": "192.168.1.0",
+  "vlsm_base_prefix": "24",
+  "vlsm_requirements": [
+    {
+      "name": "Sales",
+      "hosts": 50
+    },
+    {
+      "name": "Engineering",
+      "hosts": 25
+    },
+    {
+      "name": "Guest WiFi",
+      "hosts": 10
+    },
+    {
+      "name": "Subnet 4",
+      "hosts": 10
+    }
+  ]
+}

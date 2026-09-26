@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Settings — VPN Tunnel Builder{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Settings</h1>
+  <p>Network defaults and security posture. Secrets are stored salted-hashed and never shown.</p>
+</div>
+
+<div class="two-col wide">
+  <section class="panel">
+    <h2>Network defaults</h2>
+    <form method="post" action="{{ url_for('settings_save') }}" class="form">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <label>Default subnet <input name="default_subnet" value="{{ settings.default_subnet }}" class="mono"></label>
+      <label>Default listen port <input name="default_listen_port" type="number" value="{{ settings.default_listen_port }}"></label>
+      <label>Default MTU <input name="default_mtu" type="number" value="{{ settings.default_mtu }}"></label>
+      <label>Default keepalive (s) <input name="default_keepalive" type="number" value="{{ settings.default_keepalive }}"></label>
+      <label>Snapshot retention <input name="snapshot_retention" type="number" value="{{ settings.snapshot_retention }}"></label>
+      <label>Audit retention (days) <input name="audit_retention_days" type="number" value="{{ settings.audit_retention_days }}"></label>
+      <label>Monitor interval (s) <input name="monitor_interval_sec" type="number" value="{{ settings.monitor_interval_sec }}"></label>
+      <fieldset class="checks">
+        <legend>Behaviour</legend>
+        <label class="check"><input type="checkbox" name="psk_enabled" value="1" {{ 'checked' if settings.psk_enabled }}> Enable preshared keys on new peers</label>
+        <label class="check"><input type="checkbox" name="auto_assign_ips" value="1" {{ 'checked' if settings.auto_assign_ips }}> Auto-assign next free /32 address</label>
+      </fieldset>
+      <button class="btn primary" type="submit">Save settings</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Security</h2>
+    <form method="post" action="{{ url_for('settings_save') }}" class="form">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+      <fieldset class="checks">
+        <legend>Posture</legend>
+        <label class="check"><input type="checkbox" name="auth_enabled" value="1" {{ 'checked' if settings.auth_enabled }}> Require login (token auth)</label>
+        <label class="check"><input type="checkbox" name="require_localhost_only" value="1" {{ 'checked' if settings.require_localhost_only }}> Block non-localhost clients</label>
+        <label class="check"><input type="checkbox" name="redact_secrets_in_logs" value="1" {{ 'checked' if settings.redact_secrets_in_logs }}> Redact secrets in logs</label>
+      </fieldset>
+
+      <fieldset class="checks">
+        <legend>Backend</legend>
+        <label>Execution backend
+          <select name="backend">
+            <option value="auto" {{ 'selected' if settings.backend=='auto' }}>auto (local if wireguard-tools present, else simulator)</option>
+            <option value="local" {{ 'selected' if settings.backend=='local' }}>local (real wg / wg-quick)</option>
+            <option value="simulator" {{ 'selected' if settings.backend=='simulator' }}>simulator (safe / demo)</option>
+            <option value="dry-run" {{ 'selected' if settings.backend=='dry-run' }}>dry-run (simulated, no writes)</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Authentication token</legend>
+        <p class="hint">The stored token is salted SHA-256. Resetting generates a new one shown only once.</p>
+        <label class="check"><input type="checkbox" name="reset_token" value="1"> Reset auth token (generates new)</label>
+      </fieldset>
+
+      <button class="btn primary" type="submit">Save security settings</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

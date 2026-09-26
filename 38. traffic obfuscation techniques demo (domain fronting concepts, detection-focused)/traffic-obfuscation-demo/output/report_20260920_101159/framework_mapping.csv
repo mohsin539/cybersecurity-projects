@@ -1,0 +1,25 @@
+﻿framework,ref,title,category,status,description
+OWASP Top 10 (2021),A01,Broken Access Control,Access Control,adopt,Hidden origins exposed by fronted channels bypass coarse IP/DNS allow-lists.
+OWASP Top 10 (2021),A02,Cryptographic Failures,Cryptography,adopt,Weak/legacy cipher advertising inside ClientHello must be recorded.
+OWASP Top 10 (2021),A03,Injection,Injection,adopt,Host/:authority validation prevents request-route injection.
+OWASP Top 10 (2021),A04,Insecure Design,Design,adopt,Design must assume attacker controls SNI and Host independently.
+OWASP Top 10 (2021),A05,Security Misconfiguration,Configuration,adopt,CDN fronting relies on permissive TLS termination configs.
+OWASP Top 10 (2021),A06,Vulnerable and Outdated Components,Components,monitoring,Edge TLS stacks and proxy engines must be patched.
+OWASP Top 10 (2021),A07,Identification and Authentication Failures,Identity,adopt,Origin must not rely on SNI as a bearer of identity.
+OWASP Top 10 (2021),A08,Software and Data Integrity Failures,Integrity,adopt,Trust decisions must validate Host + authority consistently end-to-end.
+OWASP Top 10 (2021),A09,Security Logging and Monitoring Failures,Logging & Monitoring,monitoring,SNI/Host telemetry must feed SIEM pipelines for detection.
+OWASP Top 10 (2021),A10,Server-Side Request Forgery,SSRF,adopt,Fronted channels can turn the CDN edge into an SSRF proxy toward origins.
+NIST CSF 2.0,GV,Govern,Govern,review,Establish org-wide policy for allowed egress and obfuscation use.
+NIST CSF 2.0,ID,Identify,Identify,review,"Inventory of origins, CDN edges and expected SNI/Host pairings."
+NIST CSF 2.0,PR,Protect,Protect,adopt,"TLS 1.3 policies, pinned certificate discipline, allow-list defaults."
+NIST CSF 2.0,DE,Detect,Detect,monitoring,Continuous SNI/authority/TTL/JA4 analytics on egress & ingress.
+NIST CSF 2.0,RS,Respond,Respond,review,Playbooks to terminate or quarantine fronted channels.
+NIST CSF 2.0,RC,Recover,Recover,review,Restore clean routing tables after remediation.
+ISO/IEC 27001:2022,A.5.2,Information security roles and responsibilities,A.5 Organisational,review,Assign ownership for egress and obfuscation-monitoring capability.
+ISO/IEC 27001:2022,A.5.10,Acceptable use of information and assets,A.5 Organisational,review,Define acceptable egress domains and prohibit unauthorised fronting.
+ISO/IEC 27001:2022,A.8.9,Configuration management,A.8 Technological,adopt,Version-controlled edge / TLS / proxy configuration baselines.
+ISO/IEC 27001:2022,A.8.10,Information deletion,A.8 Technological,monitoring,Ensure telemetry retention satisfies data-handling policy.
+ISO/IEC 27001:2022,A.8.16,Monitoring activities,A.8 Technological,monitoring,"Active monitoring of networks, systems and applications for misuse."
+ISO/IEC 27001:2022,A.8.20,Networks security,A.8 Technological,adopt,Segment and filter egress so fronted channels cannot reach origins.
+ISO/IEC 27001:2022,A.8.24,Use of cryptography,A.8 Technological,adopt,Cryptographic policy applied consistently to egress TLS.
+ISO/IEC 27001:2022,A.8.28,Secure coding,A.8 Technological,adopt,Host/:authority validation in application code; no implicit trust of SNI.

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Case #{{ case.id }} · SOAR-Lite{% endblock %}
+{% block content %}
+<div class="breadcrumb"><a href="/cases">Cases</a> / #{{ case.id }}</div>
+<h1>#{{ case.id }} — {{ case.title }}</h1>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Incident facts</h2>
+    <dl class="kv">
+      <dt>Severity</dt><dd>{% if case.severity >= 4 %}<span class="pill bad">{{ case.severity }}</span>{% else %}<span class="pill">{{ case.severity }}</span>{% endif %}</dd>
+      <dt>Status</dt><dd>{{ case.status }}</dd>
+      <dt>NIST phase</dt><dd><span class="pill muted">{{ case.nist_phase }}</span></dd>
+      <dt>Opened</dt><dd>{{ case.opened_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</dd>
+      <dt>Contained</dt><dd>{{ case.contained_at.strftime('%Y-%m-%d %H:%M') if case.contained_at else '—' }}</dd>
+      <dt>Closed</dt><dd>{{ case.closed_at.strftime('%Y-%m-%d %H:%M') if case.closed_at else '—' }}</dd>
+      <dt>SLA</dt><dd>{% if case.sla_breached %}<span class="pill bad">breached</span>{% else %}within bounds{% endif %}</dd>
+    </dl>
+    {% if case.lessons %}<h3>Lessons learned</h3><p>{{ case.lessons }}</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Automation runs</h2>
+    <table>
+      <thead><tr><th>Run</th><th>Status</th><th>Started</th></tr></thead>
+      <tbody>
+      {% for r in runs %}
+        <tr><td><a href="/runs/{{ r.id }}">{{ r.trigger_summary }} ({{ r.id[:8] }})</a></td><td>{{ r.status }}</td><td>{{ r.created_at.strftime('%H:%M') }}</td></tr>
+      {% else %}
+        <tr><td colspan="3" class="muted">No automation runs.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Timeline (immutable)</h2>
+    <div class="timeline">
+    {% for t in case.timeline %}
+      <div class="tl-item">
+        <div class="tl-time">{{ t.ts.strftime('%H:%M:%S') }}</div>
+        <div class="tl-body"><b>{{ t.event_type }}</b> — {{ t.message }} <span class="hint">by {{ t.actor }}</span></div>
+      </div>
+    {% endfor %}
+    </div>
+    <form id="timeline-form" class="inline-form">
+      <input type="hidden" name="case_id" value="{{ case.id }}">
+      <label>Add note (analyst)</label>
+      <textarea name="message" rows="2" placeholder="Automation note / analyst observation"></textarea>
+      <button class="btn btn-sm btn-primary">Add</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Evidence</h2>
+    <table>
+      <thead><tr><th>File</th><th>SHA-256</th><th>Size</th><th>Collected by</th></tr></thead>
+      <tbody>
+      {% for e in case.evidence %}
+        <tr><td>{{ e.filename }}</td><td><code>{{ e.sha256[:16] }}…</code></td><td>{{ e.size }} B</td><td>{{ e.collector }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">No evidence collected.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form id="evidence-form" class="inline-form">
+      <input type="hidden" name="case_id" value="{{ case.id }}">
+      <label>Collect evidence (chain-of-custody hash at ingest)</label>
+      <input type="file" name="file">
+      <button class="btn btn-sm btn-primary">Upload</button>
+    </form>
+    <h2>Close case</h2>
+    <form id="close-form" class="inline-form">
+      <input type="hidden" name="case_id" value="{{ case.id }}">
+      <textarea name="lessons" rows="2" placeholder="Lessons learned (recorded for post-incident review)"></textarea>
+      <button class="btn btn-sm">Close with lessons</button>
+    </form>
+  </section>
+</div>
+
+<script>
+async function postJSON(form, url) {
+  const r = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': CSRF()}, body: JSON.stringify(form)});
+  if (r.ok) { location.reload(); } else { const d = await r.json().catch(()=>({})); alert(d.detail || 'request failed'); }
+}
+document.getElementById('timeline-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target;
+  await postJSON({event_type: 'analyst_note', message: f.message.value}, '/api/v1/cases/{{ case.id }}/timeline');
+});
+document.getElementById('close-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  await postJSON({lessons: e.target.lessons.value}, '/api/v1/cases/{{ case.id }}');
+});
+document.getElementById('evidence-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData();
+  fd.append('file', e.target.file.files[0]);
+  const r = await fetch('/api/v1/cases/{{ case.id }}/evidence', {method: 'POST', headers: {'X-CSRF-Token': CSRF()}, body: fd});
+  if (r.ok) { location.reload(); } else { const d = await r.json().catch(()=>({})); alert(d.detail || 'upload failed'); }
+});
+</script>
+{% endblock %}

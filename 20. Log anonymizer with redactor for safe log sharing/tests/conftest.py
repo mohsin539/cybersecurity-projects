@@ -1,0 +1,9 @@
+"""Test suite for the Log Anonymizer with Redactor."""
+
+import sys
+from pathlib import Path
+
+# Ensure `src` is importable regardless of install state
+SRC = Path(__file__).resolve().parents[1] / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))

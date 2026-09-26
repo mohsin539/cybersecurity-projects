@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadDisplayName</key>
+    <string>MDM-Lite Baseline Policy (iOS)</string>
+    <key>PayloadIdentifier</key>
+    <string>com.mdmlite.checker.enrollment</string>
+    <key>PayloadOrganization</key>
+    <string>MDM-Lite</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>8E2CF767-F180-4B56-B33B-F67CA21C5018</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+
+    <!-- 1. Passcode policy ============================= -->
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadDisplayName</key>
+            <string>Passcode Policy</string>
+            <key>PayloadIdentifier</key>
+            <string>com.mdmlite.checker.passcode</string>
+            <key>PayloadType</key>
+            <string>com.apple.mobiledevice.passwordpolicy</string>
+            <key>PayloadUUID</key>
+            <string>88CC8F54-7610-4FEE-8385-69F7F9E2A417</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>maxInactivity</key>
+            <integer>5</integer>
+            <key>maxFailedAttempts</key>
+            <integer>6</integer>
+            <key>pinHistory</key>
+            <integer>4</integer>
+            <key>minLength</key>
+            <integer>6</integer>
+            <key>requireAlphanumeric</key>
+            <true/>
+            <key>allowSimple</key>
+            <false/>
+            <key>allowFingerprintModification</key>
+            <false/>
+        </dict>
+
+        <!-- 2. Privacy/restrictions ========================== -->
+        <dict>
+            <key>PayloadDisplayName</key>
+            <string>Policy Restrictions</string>
+            <key>PayloadIdentifier</key>
+            <string>com.mdmlite.checker.restrictions</string>
+            <key>PayloadType</key>
+            <string>com.apple.MCFeatureRestrictions</string>
+            <key>PayloadUUID</key>
+            <string>1A14CD15-A69D-409F-8A9A-5839A883E601</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>allowAccountModification</key>
+            <false/>
+            <key>allowAddingGameCenterFriends</key>
+            <true/>
+            <key>allowCloudBackup</key>
+            <true/>
+            <key>allowCloudDocumentSync</key>
+            <true/>
+            <key>allowDiagnosticSubmission</key>
+            <false/>
+            <key>allowEnterpriseAppTrust</key>
+            <true/>
+            <key>allowSiri</key>
+            <true/>
+            <key>allowUntrustedTLSPrompt</key>
+            <false/>
+            <key>allowUIConfigurationProfileInstallation</key>
+            <true/>
+        </dict>
+
+        <!-- 3. Device identity note (informational) ============= -->
+        <dict>
+            <key>PayloadDisplayName</key>
+            <string>Device Identity Note</string>
+            <key>PayloadIdentifier</key>
+            <string>com.mdmlite.checker.note</string>
+            <key>PayloadType</key>
+            <string>com.apple.devicename</string>
+            <key>PayloadUUID</key>
+            <string>43130813-A08A-44E1-864A-B1573855E67A</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>Name</key>
+            <string>MDM-Lite iPhone</string>
+        </dict>
+    </array>
+</dict>
+</plist>

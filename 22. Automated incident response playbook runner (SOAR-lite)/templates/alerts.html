@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Alerts · SOAR-Lite{% endblock %}
+{% block content %}
+<h1>Alerts</h1>
+<div class="toolbar">
+  <a href="/ingest-demo" class="btn btn-sm">Ingest demo alert</a>
+</div>
+<table>
+  <thead><tr><th>Created</th><th>Source</th><th>Category</th><th>Title</th><th>Severity</th><th>Status</th><th>Case</th></tr></thead>
+  <tbody>
+  {% for a in alerts %}
+    <tr>
+      <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>{{ a.source }}</td>
+      <td>{{ a.category }}</td>
+      <td><a href="/alerts/{{ a.id }}">{{ a.title[:70] }}</a></td>
+      <td>
+        {% if a.severity >= 4 %}<span class="pill bad">{{ a.severity }}</span>
+        {% elif a.severity == 3 %}<span class="pill warn">{{ a.severity }}</span>
+        {% else %}<span class="pill">{{ a.severity }}</span>{% endif %}
+      </td>
+      <td>{{ a.status }}{% if a.is_duplicate_of %} <span class="pill muted">dup</span>{% endif %}</td>
+      <td>{% if a.case_id %}<a href="/cases/{{ a.case_id }}">#{{ a.case_id }}</a>{% else %}—{% endif %}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">No alerts received.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,176 @@
+<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Red Team Engagement Report</title><style>
+:root {
+  --bg:#0f172a; --panel:#1e293b; --panel2:#273549; --line:#334155;
+  --text:#e2e8f0; --muted:#94a3b8; --brand:#38bdf8;
+  --crit:#e03131; --high:#f76707; --med:#f5c400; --low:#40c057; --none:#868e96;
+  --owasp:#d63384; --nist:#16a34a; --iso:#2563eb;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{background:radial-gradient(1200px 600px at 80% -10%, #1e3a8a55, transparent), var(--bg);
+  color:var(--text); font-family:'Segoe UI', system-ui, sans-serif; line-height:1.5; padding:24px;}
+.wrap{max-width:1200px; margin:0 auto;}
+header.hero{background:linear-gradient(135deg,#0c4a6e,#1d4ed8 45%,#7c3aed);
+  border-radius:18px; padding:28px 32px; margin-bottom:24px; box-shadow:0 10px 30px #0005;}
+header.hero h1{font-size:28px; letter-spacing:.5px;}
+header.hero p{color:#cfe8ff; margin-top:6px;}
+.header-meta{display:flex; gap:18px; flex-wrap:wrap; margin-top:12px; font-size:13px; color:#dbeafe;}
+.badge{display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600;}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:24px;}
+.kpi{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; text-align:center;}
+.kpi .num{font-size:30px; font-weight:800;}
+.kpi .lbl{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:1px;}
+.kpi.crit .num{color:var(--crit);} .kpi.high .num{color:var(--high);}
+.kpi.med .num{color:var(--med);} .kpi.low .num{color:var(--low);} .kpi.risk .num{color:var(--brand);}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:24px;}
+.panel h2{font-size:18px; margin-bottom:14px; border-left:5px solid var(--brand); padding-left:12px;}
+.panel h2.owasp{border-color:var(--owasp);} .panel h2.nist{border-color:var(--nist);} .panel h2.iso{border-color:var(--iso);}
+.narrative{color:#cbd5e1; font-size:14.5px; white-space:pre-line;}
+ol.recs{margin-left:20px; color:#cbd5e1;} ol.recs li{margin-bottom:8px;}
+.chart{display:flex; align-items:flex-end; gap:18px; height:180px; padding-top:10px;}
+.bar{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;}
+.bar .fill{width:100%; min-height:4px; border-radius:6px 6px 0 0; transition:.3s;}
+.bar span{font-size:12px; color:var(--muted);}
+.legend{display:flex; gap:18px; margin-top:12px; font-size:13px; flex-wrap:wrap;}
+.legend b{width:12px; height:12px; display:inline-block; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+table{width:100%; border-collapse:collapse; font-size:13.5px;}
+th{background:var(--panel2); color:#fff; text-align:left; padding:10px; font-weight:600; cursor:default;}
+td{padding:10px; border-top:1px solid var(--line); vertical-align:top;}
+tr:hover td{background:#22304a;}
+.chip{display:inline-block; margin:3px 5px 3px 0; padding:3px 9px; border-radius:999px; font-size:12px; font-weight:600;}
+.chip.owasp{background:#d6338422; color:#f06595; border:1px solid #d6338455;}
+.chip.nist{background:#16a34a22; color:#4ade80; border:1px solid #16a34a55;}
+.chip.iso{background:#2563eb22; color:#8ab4ff; border:1px solid #2563eb55;}
+footer{color:var(--muted); font-size:12px; text-align:center; padding:18px 0 8px;}
+.sev{color:#fff; font-weight:700; padding:3px 10px; border-radius:999px; font-size:12px; white-space:nowrap;}
+.small{color:var(--muted); font-size:12px;}
+.heat{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px;}
+.heat .cat{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px;}
+.heat .cat .top{display:flex; justify-content:space-between; align-items:center;}
+.heat .cat code{color:var(--owasp); font-weight:700;}
+.heat .cat .cnt{font-weight:800; font-size:18px;}
+.pagerow{display:flex; align-items:center; gap:8px; margin-top:6px;}
+.barline{height:8px; background:#0b1526; border-radius:6px; flex:1; overflow:hidden;}
+.barline i{display:block; height:100%; border-radius:6px; background:linear-gradient(90deg,var(--brand),#7c3aed);}
+</style></head><body><div class='wrap'>
+<header class='hero'>
+  <h1>Red Team Engagement Report</h1>
+  <p>Project Helios - Annual Red Team Engagement</p>
+  <div class='header-meta'><span>Customer: <b>Acme Financial Services</b></span><span>Period: <b>August 2026</b></span><span>Scope: <b>Payment portal, customer API gateway, corporate VPN, cloud identity stack</b></span><span>Risk posture: <b>High (68/100)</b></span></div>
+</header>
+
+<div class='kpis'><div class='kpi risk'><div class='num'>9</div><div class='lbl'>Total Findings</div></div><div class='kpi crit'><div class='num'>2</div><div class='lbl'>Critical</div></div><div class='kpi high'><div class='num'>3</div><div class='lbl'>High</div></div><div class='kpi med'><div class='num'>4</div><div class='lbl'>Medium</div></div><div class='kpi low'><div class='num'>0</div><div class='lbl'>Low</div></div></div>
+
+<div class='panel'>
+  <h2>Executive Summary</h2>
+  <p class='narrative'>During the assessment period, 9 findings were documented across Payment portal, customer API gateway, corporate VPN, cloud identity stack. Of these, 2 were rated Critical, 3 High, 4 Medium and 0 Low. The average base CVSS v3.1 score was 7.6; the most severe finding reached 10.0. Taken together, the findings place the organization at a High risk posture (index 68/100). Immediate executive attention is warranted: 5 findings fall into the Critical or High bands and present realistic paths to system, data, or business compromise. Concentrated weaknesses appear in the OWASP Top 10 categories: A01 Broken Access Control, A02 Cryptographic Failures, A03 Injection. Scores follow CVSS v3.1 base metrics; framework alignment uses OWASP Top 10 (2021), NIST SP 800-53 Rev.5 and ISO/IEC 27001:2022, so each recommendation traces to a defensible control.</p>
+</div>
+
+<div class='panel'>
+  <h2>Severity Distribution</h2>
+  <div class='chart'><div class='bar'><div class='fill' style='height:35px;background:var(--crit)'></div><b>2</b><span>Critical</span></div><div class='bar'><div class='fill' style='height:53px;background:var(--high)'></div><b>3</b><span>High</span></div><div class='bar'><div class='fill' style='height:71px;background:var(--med)'></div><b>4</b><span>Medium</span></div><div class='bar'><div class='fill' style='height:6px;background:var(--low)'></div><b>0</b><span>Low</span></div><div class='bar'><div class='fill' style='height:6px;background:var(--none)'></div><b>0</b><span>None</span></div></div>
+  <div class='legend'>
+    <span><b style='background:var(--crit)'></b>Critical (9.0-10.0)</span>
+    <span><b style='background:var(--high)'></b>High (7.0-8.9)</span>
+    <span><b style='background:var(--med)'></b>Medium (4.0-6.9)</span>
+    <span><b style='background:var(--low)'></b>Low (0.1-3.9)</span>
+    <span><b style='background:var(--none)'></b>None (0.0)</span>
+    <span>Mean CVSS <b>7.6</b> &middot; Max <b>10.0</b></span>
+  </div>
+</div>
+
+<div class='panel'>
+  <h2>Recommendations</h2>
+  <ol class='recs'><li>Remediate Critical/High findings within 14-30 days, prioritizing externally reachable assets.</li><li>Schedule Medium findings into the next 1-2 release cycles with an owner and due date per work-item.</li><li>Establish a software composition analysis (SCA) program for dependency and component hygiene.</li><li>Operationalize centralized logging, correlation rules and 24x7 alerting to close logging and monitoring gaps.</li><li>Re-verify authorization and authentication flows across all administrative interfaces and enforce least privilege.</li><li>Adopt parameterized queries, prepared statements and strict output encoding for all untrusted input.</li><li>Harden cryptographic posture: enforce TLS 1.2+, modern cipher suites and centralized key management.</li><li>Restrict outbound application traffic, deny access to internal metadata services and validate destination hosts.</li></ol>
+</div>
+
+<div class='panel'>
+  <h2 class='owasp'>OWASP Top 10 (2021) Coverage</h2>
+  <div class='heat'>
+<div class='cat'>
+  <div class='top'><code>A01</code><span class='cnt'>2</span></div>
+  <div class='small'>Broken Access Control</div>
+  <div class='pagerow'><div class='barline'><i style='width:22%'></i></div>
+  <span class='small'>2</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A02</code><span class='cnt'>1</span></div>
+  <div class='small'>Cryptographic Failures</div>
+  <div class='pagerow'><div class='barline'><i style='width:11%'></i></div>
+  <span class='small'>1</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A03</code><span class='cnt'>1</span></div>
+  <div class='small'>Injection</div>
+  <div class='pagerow'><div class='barline'><i style='width:11%'></i></div>
+  <span class='small'>1</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A04</code><span class='cnt'>0</span></div>
+  <div class='small'>Insecure Design</div>
+  <div class='pagerow'><div class='barline'><i style='width:0%'></i></div>
+  <span class='small'>0</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A05</code><span class='cnt'>1</span></div>
+  <div class='small'>Security Misconfiguration</div>
+  <div class='pagerow'><div class='barline'><i style='width:11%'></i></div>
+  <span class='small'>1</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A06</code><span class='cnt'>1</span></div>
+  <div class='small'>Vulnerable and Outdated Components</div>
+  <div class='pagerow'><div class='barline'><i style='width:11%'></i></div>
+  <span class='small'>1</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A07</code><span class='cnt'>1</span></div>
+  <div class='small'>Identification and Authentication Failures</div>
+  <div class='pagerow'><div class='barline'><i style='width:11%'></i></div>
+  <span class='small'>1</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A08</code><span class='cnt'>0</span></div>
+  <div class='small'>Software and Data Integrity Failures</div>
+  <div class='pagerow'><div class='barline'><i style='width:0%'></i></div>
+  <span class='small'>0</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A09</code><span class='cnt'>1</span></div>
+  <div class='small'>Security Logging and Monitoring Failures</div>
+  <div class='pagerow'><div class='barline'><i style='width:11%'></i></div>
+  <span class='small'>1</span></div>
+</div>
+<div class='cat'>
+  <div class='top'><code>A10</code><span class='cnt'>1</span></div>
+  <div class='small'>Server-Side Request Forgery (SSRF)</div>
+  <div class='pagerow'><div class='barline'><i style='width:11%'></i></div>
+  <span class='small'>1</span></div>
+</div></div>
+</div>
+
+<div class='panel'>
+  <h2>Findings Detail</h2>
+  <table>
+    <tr><th>ID</th><th>Finding</th><th>Asset</th><th>OWASP</th><th>CVSS Vector</th><th>Score</th><th>Severity</th><th>Status</th></tr>
+    <tr><td><b>RT-2026-001</b></td><td>SQL Injection in customer export endpoint<div class='small'>The /api/export endpoint concatenates user-supplied date parameters directly into a SQL query. A crafted payload allowed full database extraction of PII records</div></td><td>api-gateway.acme.io<div class='small'>API</div></td><td><span class='chip owasp'>A03</span><div class='small'>SI-10, SI-11, SC-7, SA-11, SI-16</div><div class='small'>A.8.26, A.8.27, A.8.28, A.8.29</div></td><td class='small'>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H</td><td><b>8.8</b></td><td><span class='sev' style='background:#F76707'>High</span></td><td>Open</td></tr><tr><td><b>RT-2026-002</b></td><td>Broken Object Level Authorization (IDOR) on invoice endpoint<div class='small'>Invoice detail endpoint trusts the invoice_id path parameter without ownership verification, enabling enumeration of other customers&#x27; invoices.</div></td><td>web.acme.io<div class='small'>Web Application</div></td><td><span class='chip owasp'>A01</span><div class='small'>AC-2, AC-3, AC-4, AC-6, AC-17, AC-20</div><div class='small'>A.5.15, A.5.16, A.5.17, A.5.18, A.8.2, A.8.3</div></td><td class='small'>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N</td><td><b>6.5</b></td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>Open</td></tr><tr><td><b>RT-2026-003</b></td><td>SSRF via PDF generator allows internal network scanning<div class='small'>The invoice PDF generator fetches arbitrary user-controlled URLs, permitting access to the cloud metadata service and internal microservices.</div></td><td>core-service.acme.internal<div class='small'>API</div></td><td><span class='chip owasp'>A10</span><div class='small'>SC-7, AC-4, SI-10, SC-20, SC-24</div><div class='small'>A.8.20, A.8.21, A.8.22, A.8.26, A.8.27, A.8.28</div></td><td class='small'>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N</td><td><b>7.9</b></td><td><span class='sev' style='background:#F76707'>High</span></td><td>Open</td></tr><tr><td><b>RT-2026-004</b></td><td>Weak TLS cipher suites on corporate VPN<div class='small'>VPN concentrator accepts TLS 1.0/1.1 and export-grade cipher suites. Man-in-the-middle decryption of management plane traffic is feasible.</div></td><td>vpn.acme.io<div class='small'>Network</div></td><td><span class='chip owasp'>A02</span><div class='small'>SC-8, SC-13, SC-28, SC-28(1), CM-6</div><div class='small'>A.8.24, A.8.28, A.8.10, A.5.33</div></td><td class='small'>CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N</td><td><b>5.3</b></td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>Open</td></tr><tr><td><b>RT-2026-005</b></td><td>Privileged access via default admin token in developer console<div class='small'>Cloud identity stack ships a documented default service-account token that grants full admin on the developer console when not rotated.</div></td><td>iam.acme.cloud<div class='small'>Cloud</div></td><td><span class='chip owasp'>A01</span><div class='small'>AC-2, AC-3, AC-4, AC-6, AC-17, AC-20</div><div class='small'>A.5.15, A.5.16, A.5.17, A.5.18, A.8.2, A.8.3</div></td><td class='small'>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H</td><td><b>9.2</b></td><td><span class='sev' style='background:#E03131'>Critical</span></td><td>Open</td></tr><tr><td><b>RT-2026-006</b></td><td>Outdated third-party library with known RCE (Apache Log4j core)<div class='small'>Payment scheduler bundles Log4j-core 2.14.1, affected by Log4Shell (CVE-2021-44228) family. Chained with a JNDI-capable sink it permits remote code execution.</div></td><td>scheduler.acme.internal<div class='small'>Network</div></td><td><span class='chip owasp'>A06</span><div class='small'>CM-8, CM-11, RA-5, SI-2, SI-7, SI-16, SA-11, SR-3, SR-11</div><div class='small'>A.8.8, A.8.19, A.5.37, A.8.25</div></td><td class='small'>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H</td><td><b>10.0</b></td><td><span class='sev' style='background:#E03131'>Critical</span></td><td>Open</td></tr><tr><td><b>RT-2026-007</b></td><td>Security events not logged for failed administrative logins<div class='small'>Admin console silently drops failed authentication attempts from audit logs; no SIEM alerting exists for brute-force or account lockout bypass.</div></td><td>iam.acme.cloud<div class='small'>Cloud</div></td><td><span class='chip owasp'>A09</span><div class='small'>AU-3, AU-6, AU-9, AU-12, AU-16, SI-4, SI-11, CM-7</div><div class='small'>A.8.15, A.8.16, A.8.17, A.6.8, A.5.24, A.5.25, A.5.28</div></td><td class='small'>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N</td><td><b>6.5</b></td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>Open</td></tr><tr><td><b>RT-2026-008</b></td><td>Unused services exposed on public firewall rules<div class='small'>Public IP range exposes FTP (21), SNMP (161) and a legacy admin panel; firewall rules contradict documented architecture and allow probes of internal services.</div></td><td>edge-firewall.acme.io<div class='small'>Network</div></td><td><span class='chip owasp'>A05</span><div class='small'>CM-6, CM-7, CM-8, CM-11, SC-7, SI-2</div><div class='small'>A.8.8, A.8.9, A.8.19, A.8.20, A.8.21, A.8.22, A.8.32, A.8.31</div></td><td class='small'>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:L</td><td><b>6.5</b></td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>Open</td></tr><tr><td><b>RT-2026-009</b></td><td>Missing rate limiting on password reset allows MFA bypass<div class='small'>Password reset endpoint issues a 6-digit code without rate limiting or lockout; brute-forcing the code in-band bypasses the MFA step.</div></td><td>web.acme.io<div class='small'>Web Application</div></td><td><span class='chip owasp'>A07</span><div class='small'>IA-2, IA-5, IA-8, IA-11, AC-7, AC-8</div><div class='small'>A.8.5, A.5.16, A.5.17, A.5.18</div></td><td class='small'>CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N</td><td><b>7.4</b></td><td><span class='sev' style='background:#F76707'>High</span></td><td>Open</td></tr>
+  </table>
+</div>
+
+<div class='panel'>
+  <h2 class='nist'>NIST SP 800-53 Rev.5 Controls Exercised</h2>
+  <span class='chip nist'>SI-10</span><span class='chip nist'>SI-11</span><span class='chip nist'>SC-7</span><span class='chip nist'>SA-11</span><span class='chip nist'>SI-16</span><span class='chip nist'>AC-2</span><span class='chip nist'>AC-3</span><span class='chip nist'>AC-4</span><span class='chip nist'>AC-6</span><span class='chip nist'>AC-17</span><span class='chip nist'>AC-20</span><span class='chip nist'>SC-20</span><span class='chip nist'>SC-24</span><span class='chip nist'>SC-8</span><span class='chip nist'>SC-13</span><span class='chip nist'>SC-28</span><span class='chip nist'>SC-28(1)</span><span class='chip nist'>CM-6</span><span class='chip nist'>CM-8</span><span class='chip nist'>CM-11</span><span class='chip nist'>RA-5</span><span class='chip nist'>SI-2</span><span class='chip nist'>SI-7</span><span class='chip nist'>SR-3</span><span class='chip nist'>SR-11</span><span class='chip nist'>AU-3</span><span class='chip nist'>AU-6</span><span class='chip nist'>AU-9</span><span class='chip nist'>AU-12</span><span class='chip nist'>AU-16</span><span class='chip nist'>SI-4</span><span class='chip nist'>CM-7</span><span class='chip nist'>IA-2</span><span class='chip nist'>IA-5</span><span class='chip nist'>IA-8</span><span class='chip nist'>IA-11</span><span class='chip nist'>AC-7</span><span class='chip nist'>AC-8</span><div class='small'>Tracing 38 NIST controls referenced by findings.</div>
+</div>
+
+<div class='panel'>
+  <h2 class='iso'>ISO/IEC 27001:2022 Annex A Controls Exercised</h2>
+  <span class='chip iso'>A.8.26</span><span class='chip iso'>A.8.27</span><span class='chip iso'>A.8.28</span><span class='chip iso'>A.8.29</span><span class='chip iso'>A.5.15</span><span class='chip iso'>A.5.16</span><span class='chip iso'>A.5.17</span><span class='chip iso'>A.5.18</span><span class='chip iso'>A.8.2</span><span class='chip iso'>A.8.3</span><span class='chip iso'>A.8.20</span><span class='chip iso'>A.8.21</span><span class='chip iso'>A.8.22</span><span class='chip iso'>A.8.24</span><span class='chip iso'>A.8.10</span><span class='chip iso'>A.5.33</span><span class='chip iso'>A.8.8</span><span class='chip iso'>A.8.19</span><span class='chip iso'>A.5.37</span><span class='chip iso'>A.8.25</span><span class='chip iso'>A.8.15</span><span class='chip iso'>A.8.16</span><span class='chip iso'>A.8.17</span><span class='chip iso'>A.6.8</span><span class='chip iso'>A.5.24</span><span class='chip iso'>A.5.25</span><span class='chip iso'>A.5.28</span><span class='chip iso'>A.8.9</span><span class='chip iso'>A.8.32</span><span class='chip iso'>A.8.31</span><span class='chip iso'>A.8.5</span><div class='small'>Tracing 31 ISO 27001 controls referenced by findings.</div>
+</div>
+
+<div class='panel'>
+  <h2 class='nist'>Prioritized Remediation Plan</h2>
+  <table>
+    <tr><th>#</th><th>ID</th><th>Finding</th><th>Severity</th><th>Score</th><th>OWASP</th><th>Recommended Action</th></tr>
+    <tr><td>1</td><td>RT-2026-006</td><td>Outdated third-party library with known RCE (Apache Log4j core)</td><td><span class='sev' style='background:#E03131'>Critical</span></td><td>10.0</td><td>A06</td><td>Upgrade Log4j to &gt;= 2.17.1 or 3.x; add SCA scanning to CI; inventory all Java runtimes; verify no JNDI sinks remain.</td></tr><tr><td>2</td><td>RT-2026-005</td><td>Privileged access via default admin token in developer console</td><td><span class='sev' style='background:#E03131'>Critical</span></td><td>9.2</td><td>A01</td><td>Rotate tokens, disable default credentials, enforce MFA + conditional access on the console, and review privileged role assignments.</td></tr><tr><td>3</td><td>RT-2026-001</td><td>SQL Injection in customer export endpoint</td><td><span class='sev' style='background:#F76707'>High</span></td><td>8.8</td><td>A03</td><td>Migrate all queries to parameterized statements; apply strict allow-list validation on all date inputs; add WAF rules and run DAST in CI.</td></tr><tr><td>4</td><td>RT-2026-003</td><td>SSRF via PDF generator allows internal network scanning</td><td><span class='sev' style='background:#F76707'>High</span></td><td>7.9</td><td>A10</td><td>Restrict outbound traffic from generator service, block link-local/metadata ranges, allow-list trusted hosts, and adopt URL schema validation.</td></tr><tr><td>5</td><td>RT-2026-009</td><td>Missing rate limiting on password reset allows MFA bypass</td><td><span class='sev' style='background:#F76707'>High</span></td><td>7.4</td><td>A07</td><td>Rate limit reset attempts, use short-lived high-entropy tokens, bind reset to session, require re-authentication for critical actions, and monitor anomalous reset flows.</td></tr><tr><td>6</td><td>RT-2026-002</td><td>Broken Object Level Authorization (IDOR) on invoice endpoint</td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>6.5</td><td>A01</td><td>Enforce ownership-based authorization checks on every object reference; consider randomized identifiers and signed references.</td></tr><tr><td>7</td><td>RT-2026-007</td><td>Security events not logged for failed administrative logins</td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>6.5</td><td>A09</td><td>Emit structured audit events for all auth failures, ship them to SIEM, tune alert rules, and test detection scenarios.</td></tr><tr><td>8</td><td>RT-2026-008</td><td>Unused services exposed on public firewall rules</td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>6.5</td><td>A05</td><td>Apply least functionality: close 21/161, remove admin panel from the internet, and centralize change reviews for firewall rules.</td></tr><tr><td>9</td><td>RT-2026-004</td><td>Weak TLS cipher suites on corporate VPN</td><td><span class='sev' style='background:#FAB005'>Medium</span></td><td>5.3</td><td>A02</td><td>Disable TLS &lt; 1.2, remove export/weak cipher suites (e.g., CBC, RC4, 3DES), enforce certificate pinning policies.</td></tr>
+  </table>
+</div>
+<footer>Generated by the Red Team Engagement Report Generator - findings &rarr; CVSS v3.1 &rarr; OWASP Top 10 / NIST 800-53 / ISO 27001 &rarr; executive summary. Report formats: .xlsx / .csv / .html.</footer></div></body></html>

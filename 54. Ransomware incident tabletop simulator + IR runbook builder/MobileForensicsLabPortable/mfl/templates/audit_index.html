@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Audit trail · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<h1>🧾 Audit Trail</h1>
+<div class="sub">Append-only, hash-chained event log (ISO A.8.15/A.8.16 · NIST AU-2..AU-11 · OWASP A09).</div>
+
+<div class="actions">
+  <a class="btn success" href="{{ url_for('audit.export', fmt='json') }}">⬇ JSON</a>
+  <a class="btn success" href="{{ url_for('audit.export', fmt='csv') }}">⬇ CSV</a>
+  <a class="btn success" href="{{ url_for('audit.export', fmt='xml') }}">⬇ XML pack</a>
+  <a class="btn ghost" href="{{ url_for('audit.stats') }}">📈 Event stats</a>
+  <a class="btn ghost" href="{{ url_for('main.verify_chain') }}">🔍 Verify chain</a>
+  <span class="muted small" style="margin-left:auto;align-self:center">{{ total }} events</span>
+</div>
+
+<form method="get" class="actions">
+  <select name="action" onchange="this.form.submit()">
+    <option value="">All actions</option>
+    {% for a in actions %}
+    <option value="{{ a }}" {{ 'selected' if a==active }}>{{ a }}</option>
+    {% endfor %}
+  </select>
+  {% if active %}<a class="btn ghost" href="{{ url_for('audit.index') }}">Clear filter</a>{% endif %}
+</form>
+
+{% if events %}
+<div class="tblwrap"><table>
+  <tr><th>#</th><th>When</th><th>Actor</th><th>Action</th><th>Subject</th><th>Severity</th><th>Chain hash</th></tr>
+  {% for e in events %}
+  <tr>
+    <td class="muted">{{ e['id'] }}</td>
+    <td class="small">{{ e['ts'] }}</td>
+    <td>{{ e['actor_id'] }} <span class="tag tag-gray">{{ e['actor_role'] }}</span></td>
+    <td><span class="tag tag-{{ 'cyan' if e['action'] in ('LOGIN','CASE_CREATE','EVIDENCE_CREATE','ARTIFACT_CREATE','CUSTODY_EVENT') else 'green' if e['action'] in ('REPORT_ORDERED','REPORT_DOWNLOADED') else 'violet' if e['action'] in ('AUDIT_EXPORT','COMPLIANCE_VIEW') else 'amber' if e['action'] in ('BOOTSTRAP','SETTINGS_UPDATE') else 'red' if e['severity'] in ('critical','high') else 'gray' }}">{{ e['action'] }}</span></td>
+    <td class="small">{{ e['subject_type'] }} <code>{{ e['subject_id'] or '' }}</code></td>
+    <td class="small" style="color:{{ 'var(--red)' if e['severity'] in ('critical','high') else 'var(--muted)' }}">{{ e['severity'] }}</td>
+    <td class="hash-cell"><code title="{{ e['hash'] }}">{{ e['hash'][:14] }}…</code></td>
+  </tr>
+  {% endfor %}
+</table></div>
+
+{% if total > per %}
+<div class="actions" style="margin-top:14px">
+  {% if page > 1 %}<a class="btn ghost" href="{{ url_for('audit.index', page=page-1, action=active) }}">← Prev</a>{% endif %}
+  <span class="muted small">page {{ page }}</span>
+  {% if page * per < total %}<a class="btn ghost" href="{{ url_for('audit.index', page=page+1, action=active) }}">Next →</a>{% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="card"><div class="empty">No audit events yet.</div></div>
+{% endif %}
+{% endblock %}

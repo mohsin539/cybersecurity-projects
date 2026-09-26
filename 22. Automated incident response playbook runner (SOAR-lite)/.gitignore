@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/*.db
+data/secrets.key
+data/evidence/
+data/uploads/
+.pytest_cache/
+*.log
+htmlcov/
+.coverage
+dist/
+build/
+.idea/
+.vscode/
+*.egg-info/

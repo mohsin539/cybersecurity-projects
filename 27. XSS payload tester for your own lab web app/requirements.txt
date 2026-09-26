@@ -1,0 +1,3 @@
+# Runtime: Python 3.12 standard library only (no external runtime deps).
+# Build (dev-time) dependency:
+pyinstaller>=6.0,<7

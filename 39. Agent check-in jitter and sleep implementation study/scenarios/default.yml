@@ -1,0 +1,16 @@
+agents: 1000
+interval_sec: 60
+jitter_pct: 25
+jitter_type: uniform
+sleep_mode: random
+sleep_base_sec: 45
+run_length_sec: 600
+replicas: 5
+seed: 42
+engine: exact
+server_workers: 20
+server_service_ms: 5
+server_queue_cap: 1000
+power_active_ma: 35
+power_sleep_ua: 900
+compare_baseline: true

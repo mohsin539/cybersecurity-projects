@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.venv_build/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# .NET / C#
+bin/
+obj/
+
+# Node
+node_modules/
+
+# Built / packaged output
+dist/
+build/
+*.apk
+*.exe
+*.dll
+*.zip
+*.pak
+*.pyd
+*.node
+*.spec.bak
+
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+local.properties
+
+# Runtime data & logs
+data/
+logs/
+*.log
+*.jsonl
+*.db
+*.sqlite
+*.sqlite3
+*.out
+*.tmp
+.aegislb_cache.json
+
+# Secrets - never commit
+*.env
+!example.env
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+
+# IDE / OS
+.idea/
+.vscode/
+*.suo
+*.user
+*.swp
+Thumbs.db
+.DS_Store
+desktop.ini

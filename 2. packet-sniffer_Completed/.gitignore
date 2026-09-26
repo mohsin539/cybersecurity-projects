@@ -1,0 +1,15 @@
+# build artifacts
+build/
+dist/
+__pycache__/
+*.pyc
+*.spec.bak
+
+# runtime artifacts
+*.db
+*.pcap
+exports/
+
+# OS junk
+Thumbs.db
+.DS_Store

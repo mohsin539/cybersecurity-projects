@@ -1,0 +1,24 @@
+# Build
+.gradle/
+**/build/
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Runtime / local artifacts
+dist/
+*.log
+hs_err_pid*
+
+# Operator workspace (never commit real tokens/secrets)
+.burptester/
+
+# OS
+Thumbs.db
+.DS_Store

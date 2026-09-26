@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>📡 Network Traffic Monitor — Architecture</title>
+<style>
+  :root{
+    --bg:#0b1026; --panel:rgba(255,255,255,.045); --line:rgba(255,255,255,.09);
+    --txt:#eaf0ff; --muted:#8b96b8;
+    --c1:#22d3ee; --c2:#a78bfa; --c3:#fb7185; --c4:#fbbf24; --c5:#34d399;
+    --c6:#60a5fa; --grad:linear-gradient(135deg,var(--c1),var(--c2),var(--c3));
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:
+    radial-gradient(1200px 600px at 80% -10%,#1e1b4b55,transparent 60%),
+    radial-gradient(900px 500px at 0% 110%,#164e63aa,transparent 55%),
+    var(--bg);color:var(--txt);overflow-x:hidden}
+  ::selection{background:var(--c2);color:#fff}
+  .wrap{max-width:1180px;margin:0 auto;padding:38px 26px 80px}
+  header{display:flex;align-items:center;gap:18px;margin-bottom:8px;flex-wrap:wrap}
+  .logo{width:58px;height:58px;border-radius:16px;background:var(--grad);
+    display:grid;place-items:center;font-size:30px;box-shadow:0 10px 30px #a78bfa55}
+  h1{font-size:34px;font-weight:800;background:var(--grad);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);margin-top:2px;font-size:14.5px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:14px;margin:26px 0}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:16px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;
+    background:var(--k,var(--c1))}
+  .kpi b{display:block;font-size:12px;color:var(--muted);font-weight:600;
+    letter-spacing:.6px;text-transform:uppercase}
+  .kpi span{font-size:24px;font-weight:800;margin-top:6px;display:block}
+  .kpi small{color:var(--muted)}
+  section{margin-top:38px}
+  h2{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;
+    margin-bottom:16px}
+  h2 .dot{width:10px;height:10px;border-radius:50%;background:var(--grad)}
+  .grid{display:grid;gap:16px}
+  .cols2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    padding:22px;backdrop-filter:blur(6px)}
+  .card h3{font-size:15px;margin-bottom:12px;color:var(--c1)}
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .node{flex:1 1 150px;border:1px solid var(--line);border-radius:14px;
+    padding:12px;background:#00000033;position:relative;text-align:center}
+  .node em{display:block;font-style:normal;font-weight:700;font-size:15px}
+  .node small{color:var(--muted);font-size:11.5px;line-height:1.45;display:block;margin-top:4px}
+  .node i{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;
+    margin:0 auto 8px;font-style:normal;font-size:17px}
+  .arrow{display:grid;place-items:center;color:var(--c1);font-weight:900;font-size:20px}
+  .lvl{display:inline-flex;align-items:center;gap:8px;padding:3px 12px;border-radius:99px;
+    border:1px solid var(--line);background:#00000033;font-size:12px;font-weight:700;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
+  td code{background:#00000044;padding:2px 8px;border-radius:6px;color:var(--c1);
+    border:1px solid var(--line)}
+  .tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11.5px;
+    font-weight:700;background:var(--c,var(--c2));color:#0b1026}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .legend span{font-size:12px;color:var(--muted)}
+  .legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+  footer{margin-top:56px;text-align:center;color:var(--muted);font-size:13px}
+  .pulse{animation:p 2.4s infinite}
+  @keyframes p{0%,100%{box-shadow:0 0 0 0 #22d3ee66}50%{box-shadow:0 0 0 12px #22d3ee00}}
+  .num{font-variant-numeric:tabular-nums}
+  @media(max-width:720px){h1{font-size:26px}.node{flex:1 1 100%}.arrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo pulse">📡</div>
+    <div>
+      <h1>Network Traffic Monitor</h1>
+      <div class="sub">On-device · per-app bandwidth · real-time web dashboard</div>
+    </div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi" style="--k:var(--c1)"><b>Platform</b><span>Windows</span><small>10 / 11</small></div>
+    <div class="kpi" style="--k:var(--c2)"><b>Runtime</b><span>Node ≥ 18</span><small>zero-dependency</small></div>
+    <div class="kpi" style="--k:var(--c3)"><b>Granularity</b><span>Per-Process</span><small>PID→app</small></div>
+    <div class="kpi" style="--k:var(--c4)"><b>Sample Rate</b><span>~2 s</span><small>ring buffer 10 min</small></div>
+    <div class="kpi" style="--k:var(--c5)"><b>Privacy</b><span>100% Local</span><small>localhost only</small></div>
+  </div>
+
+  <section>
+    <h2><span class="dot"></span>System Context — C4 Level 1</h2>
+    <div class="card">
+      <div class="flow">
+        <div class="node"><i style="background:#c026d355">👤</i><em>Operator</em><small>browser at 127.0.0.1:8070</small></div>
+        <div class="arrow">→</div>
+        <div class="node"><i style="background:#2563eb55">🧭</i><em>Web Dashboard</em><small>public/ static bundle</small></div>
+        <div class="arrow">→</div>
+        <div class="node"><i style="background:#16a34a55">⚙️</i><em>API Layer</em><small>REST /api/* + static serving</small></div>
+        <div class="arrow">→</div>
+        <div class="node"><i style="background:#f59e0b55">🧠</i><em>Core Engine</em><small>aggregation · attribution · ring buffer</small></div>
+        <div class="arrow">→</div>
+        <div class="node"><i style="background:#7c3aed55">🔌</i><em>Windows OS</em><small>netstat-aware cmdlets</small></div>
+      </div>
+      <div class="legend" style="margin-top:16px">
+        <span><b style="background:var(--c1)"></b>loopback only</span>
+        <span><b style="background:var(--c2)"></b>data at rest = memory</span>
+        <span><b style="background:var(--c3)"></b>no cloud egress</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>Component Decomposition — C4 Level 2</h2>
+    <div class="grid cols2">
+      <div class="card">
+        <h3>🔌 Collector Worker <span class="lvl">collector.ps1</span></h3>
+        <table>
+          <tr><th>Step</th><th>Cmdlet</th><th>Data</th></tr>
+          <tr><td>1</td><td><code>Get-NetTCPConnection</code></td><td>PID · endpoints</td></tr>
+          <tr><td>2</td><td><code>Get-NetUDPEndpoint</code></td><td>PID · ports</td></tr>
+          <tr><td>3</td><td><code>Get-NetAdapterStatistics</code></td><td>Δbytes → bps</td></tr>
+          <tr><td>4</td><td><code>Get-Process</code></td><td>name map</td></tr>
+          <tr><td>5</td><td>stdout</td><td>JSON snapshot</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>🧠 Core Engine <span class="lvl">server.js</span></h3>
+        <table>
+          <tr><th>Task</th><th>Detail</th></tr>
+          <tr><td>Scheduler</td><td>spawn worker every <b>2 s</b></td></tr>
+          <tr><td>Attribution</td><td>link bps × connection-weight share</td></tr>
+          <tr><td>Classify</td><td>browser/streaming/gaming/system/other</td></tr>
+          <tr><td>Ring buffer</td><td>300 samples ≈ 10 min</td></tr>
+          <tr><td>Fallback</td><td>simulation mode when idle</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="grid cols2" style="margin-top:16px">
+      <div class="card">
+        <h3>🧭 API Surface <span class="lvl">REST</span></h3>
+        <table>
+          <tr><th>Route</th><th>Description</th></tr>
+          <tr><td><code>/api/health</code></td><td>uptime · mode · samples</td></tr>
+          <tr><td><code>/api/stats</code></td><td>live total + per-app rates</td></tr>
+          <tr><td><code>/api/history</code></td><td>time-series rx / tx arrays</td></tr>
+          <tr><td><code>/api/apps</code></td><td>aggregated app leaders</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>🧭 Web Dashboard <span class="lvl">public/</span></h3>
+        <table>
+          <tr><th>Asset</th><th>Role</th></tr>
+          <tr><td><code>index.html</code></td><td>dashboard shell</td></tr>
+          <tr><td><code>style.css</code></td><td>dark glass theme</td></tr>
+          <tr><td><code>app.js</code></td><td>poll · render · animate</td></tr>
+          <tr><td>Canvas</td><td>area charts + bars</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>Data Flow — Attribution Pipeline</h2>
+    <div class="card">
+      <div class="flow">
+        <div class="node" style="flex:1 1 120px"><i style="background:#0891b255">📊</i><em>Sample Adapters</em><small>Δbytes / Δt</small></div>
+        <div class="arrow">→</div>
+        <div class="node" style="flex:1 1 120px"><i style="background:#0ea5e955">🔗</i><em>Connection Snapshot</em><small>TCP·UDP w/ PID</small></div>
+        <div class="arrow">→</div>
+        <div class="node" style="flex:1 1 120px"><i style="background:#4f46e555">⚖️</i><em>Weight &amp; Distribute</em><small>TCP=1.0 · UDP=0.35</small></div>
+        <div class="arrow">→</div>
+        <div class="node" style="flex:1 1 120px"><i style="background:#9333ea55">🏷️</i><em>Resolve Apps</em><small>PID→name→color</small></div>
+        <div class="arrow">→</div>
+        <div class="node" style="flex:1 1 120px"><i style="background:#db277755">💾</i><em>Ring Buffer</em><small>history sample</small></div>
+      </div>
+      <p style="color:var(--muted);font-size:13px;margin-top:16px;line-height:1.7">
+        Windows exposes <b style="color:var(--c1)">per-interface</b> byte totals but no public
+        <b style="color:var(--c2)">per-process</b> byte counters — so per-app rates are derived by
+        weighting each process's live connections against measured link throughput. Pure PowerShell,
+        no admin rights, no drivers.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>Security Posture</h2>
+    <div class="grid cols2">
+      <div class="card">
+        <h3>✅ Applied Controls</h3>
+        <table>
+          <tr><td>Bind</td><td><code>127.0.0.1:8070</code> only</td></tr>
+          <tr><td>Privilege</td><td>standard user · no elevation</td></tr>
+          <tr><td>Egress</td><td>none — fully local</td></tr>
+          <tr><td>Validation</td><td>numbers clamped · keys whitelisted</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>⚠️ Threat Model Highlights</h3>
+        <table>
+          <tr><td>🛡 <b>Local attacker</b></td><td>read-only telemetry ≈ low risk</td></tr>
+          <tr><td>🌐 <b>Network attacker</b></td><td>blocked by loopback bind</td></tr>
+          <tr><td>🧾 <b>Data privacy</b></td><td>no PII leaves device</td></tr>
+          <tr><td>📄 <b>Full model</b></td><td><code>security.md</code></td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot"></span>Deployment &amp; Run</h2>
+    <div class="card">
+      <div class="flow">
+        <div class="node" style="flex:1 1 160px"><i style="background:#05966955">🟢</i><em>Start</em><small><code>node server/server.js</code></small></div>
+        <div class="arrow">→</div>
+        <div class="node" style="flex:1 1 160px"><i style="background:#0284c755">🌐</i><em>Open</em><small><code>http://127.0.0.1:8070</code></small></div>
+        <div class="arrow">→</div>
+        <div class="node" style="flex:1 1 160px"><i style="background:#d9770655">📈</i><em>Watch</em><small>live per-app bandwidth</small></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <span class="tag" style="--c:var(--c1)">Zero deps</span>
+        <span class="tag" style="--c:var(--c2)">No install</span>
+        <span class="tag" style="--c:var(--c3)">On-device only</span>
+        <span class="tag" style="--c:var(--c4)">Real-time</span>
+        <span class="tag" style="--c:var(--c5)">Color-coded</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>Network Traffic Monitor · on-device · per-app bandwidth · <span class="num">v1.0</span></footer>
+</div>
+</body>
+</html>

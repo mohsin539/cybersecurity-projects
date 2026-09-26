@@ -1,0 +1,1 @@
+"""Threat-intel aggregator — Project 16 core package."""

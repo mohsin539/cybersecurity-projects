@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Runtime data (mutable state - see memory.md)
+data/
+*.log
+logs/
+
+# Environment & secrets (ISO 27001 A.5.9 / A.8.12)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

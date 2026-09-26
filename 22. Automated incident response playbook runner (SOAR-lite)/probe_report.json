@@ -1,0 +1,119 @@
+{
+  "modules": {
+    "app.core.rate_limit": {
+      "SIGNATURE": "str=soarlite-ratelimit-v1",
+      "annotations": "_Feature",
+      "check_rate_limit": "fn(key: 'str', max_events: 'int', window_seconds: 'int') -> 'tuple[bool, int, int]'",
+      "defaultdict": "class",
+      "deque": "class",
+      "threading": "module",
+      "time": "module"
+    },
+    "app.core.ssrf": {
+      "FORBIDDEN_NETWORKS": "list=['0.0.0.0/8', '10.0.0.0/8', '100.64.0.0/10', '127.0.0.0/8', '169.254.0.0/16', '172.16.0.0/",
+      "annotations": "_Feature",
+      "assert_egress_allowed": "fn(url: 'str', allowlist_csv: 'str | None' = None) -> 'str'",
+      "ipaddress": "module",
+      "resolve_host": "fn(host: 'str') -> 'str'",
+      "socket": "module",
+      "urlparse": "fn(url, scheme='', allow_fragments=True)",
+      "validate_connector_url": "fn(base_url: 'str', requested_path: 'str' = '', allowlist_csv: 'str | None' = None) -> 'str'"
+    },
+    "app.services.playbook_validator": {
+      "ALLOWED_STEP_TYPES": "set={'evidence', 'remediation', 'notification', 'containment', 'approval', 'decision', 'enrich",
+      "ExprError": "class",
+      "PlaybookValidationError": "class",
+      "REQUIRED_STEP_FIELDS": "tuple=('id', 'type')",
+      "annotations": "_Feature",
+      "digest_playbook": "fn(doc: 'dict') -> 'str'",
+      "normalize_document": "fn(doc: 'dict') -> 'dict'",
+      "parse_playbook_document": "fn(text: 'str') -> 'dict'",
+      "validate_expr": "fn(expr: 'str') -> 'None'",
+      "validate_playbook_document": "fn(doc: 'dict') -> 'dict'",
+      "yaml": "module"
+    },
+    "app.services.expressions": {
+      "Any": "_AnyMeta",
+      "ExprError": "class",
+      "Token": "class",
+      "annotations": "_Feature",
+      "dataclass": "fn(cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)",
+      "eval_expr": "fn(expr: 'str', context: 'dict | None' = None) -> 'Any'",
+      "validate_expr": "fn(expr: 'str') -> 'None'"
+    }
+  },
+  "errors": [
+    {
+      "module": "app.config",
+      "error": "ModuleNotFoundError: No module named 'pydantic_settings'"
+    },
+    {
+      "module": "app.db.base",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "module": "app.db.models",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "module": "app.main",
+      "error": "ModuleNotFoundError: No module named 'pydantic_settings'"
+    },
+    {
+      "module": "app.core.security",
+      "error": "ModuleNotFoundError: No module named 'bcrypt'"
+    },
+    {
+      "module": "app.core.audit",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "module": "app.core.cipher",
+      "error": "ModuleNotFoundError: No module named 'pydantic_settings'"
+    },
+    {
+      "module": "app.core.logging_setup",
+      "error": "ModuleNotFoundError: No module named 'pydantic_settings'"
+    },
+    {
+      "module": "app.core.http_middleware",
+      "error": "ModuleNotFoundError: No module named 'pydantic_settings'"
+    },
+    {
+      "module": "app.core.redact",
+      "error": "ModuleNotFoundError: No module named 'pydantic_settings'"
+    },
+    {
+      "module": "app.services.ingestion",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "module": "app.services.cases",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "module": "app.services.connector_runtime",
+      "error": "ModuleNotFoundError: No module named 'httpx'"
+    },
+    {
+      "module": "app.services.worker",
+      "error": "ModuleNotFoundError: No module named 'app.services.worker'"
+    },
+    {
+      "module": "app.routers.auth",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "module": "app.routers.api",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "module": "app.routers.web",
+      "error": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    },
+    {
+      "db_probe": "ModuleNotFoundError: No module named 'sqlalchemy'"
+    }
+  ],
+  "db_tables": []
+}

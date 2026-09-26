@@ -1,0 +1,490 @@
+{
+  "project": "Traffic Obfuscation Techniques Demo",
+  "version": "1.0.0",
+  "generated_at": "2026-09-20T10:08:07Z",
+  "meta": {
+    "scenarios": [
+      "BENIGN_CDN",
+      "DOMAIN_FRONT",
+      "H2_SPOOF",
+      "HTTPS_TUNNEL",
+      "NORMAL",
+      "SNI_SPOOF"
+    ],
+    "typical_score": {
+      "NORMAL": 0,
+      "DOMAIN_FRONT": 76,
+      "SNI_SPOOF": 60,
+      "HTTPS_TUNNEL": 0,
+      "H2_SPOOF": 34,
+      "BENIGN_CDN": 0
+    }
+  },
+  "framework_stats": {
+    "OWASP Top 10 (2021)": {
+      "total": 10,
+      "relevant": 10,
+      "adopt": 8,
+      "review": 0,
+      "monitoring": 2
+    },
+    "NIST CSF 2.0": {
+      "total": 6,
+      "relevant": 6,
+      "adopt": 1,
+      "review": 4,
+      "monitoring": 1
+    },
+    "ISO/IEC 27001:2022": {
+      "total": 8,
+      "relevant": 7,
+      "adopt": 4,
+      "review": 2,
+      "monitoring": 2
+    }
+  },
+  "flows": [
+    {
+      "record_id": "rec-0001",
+      "scenario": "NORMAL",
+      "sni": "www.cloudflare.com",
+      "host_header": "www.cloudflare.com",
+      "dest_ip": "104.16.44.34",
+      "cdn_owner": "cloudflare",
+      "score": 0,
+      "label": "benign",
+      "findings": 0
+    },
+    {
+      "record_id": "rec-0002",
+      "scenario": "DOMAIN_FRONT",
+      "sni": "cdn.example-edge.com",
+      "host_header": "api.evil.example",
+      "dest_ip": "172.64.128.1",
+      "cdn_owner": "cloudflare",
+      "score": 76,
+      "label": "fronted",
+      "findings": 4
+    },
+    {
+      "record_id": "rec-0003",
+      "scenario": "SNI_SPOOF",
+      "sni": "www.cloudflare.com",
+      "host_header": "bgp-relay.internal.example",
+      "dest_ip": "104.16.44.34",
+      "cdn_owner": "cloudflare",
+      "score": 60,
+      "label": "suspicious",
+      "findings": 3
+    },
+    {
+      "record_id": "rec-0004",
+      "scenario": "HTTPS_TUNNEL",
+      "sni": "cdn.example-edge.com",
+      "host_header": "cdn.example-edge.com",
+      "dest_ip": "172.64.128.1",
+      "cdn_owner": "cloudflare",
+      "score": 0,
+      "label": "benign",
+      "findings": 0
+    },
+    {
+      "record_id": "rec-0005",
+      "scenario": "H2_SPOOF",
+      "sni": "www.fastly.com",
+      "host_header": "www.fastly.com",
+      "dest_ip": "151.101.0.137",
+      "cdn_owner": "fastly",
+      "score": 34,
+      "label": "benign",
+      "findings": 2
+    },
+    {
+      "record_id": "rec-0006",
+      "scenario": "BENIGN_CDN",
+      "sni": "cdn.medium.example",
+      "host_header": "cdn.medium.example",
+      "dest_ip": "13.32.0.1",
+      "cdn_owner": "amazon",
+      "score": 0,
+      "label": "benign",
+      "findings": 0
+    },
+    {
+      "record_id": "rec-0007",
+      "scenario": "NORMAL",
+      "sni": "assets.fastlycdn.example",
+      "host_header": "assets.fastlycdn.example",
+      "dest_ip": "199.232.0.1",
+      "cdn_owner": "fastly",
+      "score": 0,
+      "label": "benign",
+      "findings": 0
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "rec-0002-F01",
+      "title": "SNI / Host header inconsistency",
+      "description": "The TLS Server Name Indication advertises a different domain than the HTTP Host header. This is the textbook fingerprint of domain fronting, where the SNI selects a CDN 'front' domain and the Host header steers the proxied request to the hidden backend.",
+      "severity": "high",
+      "evidence": "SNI='cdn.example-edge.com' Host='api.evil.example' destIP=172.64.128.1 CDN=cloudflare",
+      "check": "sni_host_mismatch",
+      "refs": [
+        "OWASP-04",
+        "NIST:C",
+        "ISO:A8.28"
+      ],
+      "record_id": "rec-0002"
+    },
+    {
+      "finding_id": "rec-0002-F03",
+      "title": "CDN fronting pattern detected",
+      "description": "Destination IP belongs to cloudflare anycast ranges while SNI front and Host backend diverge - consistent with TLS-hosting CDN domain fronting.",
+      "severity": "high",
+      "evidence": "destIP=172.64.128.1 CDN=cloudflare front='cdn.example-edge.com' origin='api.evil.example'",
+      "check": "cdn_fronting_signature",
+      "refs": [
+        "OWASP-04",
+        "NIST:P",
+        "ISO:A8.28"
+      ],
+      "record_id": "rec-0002"
+    },
+    {
+      "finding_id": "rec-0002-F04",
+      "title": "Low / stable TTL across flows",
+      "description": "A sub-52 hop TTL combined with low latency variance can indicate foreign encapsulation or a tunnelled flow wrapping the obfuscated channel.",
+      "severity": "low",
+      "evidence": "TTL=52 dst=172.64.128.1",
+      "check": "ttl_anomaly",
+      "refs": [
+        "OWASP-09",
+        "NIST:D",
+        "ISO:A8.16"
+      ],
+      "record_id": "rec-0002"
+    },
+    {
+      "finding_id": "rec-0002-F05",
+      "title": "Custom TLS stack heuristics",
+      "description": "The ClientHello advertises client-specific extensions (psk/padding/settings) that diverge from mainstream browsees - useful for JA4-style fingerprint correlation across sessions.",
+      "severity": "medium",
+      "evidence": "extensions=['sni', 'alpn', 'supported_versions', 'sig_algs', 'key_share', 'psk'] JA4\u2248t13d7fa7eae",
+      "check": "extension_set",
+      "refs": [
+        "OWASP-09",
+        "NIST:D",
+        "ISO:A8.16"
+      ],
+      "record_id": "rec-0002"
+    },
+    {
+      "finding_id": "rec-0003-F01",
+      "title": "SNI / Host header inconsistency",
+      "description": "The TLS Server Name Indication advertises a different domain than the HTTP Host header. This is the textbook fingerprint of domain fronting, where the SNI selects a CDN 'front' domain and the Host header steers the proxied request to the hidden backend.",
+      "severity": "high",
+      "evidence": "SNI='www.cloudflare.com' Host='bgp-relay.internal.example' destIP=104.16.44.34 CDN=cloudflare",
+      "check": "sni_host_mismatch",
+      "refs": [
+        "OWASP-04",
+        "NIST:C",
+        "ISO:A8.28"
+      ],
+      "record_id": "rec-0003"
+    },
+    {
+      "finding_id": "rec-0003-F03",
+      "title": "CDN fronting pattern detected",
+      "description": "Destination IP belongs to cloudflare anycast ranges while SNI front and Host backend diverge - consistent with TLS-hosting CDN domain fronting.",
+      "severity": "high",
+      "evidence": "destIP=104.16.44.34 CDN=cloudflare front='www.cloudflare.com' origin='bgp-relay.internal.example'",
+      "check": "cdn_fronting_signature",
+      "refs": [
+        "OWASP-04",
+        "NIST:P",
+        "ISO:A8.28"
+      ],
+      "record_id": "rec-0003"
+    },
+    {
+      "finding_id": "rec-0003-F04",
+      "title": "Low / stable TTL across flows",
+      "description": "A sub-52 hop TTL combined with low latency variance can indicate foreign encapsulation or a tunnelled flow wrapping the obfuscated channel.",
+      "severity": "low",
+      "evidence": "TTL=51 dst=104.16.44.34",
+      "check": "ttl_anomaly",
+      "refs": [
+        "OWASP-09",
+        "NIST:D",
+        "ISO:A8.16"
+      ],
+      "record_id": "rec-0003"
+    },
+    {
+      "finding_id": "rec-0005-F02",
+      "title": "HTTP/2 :authority pseudo-header spoofing",
+      "description": "The HTTP/2 :authority field diverges from the TLS SNI. In hardened fronted setups the :scheme / :authority pair is used after the CONNECT tunnel to mount an origin request.",
+      "severity": "high",
+      "evidence": "SNI='www.fastly.com' :authority='py-sessions.internal.example' :host='www.fastly.com'",
+      "check": "http2_authority_spoof",
+      "refs": [
+        "OWASP-08",
+        "NIST:D",
+        "ISO:A8.16"
+      ],
+      "record_id": "rec-0005"
+    },
+    {
+      "finding_id": "rec-0005-F04",
+      "title": "Low / stable TTL across flows",
+      "description": "A sub-52 hop TTL combined with low latency variance can indicate foreign encapsulation or a tunnelled flow wrapping the obfuscated channel.",
+      "severity": "low",
+      "evidence": "TTL=49 dst=151.101.0.137",
+      "check": "ttl_anomaly",
+      "refs": [
+        "OWASP-09",
+        "NIST:D",
+        "ISO:A8.16"
+      ],
+      "record_id": "rec-0005"
+    }
+  ],
+  "records": [
+    {
+      "record_id": "rec-0001",
+      "scenario": "NORMAL",
+      "client_ip": "203.0.113.10",
+      "src_port": 51234,
+      "dest_ip": "104.16.44.34",
+      "dest_port": 443,
+      "sni": "www.cloudflare.com",
+      "host_header": "www.cloudflare.com",
+      "http2_authority": "www.cloudflare.com",
+      "js_ver": "t13d2721af4",
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "cipher_suites": [
+        "1302",
+        "1301",
+        "1303",
+        "c02f"
+      ],
+      "extensions": [
+        "sni",
+        "alpn",
+        "supported_versions",
+        "sig_algs",
+        "key_share"
+      ],
+      "ttl": 56,
+      "asn_org": "Cloudflare_Inc",
+      "cdn_flag": true,
+      "cdn_owner": "cloudflare",
+      "mtu": 1500,
+      "observed_ts": "2026-09-20T08:01:00Z"
+    },
+    {
+      "record_id": "rec-0002",
+      "scenario": "DOMAIN_FRONT",
+      "client_ip": "198.51.100.7",
+      "src_port": 60123,
+      "dest_ip": "172.64.128.1",
+      "dest_port": 443,
+      "sni": "cdn.example-edge.com",
+      "host_header": "api.evil.example",
+      "http2_authority": "api.evil.example",
+      "js_ver": "t13d7fa7eae",
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "cipher_suites": [
+        "1302",
+        "1301",
+        "1303",
+        "c02f",
+        "cca9"
+      ],
+      "extensions": [
+        "sni",
+        "alpn",
+        "supported_versions",
+        "sig_algs",
+        "key_share",
+        "psk"
+      ],
+      "ttl": 52,
+      "asn_org": "Cloudflare_Inc",
+      "cdn_flag": true,
+      "cdn_owner": "cloudflare",
+      "mtu": 1500,
+      "observed_ts": "2026-09-20T08:02:12Z"
+    },
+    {
+      "record_id": "rec-0003",
+      "scenario": "SNI_SPOOF",
+      "client_ip": "198.51.100.7",
+      "src_port": 60124,
+      "dest_ip": "104.16.44.34",
+      "dest_port": 443,
+      "sni": "www.cloudflare.com",
+      "host_header": "bgp-relay.internal.example",
+      "http2_authority": "bgp-relay.internal.example",
+      "js_ver": "t13d692a417",
+      "alpn": [
+        "h2"
+      ],
+      "cipher_suites": [
+        "1302",
+        "1301",
+        "1303"
+      ],
+      "extensions": [
+        "sni",
+        "alpn",
+        "supported_versions",
+        "sig_algs"
+      ],
+      "ttl": 51,
+      "asn_org": "Cloudflare_Inc",
+      "cdn_flag": true,
+      "cdn_owner": "cloudflare",
+      "mtu": 1500,
+      "observed_ts": "2026-09-20T08:02:40Z"
+    },
+    {
+      "record_id": "rec-0004",
+      "scenario": "HTTPS_TUNNEL",
+      "client_ip": "203.0.113.10",
+      "src_port": 53109,
+      "dest_ip": "172.64.128.1",
+      "dest_port": 443,
+      "sni": "cdn.example-edge.com",
+      "host_header": "cdn.example-edge.com",
+      "http2_authority": null,
+      "js_ver": "t13d075a357",
+      "alpn": [
+        "http/1.1"
+      ],
+      "cipher_suites": [
+        "c02f",
+        "c02b",
+        "c013"
+      ],
+      "extensions": [
+        "sni",
+        "supported_versions",
+        "sig_algs"
+      ],
+      "ttl": 54,
+      "asn_org": "Cloudflare_Inc",
+      "cdn_flag": true,
+      "cdn_owner": "cloudflare",
+      "mtu": 1500,
+      "observed_ts": "2026-09-20T08:03:05Z"
+    },
+    {
+      "record_id": "rec-0005",
+      "scenario": "H2_SPOOF",
+      "client_ip": "198.51.100.7",
+      "src_port": 60155,
+      "dest_ip": "151.101.0.137",
+      "dest_port": 443,
+      "sni": "www.fastly.com",
+      "host_header": "www.fastly.com",
+      "http2_authority": "py-sessions.internal.example",
+      "js_ver": "t13d4441741",
+      "alpn": [
+        "h2"
+      ],
+      "cipher_suites": [
+        "1302",
+        "1301",
+        "1303",
+        "c02f"
+      ],
+      "extensions": [
+        "sni",
+        "alpn",
+        "supported_versions",
+        "sig_algs",
+        "settings"
+      ],
+      "ttl": 49,
+      "asn_org": "Fastly_Inc",
+      "cdn_flag": true,
+      "cdn_owner": "fastly",
+      "mtu": 1500,
+      "observed_ts": "2026-09-20T08:03:48Z"
+    },
+    {
+      "record_id": "rec-0006",
+      "scenario": "BENIGN_CDN",
+      "client_ip": "203.0.113.55",
+      "src_port": 49111,
+      "dest_ip": "13.32.0.1",
+      "dest_port": 443,
+      "sni": "cdn.medium.example",
+      "host_header": "cdn.medium.example",
+      "http2_authority": "cdn.medium.example",
+      "js_ver": "t13d392a417",
+      "alpn": [
+        "h2"
+      ],
+      "cipher_suites": [
+        "1302",
+        "1301",
+        "1303"
+      ],
+      "extensions": [
+        "sni",
+        "alpn",
+        "supported_versions",
+        "sig_algs"
+      ],
+      "ttl": 57,
+      "asn_org": "Amazon_CloudFront",
+      "cdn_flag": true,
+      "cdn_owner": "amazon",
+      "mtu": 1500,
+      "observed_ts": "2026-09-20T08:04:20Z"
+    },
+    {
+      "record_id": "rec-0007",
+      "scenario": "NORMAL",
+      "client_ip": "203.0.113.88",
+      "src_port": 50555,
+      "dest_ip": "199.232.0.1",
+      "dest_port": 443,
+      "sni": "assets.fastlycdn.example",
+      "host_header": "assets.fastlycdn.example",
+      "http2_authority": "assets.fastlycdn.example",
+      "js_ver": "t13d4884bdf",
+      "alpn": [
+        "h2",
+        "http/1.1"
+      ],
+      "cipher_suites": [
+        "c02f",
+        "c02b",
+        "009c",
+        "009d"
+      ],
+      "extensions": [
+        "sni",
+        "alpn",
+        "supported_versions",
+        "sig_algs"
+      ],
+      "ttl": 58,
+      "asn_org": "Fastly_Inc",
+      "cdn_flag": true,
+      "cdn_owner": "fastly",
+      "mtu": 1500,
+      "observed_ts": "2026-09-20T08:05:02Z"
+    }
+  ]
+}

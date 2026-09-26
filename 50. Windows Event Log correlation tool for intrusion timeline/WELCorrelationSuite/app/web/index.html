@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>WEL Intrusion Correlation Suite</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo-mark">&#9881;</div>
+    <div>
+      <div class="brand-name">WEL INTRUSION CORRELATION SUITE</div>
+      <div class="brand-sub">Windows Event Log &middot; Attack Timeline &middot; v1.0</div>
+    </div>
+  </div>
+  <div class="brand-right">
+    <span id="serverStatus" class="status online">&#9679; localhost secured</span>
+    <span class="status ghost">case: <b id="caseId">C-&hellip;</b></span>
+    <button id="btnExit" class="btn btn-danger btn-sm">&#9874; Exit tool</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="dashboard">Dashboard</button>
+  <button class="tab" data-tab="timeline">Attack Timeline</button>
+  <button class="tab" data-tab="mitre">MITRE ATT&amp;CK</button>
+  <button class="tab" data-tab="incidents">Incidents</button>
+  <button class="tab" data-tab="events">Events</button>
+  <button class="tab" data-tab="compliance">Compliance</button>
+  <button class="tab" data-tab="reports">Reports &amp; Audit</button>
+</nav>
+
+<main>
+  <!-- DASHBOARD -->
+  <section class="view active" id="view-dashboard">
+    <div class="panel top-actions">
+      <div class="stack">
+        <button id="btnCollect" class="btn btn-cyan">&#8681; Collect live logs</button>
+        <label class="btn btn-mag">&#8623; Import file
+          <input id="fileImport" type="file" accept=".evtx,.csv,.json,.txt" hidden>
+        </label>
+        <button id="btnAnalyze" class="btn btn-green">&#9878; Run correlation</button>
+        <button id="btnReset" class="btn btn-ghost">New case</button>
+      </div>
+      <div id="sourceInfo" class="source-info">No data loaded yet.</div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="label">Events ingested</div><div class="value" id="kEvents">0</div></div>
+      <div class="card"><div class="label">Incidents flagged</div><div class="value" id="kIncidents">0</div></div>
+      <div class="card"><div class="label">Attack phases</div><div class="value" id="kPhases">0</div></div>
+      <div class="card"><div class="label">Campaign clusters</div><div class="value" id="kCampaigns">0</div></div>
+      <div class="card"><div class="label">Peak severity</div><div class="value" id="kSeverity">0</div></div>
+      <div class="card"><div class="label">Surge windows</div><div class="value" id="kSpikes">0</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-title">Overall Risk Posture</div>
+        <div class="gauge-wrap">
+          <svg id="svgRisk" width="140" height="140" viewBox="0 0 140 140"></svg>
+          <div>
+            <div class="risk-read" id="riskVal">0 / 100</div>
+            <div class="risk-label" id="riskLabel">none</div>
+            <div class="meter"><div id="riskBar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Kill-Chain Phases Observed</div>
+        <div class="phaseband" id="phaseBand"><div class="dim">Run analysis to populate.</div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-title">Campaign Clusters</div>
+        <div id="campaignList" class="dim">No clusters yet.</div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Activity Surges (anomaly)</div>
+        <canvas id="spikeChart" height="150"></canvas>
+        <div class="dim" id="spikeNote" style="font-size:11px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section class="view" id="view-timeline">
+    <div class="panel">
+      <div class="panel-title">Chronological Intrusion Timeline</div>
+      <div id="phaseFilters" class="filterbar"></div>
+      <div id="timelineList" class="timeline"><div class="dim">Run correlation analysis first.</div></div>
+    </div>
+  </section>
+
+  <!-- MITRE -->
+  <section class="view" id="view-mitre">
+    <div class="panel">
+      <div class="panel-title">MITRE ATT&amp;CK Detection Heat Map</div>
+      <div id="mitreGrid" class="mitre-grid"><div class="dim">Run analysis to populate.</div></div>
+    </div>
+  </section>
+
+  <!-- INCIDENTS -->
+  <section class="view" id="view-incidents">
+    <div class="panel">
+      <div class="panel-title"><span>Correlated Incidents</span>
+        <input id="incSearch" class="search" placeholder="filter by rule, host, ip, user..."></div>
+      <div class="table-wrap"><table id="incidentTable" class="grid-table">
+        <thead><tr><th>Time</th><th>Rule</th><th>Phase</th><th>Host</th><th>Source IP</th><th>Account</th><th>Detail</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section class="view" id="view-events">
+    <div class="panel">
+      <div class="panel-title"><span>Ingested Events</span>
+        <input id="evtSearch" class="search" placeholder="filter by message, id, channel..."></div>
+      <div class="table-wrap"><table id="eventTable" class="grid-table">
+        <thead><tr><th>Time</th><th>ID</th><th>Channel</th><th>Provider</th><th>Host</th><th>Message</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <div class="pager"><button id="evPrev" class="btn btn-ghost btn-sm">&#9664; prev</button>
+        <span id="evPageInfo" class="dim">0 of 0</span>
+        <button id="evNext" class="btn btn-ghost btn-sm">next &#9654;</button></div>
+    </div>
+  </section>
+
+  <!-- COMPLIANCE -->
+  <section class="view" id="view-compliance">
+    <div class="panel">
+      <div class="panel-title">Security-Framework Coverage</div>
+      <div id="covCards" class="cards"></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-title">ISO/IEC 27001:2022 Annex A (detection evidence)</div>
+        <div id="isoTable" class="table-wrap"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">NIST CSF 2.0</div>
+        <div id="nistTable" class="table-wrap"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">OWASP Top 10 (2021) &mdash; tool hardening evidence</div>
+      <div id="owaspTable" class="table-wrap"></div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="view" id="view-reports">
+    <div class="panel">
+      <div class="panel-title">Download Reports &amp; Exports</div>
+      <div class="stack">
+        <button id="dlHtml" class="btn btn-cyan btn-lg">&#128196; Executive HTML Report (print/PDF)</button>
+        <button id="dlCsv" class="btn btn-green btn-lg">&#8623; Events CSV</button>
+        <button id="dlTimeline" class="btn btn-mag btn-lg">&#8623; Timeline CSV</button>
+        <button id="dlJson" class="btn btn-amber btn-lg">&#128451; Case JSON (audit + integrity)</button>
+      </div>
+      <div class="integrity" id="integBox">
+        <b>Integrity &amp; evidence</b><br>
+        <span id="integLine" class="mono dim">No artefact generated yet.</span>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-title">Audit Trail (chain-of-custody)</div>
+        <div class="badges">
+          <span id="audChainBadge" class="badge">chain pending</span>
+          <span id="audCount" class="badge"></span>
+        </div>
+        <div class="table-wrap"><table id="auditTable" class="grid-table">
+          <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Detail</th><th>Level</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">How to use (60-second guide)</div>
+        <ol class="guide">
+          <li><b>Collect live</b> &rarr; pulls Security/System/PowerShell logs via <span class="mono">wevtutil</span></li>
+          <li>or <b>Import</b> a forensic <span class="mono">.evtx</span> / Sysmon <span class="mono">.csv</span> / case <span class="mono">.json</span></li>
+          <li><b>Run correlation</b> &rarr; MITRE-mapped rule engine + timeline + risk scoring</li>
+          <li><b>Reports</b> are hashed (SHA-256), audit logged, and ready for print-to-PDF</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="footbar">
+  <span>Local-only service on <b>127.0.0.1</b> &middot; session-token protected &middot; no cloud telemetry &middot;
+  aligns with ISO 27001 / NIST CSF / OWASP Top 10</span>
+  <div id="toast" class="toast"></div>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

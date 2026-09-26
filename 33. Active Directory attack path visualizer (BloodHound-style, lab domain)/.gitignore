@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+frontend/node_modules/
+
+# Build outputs
+backend/static/
+backend/build/
+backend/dist/
+backend/*.spec.bak
+build/
+dist/
+
+# Secrets & local env
+.env
+*.local
+SG_JWT_SECRET*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

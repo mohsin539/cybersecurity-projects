@@ -1,0 +1,1 @@
+"""Web layer — Flask application factory, routes, security wiring."""

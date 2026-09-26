@@ -1,0 +1,18 @@
+# ---- Bandwidth Monitor & Traffic Visualizer ----
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+playwright-report/
+test-results/
+bwmon_history.db
+bwmon_history.db-*
+build/
+dist/
+.env
+*.log
+.DS_Store

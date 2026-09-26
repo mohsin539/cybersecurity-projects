@@ -1,0 +1,28 @@
+{
+  "sha256": "8d9c0b7a6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8",
+  "filename": "docs_premium_scan.docx",
+  "family": "Sednit",
+  "verdict": "suspicious",
+  "av_names": ["Trojan:PDF/Sednit", "Dropper.Sednit"],
+  "yara_rules": ["sednit_doc_dropper", "macro_otf_writer"],
+  "network": {
+    "domains": ["images-static.cloudflare-resolved[.]ru", "go.track-broadcast[.]info"],
+    "ips": ["77.91.124.5"]
+  },
+  "files": [
+    {
+      "path": "C:\\Users\\victim\\Downloads\\docs_premium_scan.docx",
+      "strings": ["autoopen", "microsoft.office.templates", "http beacon", "upu.shell",
+                  "xored", "base64", "document properties"],
+      "imports": ["ShellExecuteW", "URLDownloadToFileA"]
+    }
+  ],
+  "registry": [],
+  "processes": ["winword.exe", "cmd.exe", "powershell.exe"],
+  "strings": ["spearphish", "attachment", ".docm", "powershell -enc",
+              "https://go.track-broadcast[.]info/t", "ipconfig", "systeminfo",
+              "download second payload", "find file"],
+  "behaviors": ["email:attachment", "macro:autoopen", "c2:http", "exec:powershell",
+                "evasion:packed", "discovery:systeminfo", "c2:ingress_tool"],
+  "meta": {"detected_by": "Static + OfficeDeob", "score": 62}
+}

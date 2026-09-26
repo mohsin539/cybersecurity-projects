@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Traffic Obfuscation Techniques Demo — Detection Report</title>
+<style>
+:root{--ink:#251b37;--accent:#6c5ce7;--accent2:#a29bfe;--gold:#fdcb6e;
+--cyan:#74b9ff;--green:#00b894;--red:#e17055;--panel:#ffffff;--bg:#f4f7fb;
+--muted:#6c7a89;--line:#e8eef6;}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:
+linear-gradient(160deg,#f4f7fb 0%,#eef1fb 40%,#fbf6ef 100%);color:var(--ink)}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 20px 80px}
+.hero{background:linear-gradient(120deg,#251b37,#4b3f9e 55%,#6c5ce7);
+color:#fff;border-radius:22px;padding:34px 40px;box-shadow:0 18px 45px rgba(37,27,55,.28);
+position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;right:-70px;top:-70px;width:240px;height:240px;
+border-radius:50%;background:radial-gradient(circle,rgba(253,203,110,.55),transparent 70%)}
+.hero h1{margin:0;font-size:30px;letter-spacing:.4px}
+.hero p{margin:8px 0 0;opacity:.85;font-size:14px}
+.badges{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);
+padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;
+box-shadow:0 6px 18px rgba(37,27,55,.06)}
+.card h3{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.card .big{font-size:30px;font-weight:800;color:var(--accent)}
+.card .sub{font-size:12px;color:var(--muted)}
+h2{margin:34px 0 14px;font-size:19px;color:var(--ink);border-bottom:3px solid var(--line);
+padding-bottom:8px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;
+overflow:hidden;box-shadow:0 6px 18px rgba(37,27,55,.06)}
+th{background:var(--accent);color:#fff;text-align:left;padding:10px 12px;font-size:12.5px}
+td{padding:9px 12px;border-top:1px solid var(--line);font-size:13px;vertical-align:top}
+tr:nth-child(even) td{background:#fafbff}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;color:#fff;font-size:11.5px;
+font-weight:700}
+.pill.critical{background:var(--red)} .pill.high{background:#e17055}
+.pill.medium{background:#f39c12} .pill.low{background:var(--cyan)}
+.pill.info{background:#b2bec3}
+.pill.benign{background:var(--green)} .pill.suspicious{background:#e17055}
+.pill.fronted{background:var(--red)}
+.scorebar{height:8px;border-radius:6px;background:#edf0f6;overflow:hidden;min-width:60px}
+.scorebar i{display:block;height:100%;border-radius:6px}
+.fw{cursor:default}
+.fw .chip{display:inline-block;background:var(--accent2);color:#fff;border-radius:6px;
+padding:2px 8px;font-size:11px;margin:2px;font-weight:700}
+.io{font-size:11px;color:var(--muted)}
+footer{margin-top:40px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>🛰 Traffic Obfuscation Techniques — Detection Report</h1>
+    <p>Domain Fronting Concepts &nbsp;·&nbsp; Network-Focused Analysis &nbsp;·&nbsp;
+       Version 1.0.0 &nbsp;·&nbsp; Generated 2026-09-20T10:08:07Z</p>
+    <div class="badges">
+      <span class="badge">OWASP Top 10 (2021)</span>
+      <span class="badge">NIST CSF 2.0</span>
+      <span class="badge">ISO/IEC 27001:2022</span>
+      <span class="badge">JA4-a-like Fingerprinting</span>
+      <span class="badge">SNI / Host Mismatch</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class='card'><h3>Flows analysed</h3><div class='big'>7</div><div class='sub'>sessions / TLS records</div></div><div class='card'><h3>Fronted detected</h3><div class='big'>1</div><div class='sub'>verdict = fronted</div></div><div class='card'><h3>Suspicious flows</h3><div class='big'>1</div><div class='sub'>verdict = suspicious</div></div><div class='card'><h3>High/Critical findings</h3><div class='big'>5</div><div class='sub'>needs review</div></div>
+  </div>
+
+  <h2>1 · Flow Verdicts (scoring 0–100)</h2>
+  <table>
+    <thead><tr>
+      <th>Record</th><th>Scenario</th><th>SNI (front)</th><th>Host (origin)</th>
+      <th>Dest IP</th><th>CDN</th><th>Score</th><th>Verdict</th><th>Framework refs</th>
+    </tr></thead>
+    <tbody><tr><td>rec-0001</td><td>NORMAL</td><td><code>www.cloudflare.com</code></td><td><code>www.cloudflare.com</code></td><td>104.16.44.34</td><td>cloudflare</td><td><div class='scorebar'><i style='width:0%;background:#00b894'></i></div></td><td><span class='pill green'>benign</span></td><td>—</td></tr><tr><td>rec-0002</td><td>DOMAIN_FRONT</td><td><code>cdn.example-edge.com</code></td><td><code>api.evil.example</code></td><td>172.64.128.1</td><td>cloudflare</td><td><div class='scorebar'><i style='width:76%;background:#f39c12'></i></div></td><td><span class='pill red'>fronted</span></td><td>ISO:A8.16, ISO:A8.28, NIST:C, NIST:D, NIST:P, OWASP-04, OWASP-09</td></tr><tr><td>rec-0003</td><td>SNI_SPOOF</td><td><code>www.cloudflare.com</code></td><td><code>bgp-relay.internal.example</code></td><td>104.16.44.34</td><td>cloudflare</td><td><div class='scorebar'><i style='width:60%;background:#f39c12'></i></div></td><td><span class='pill orange'>suspicious</span></td><td>ISO:A8.16, ISO:A8.28, NIST:C, NIST:D, NIST:P, OWASP-04, OWASP-09</td></tr><tr><td>rec-0004</td><td>HTTPS_TUNNEL</td><td><code>cdn.example-edge.com</code></td><td><code>cdn.example-edge.com</code></td><td>172.64.128.1</td><td>cloudflare</td><td><div class='scorebar'><i style='width:0%;background:#00b894'></i></div></td><td><span class='pill green'>benign</span></td><td>—</td></tr><tr><td>rec-0005</td><td>H2_SPOOF</td><td><code>www.fastly.com</code></td><td><code>www.fastly.com</code></td><td>151.101.0.137</td><td>fastly</td><td><div class='scorebar'><i style='width:34%;background:#00b894'></i></div></td><td><span class='pill green'>benign</span></td><td>ISO:A8.16, NIST:D, OWASP-08, OWASP-09</td></tr><tr><td>rec-0006</td><td>BENIGN_CDN</td><td><code>cdn.medium.example</code></td><td><code>cdn.medium.example</code></td><td>13.32.0.1</td><td>amazon</td><td><div class='scorebar'><i style='width:0%;background:#00b894'></i></div></td><td><span class='pill green'>benign</span></td><td>—</td></tr><tr><td>rec-0007</td><td>NORMAL</td><td><code>assets.fastlycdn.example</code></td><td><code>assets.fastlycdn.example</code></td><td>199.232.0.1</td><td>fastly</td><td><div class='scorebar'><i style='width:0%;background:#00b894'></i></div></td><td><span class='pill green'>benign</span></td><td>—</td></tr></tbody>
+  </table>
+
+  <h2>2 · Detection Findings</h2>
+  <table>
+    <thead><tr>
+      <th>Flow</th><th>Finding</th><th>Severity</th><th>Title</th><th>Evidence</th><th>Mapped controls</th>
+    </tr></thead>
+    <tbody><tr><td>rec</td><td>rec-0002-F01</td><td><span class='pill high'>high</span></td><td>SNI / Host header inconsistency</td><td class='io'>SNI=&#x27;cdn.example-edge.com&#x27; Host=&#x27;api.evil.example&#x27; destIP=172.64.128.1 CDN=cloudflare</td><td><div class='fw'><span class='chip'>OWASP-04</span><span class='chip'>NIST:C</span><span class='chip'>ISO:A8.28</span></div></td></tr><tr><td>rec</td><td>rec-0002-F03</td><td><span class='pill high'>high</span></td><td>CDN fronting pattern detected</td><td class='io'>destIP=172.64.128.1 CDN=cloudflare front=&#x27;cdn.example-edge.com&#x27; origin=&#x27;api.evil.example&#x27;</td><td><div class='fw'><span class='chip'>OWASP-04</span><span class='chip'>NIST:P</span><span class='chip'>ISO:A8.28</span></div></td></tr><tr><td>rec</td><td>rec-0002-F04</td><td><span class='pill low'>low</span></td><td>Low / stable TTL across flows</td><td class='io'>TTL=52 dst=172.64.128.1</td><td><div class='fw'><span class='chip'>OWASP-09</span><span class='chip'>NIST:D</span><span class='chip'>ISO:A8.16</span></div></td></tr><tr><td>rec</td><td>rec-0002-F05</td><td><span class='pill medium'>medium</span></td><td>Custom TLS stack heuristics</td><td class='io'>extensions=[&#x27;sni&#x27;, &#x27;alpn&#x27;, &#x27;supported_versions&#x27;, &#x27;sig_algs&#x27;, &#x27;key_share&#x27;, &#x27;psk&#x27;] JA4≈t13d7fa7eae</td><td><div class='fw'><span class='chip'>OWASP-09</span><span class='chip'>NIST:D</span><span class='chip'>ISO:A8.16</span></div></td></tr><tr><td>rec</td><td>rec-0003-F01</td><td><span class='pill high'>high</span></td><td>SNI / Host header inconsistency</td><td class='io'>SNI=&#x27;www.cloudflare.com&#x27; Host=&#x27;bgp-relay.internal.example&#x27; destIP=104.16.44.34 CDN=cloudflare</td><td><div class='fw'><span class='chip'>OWASP-04</span><span class='chip'>NIST:C</span><span class='chip'>ISO:A8.28</span></div></td></tr><tr><td>rec</td><td>rec-0003-F03</td><td><span class='pill high'>high</span></td><td>CDN fronting pattern detected</td><td class='io'>destIP=104.16.44.34 CDN=cloudflare front=&#x27;www.cloudflare.com&#x27; origin=&#x27;bgp-relay.internal.example&#x27;</td><td><div class='fw'><span class='chip'>OWASP-04</span><span class='chip'>NIST:P</span><span class='chip'>ISO:A8.28</span></div></td></tr><tr><td>rec</td><td>rec-0003-F04</td><td><span class='pill low'>low</span></td><td>Low / stable TTL across flows</td><td class='io'>TTL=51 dst=104.16.44.34</td><td><div class='fw'><span class='chip'>OWASP-09</span><span class='chip'>NIST:D</span><span class='chip'>ISO:A8.16</span></div></td></tr><tr><td>rec</td><td>rec-0005-F02</td><td><span class='pill high'>high</span></td><td>HTTP/2 :authority pseudo-header spoofing</td><td class='io'>SNI=&#x27;www.fastly.com&#x27; :authority=&#x27;py-sessions.internal.example&#x27; :host=&#x27;www.fastly.com&#x27;</td><td><div class='fw'><span class='chip'>OWASP-08</span><span class='chip'>NIST:D</span><span class='chip'>ISO:A8.16</span></div></td></tr><tr><td>rec</td><td>rec-0005-F04</td><td><span class='pill low'>low</span></td><td>Low / stable TTL across flows</td><td class='io'>TTL=49 dst=151.101.0.137</td><td><div class='fw'><span class='chip'>OWASP-09</span><span class='chip'>NIST:D</span><span class='chip'>ISO:A8.16</span></div></td></tr></tbody>
+  </table>
+
+  <h2>3 · Compliance Coverage (controls mapped)</h2>
+  <table>
+    <thead><tr>
+      <th>Framework</th><th>Total</th><th>Relevant</th><th>Adopt</th><th>Review</th>
+      <th>Monitoring</th><th>Coverage</th>
+    </tr></thead>
+    <tbody><tr><td><strong>OWASP Top 10 (2021)</strong></td><td>10</td><td>10</td><td><span class='pill benign'>8</span></td><td><span class='pill medium'>0</span></td><td><span class='pill low'>2</span></td><td><div class='scorebar'><i style='width:100%;background:#6c5ce7'></i></div></td></tr><tr><td><strong>NIST CSF 2.0</strong></td><td>6</td><td>6</td><td><span class='pill benign'>1</span></td><td><span class='pill medium'>4</span></td><td><span class='pill low'>1</span></td><td><div class='scorebar'><i style='width:100%;background:#6c5ce7'></i></div></td></tr><tr><td><strong>ISO/IEC 27001:2022</strong></td><td>8</td><td>7</td><td><span class='pill benign'>4</span></td><td><span class='pill medium'>2</span></td><td><span class='pill low'>2</span></td><td><div class='scorebar'><i style='width:87%;background:#6c5ce7'></i></div></td></tr></tbody>
+  </table>
+
+  <footer>© 2026 Traffic Obfuscation Techniques Demo · educational lab only ·
+  findings are heuristic indicators, not attribution.</footer>
+</div>
+</body>
+</html>

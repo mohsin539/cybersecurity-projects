@@ -1,0 +1,90 @@
+/* SOC Alert Triage Dashboard — stylesheet */
+:root {
+  --bg: #0d1117; --panel: #161b22; --panel2: #1c2333; --text: #e6edf3;
+  --muted: #8b949e; --line: #30363d;
+  --critical: #f85149; --high: #f0883e; --medium: #d29922; --low: #58a6ff; --info: #8b949e;
+  --ok: #3fb950; --err: #f85149;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+}
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.error { color: var(--err); }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 18px; background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.brand { font-weight: 600; }
+.brand .sub { margin-left: 10px; font-size: 12px; color: var(--muted); }
+.banner {
+  flex: 1; text-align: center; padding: 4px 10px; border-radius: 6px;
+  background: #3b2e07; color: #e3b341; border: 1px solid #54460a;
+}
+nav { display: flex; align-items: center; gap: 8px; }
+.who { color: var(--muted); font-size: 12px; margin: 0 8px; }
+
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px 18px; margin: 18px;
+}
+.card.narrow { max-width: 560px; }
+.login-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+.login-grid .btn small { display: block; color: var(--muted); font-size: 11px; }
+
+.btn {
+  background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+  padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: #1f6feb; border-color: #1f6feb; }
+.btn.subtle { background: transparent; }
+.btn.danger { background: #b62324; border-color: #b62324; }
+
+section { margin: 0 18px 18px; }
+h1, h2, h3 { margin: 8px 0; }
+h2 { font-size: 18px; }
+h3 { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+.toolbar { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; flex-wrap: wrap; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  border: 1px solid var(--line); background: transparent; color: var(--text);
+  border-radius: 999px; padding: 3px 12px; font-size: 12px; cursor: pointer;
+}
+.chip.active { background: var(--panel2); border-color: var(--muted); }
+.chip.ok { color: var(--ok); border-color: var(--ok); }
+.chip.err { color: var(--err); border-color: var(--err); }
+
+table.queue, table.factors { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+table.queue th, table.factors th {
+  text-align: left; font-size: 12px; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line);
+}
+table.queue td, table.factors td { padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+table.queue tr.row { cursor: pointer; }
+table.queue tr.row:hover { background: var(--panel2); }
+
+.band { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; text-transform: uppercase; }
+.band.critical { color: var(--critical); }
+.band.high { color: var(--high); }
+.band.medium { color: var(--medium); }
+.band.low { color: var(--low); }
+.band.informational { color: var(--info); }
+
+.score .factors { margin-top: 10px; }
+.dup { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.actions { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0 18px; }
+.cfg-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.cfg-row label:first-child { flex: 1; color: var(--muted); }
+.cfg-row input[type="number"] { width: 80px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+
+.toast {
+  position: fixed; bottom: 18px; right: 18px; padding: 10px 16px; border-radius: 8px;
+  background: #1a3050; border: 1px solid #1f6feb; max-width: 420px;
+}
+.toast.err { background: #3d1418; border-color: var(--err); }

@@ -1,0 +1,62 @@
+/* ============================================================
+   AEGIS-SENTINEL — Design Tokens (architecture.md §4)
+   Theme: NEON-NOIR COMMAND CENTER
+   ============================================================ */
+:root {
+  /* Backdrop */
+  --bg-void: #050716;
+  --bg-nebula: #0f0c29;
+  --ocean-deep: #1b2735;
+  --ocean-shine: #2c5364;
+
+  /* Accents */
+  --accent-cyan: #00f0ff;
+  --accent-violet: #7d5fff;
+  --accent-magenta: #ff2d95;
+
+  /* Severity */
+  --sev-low: #3ae374;
+  --sev-medium: #ffd32a;
+  --sev-high: #ff7b54;
+  --sev-critical: #ff1e56;
+  --sev-zero: #c084fc;
+
+  /* Terrain */
+  --land-low: #2ba84a;
+  --land-high: #a3ff7a;
+
+  /* Glass & text */
+  --glass-bg: rgba(13, 17, 38, 0.55);
+  --glass-border: rgba(0, 240, 255, 0.22);
+  --text-primary: #e8f6ff;
+  --text-muted: #7f9cb5;
+
+  /* Gradients */
+  --gradient-plasma: linear-gradient(135deg, #ff1e56 0%, #ff2d95 45%, #7d5fff 100%);
+  --gradient-aurora: conic-gradient(from 180deg, #00f0ff, #7d5fff, #ff2d95, #ffd32a, #00f0ff);
+  --gradient-space: radial-gradient(ellipse at 20% 10%, #1a1a4e 0%, #0f0c29 40%, #050716 100%);
+  --gradient-ocean: linear-gradient(180deg, var(--ocean-deep) 0%, var(--ocean-shine) 100%);
+
+  /* Glows */
+  --glow-cyan: 0 0 12px rgba(0, 240, 255, 0.65), 0 0 32px rgba(0, 240, 255, 0.25);
+  --glow-crit: 0 0 14px rgba(255, 30, 86, 0.8), 0 0 44px rgba(255, 30, 86, 0.35);
+  --glow-mint: 0 0 10px rgba(58, 227, 116, 0.6);
+
+  /* Type */
+  --font-display: 'Orbitron', 'Segoe UI', system-ui, sans-serif;
+  --font-ui: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* Geometry */
+  --radius-panel: 24px;
+  --radius-chip: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+
+  --dur-fast: 150ms;
+  --dur-med: 300ms;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}

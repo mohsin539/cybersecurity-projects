@@ -1,0 +1,26 @@
+<!--
+  Phase 4 — C2 (T1071 / T1573). Levels 8-10.
+-->
+<group name="chain_c2,c2,">
+  <rule id="200300" level="8">
+    <decoded_as>chain-c2</decoded_as>
+    <regex>beacon|/api/|/cmd|/upload|\.php\?c=</regex>
+    <description>Suspicious outbound HTTP path (potential C2 channel)</description>
+    <group>chain_c2,</group>
+    <mitre>
+      <id>T1071.001</id>
+      <tactic>Command and Control</tactic>
+    </mitre>
+  </rule>
+
+  <!-- Long-lived session flag helpers on firewall/host logs -->
+  <rule id="200301" level="9">
+    <decoded_as>chain-c2</decoded_as>
+    <and>
+      <regex>\bPOST\b</regex>
+      <match>/upload</match>
+    </and>
+    <description>POST to upload endpoint (exfil/steal vector)</description>
+    <group>chain_c2,</group>
+  </rule>
+</group>

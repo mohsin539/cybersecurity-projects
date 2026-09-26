@@ -1,0 +1,32 @@
+{
+  "sha256": "3b9779d7a9c9d8a1b5a4a2f0f3c0c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9",
+  "filename": "invoice_kit_v1.exe",
+  "family": "PowerDuke",
+  "verdict": "malicious",
+  "av_names": ["W32.PowerDuke", "Trojan:Win32/PowerDuke.R"],
+  "yara_rules": ["PowerDuke_beacon", "APT29_komplex_dropper", "zip_vault_stager"],
+  "network": {
+    "domains": ["cdn.microsoft-cloud-update-helper[.]com", "support-events.office-updates[.]net"],
+    "ips": ["185.220.101.34"]
+  },
+  "files": [
+    {
+      "path": "C:\\Users\\victim\\AppData\\Roaming\\Microsoft\\sonar.dat",
+      "strings": ["powershell -enc SQBFAFgATw", "https://cdn.microsoft-cloud-update-helper[.]com/v2",
+                  "bcrypt encrypt", "rc4", "loadstring", "machine guid", "systeminfo"],
+      "imports": ["CryptDecrypt", "GetProcAddress", "VirtualAlloc"]
+    }
+  ],
+  "registry": [
+    "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\UpdaterSvc",
+    "HKLM\\SYSTEM\\CurrentControlSet\\Services\\ClassNet"
+  ],
+  "processes": ["rundll32.exe", "cmd.exe", "schtasks.exe"],
+  "strings": ["https port 443", "docker_me_an_evil", "valid account", "mshta",
+              "deleted logs", "timestomp", "lsass", "minidump", "scheduled task",
+              "C:\\Windows\\Temp\\svchost-delta.exe", "netstat", "whoami"],
+  "behaviors": ["c2:http", "persistence:scheduled_task", "persistence:runkey",
+                "evasion:injection", "evasion:packed", "cred:dump", "discovery:netconf",
+                "c2:ingress_tool", "evasion:log_tamper", "exec:powershell"],
+  "meta": {"detected_by": "CAPE v2.9", "arch": "x64"}
+}

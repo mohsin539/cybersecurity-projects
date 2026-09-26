@@ -1,0 +1,9 @@
+# Runtime: the reference implementation needs nothing beyond the standard library
+# plus FastAPI/uvicorn. SQLite is used via the stdlib `sqlite3` module.
+fastapi==0.115.14
+uvicorn[standard]==0.32.1
+pydantic==2.13.5
+
+# Test-only dependencies
+pytest==8.4.2
+httpx==0.27.2

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "redteam-report"
+version = "1.0.0"
+description = "Red Team Engagement Report Generator: findings -> CVSS v3.1 -> OWASP/NIST/ISO -> executive summary -> .xlsx/.csv/.html"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["openpyxl>=3.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+gui = ["openpyxl>=3.1"]
+build = ["pyinstaller>=6.0"]
+
+[project.scripts]
+red-team-report = "redteam_report.cli:main"
+red-team-report-gui = "redteam_report.gui:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

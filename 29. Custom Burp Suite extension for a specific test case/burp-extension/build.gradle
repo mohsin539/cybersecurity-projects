@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+    id 'com.github.spotbugs' version '6.0.25'
+}
+
+spotbugs {
+    toolVersion = '4.9.2'
+    ignoreFailures = false
+    reportLevel = 'high'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    compileOnly libs.montoya.api
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes(
+                'Implementation-Title': 'BurpTester Burp Suite Extension',
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': 'Application Security Engineering',
+                'BurpTester-Plugin-Type': 'testcase-engine-v1'
+        )
+    }
+}

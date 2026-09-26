@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}MobileForensicsLabPortable{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if current_user %}
+<aside>
+  <div class="brand">
+    <div class="logo">📱</div>
+    <div>MobileForensicsLab<span>Portable</span>
+      <small>Evidence-grade lab console</small>
+    </div>
+  </div>
+  <nav>
+    <div class="grp">Workspace</div>
+    <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if request.endpoint=='main.dashboard' else '' }}">📊 &nbsp;Dashboard</a>
+    <a href="{{ url_for('cases.index') }}" class="{{ 'active' if request.blueprint=='cases' and request.endpoint!='cases.detail' else '' }}">📁 &nbsp;Cases</a>
+    <a href="{{ url_for('analysis.index') }}" class="{{ 'active' if request.blueprint=='analysis' else '' }}">🔬 &nbsp;Artifact Analysis</a>
+    <a href="{{ url_for('custody.index') }}" class="{{ 'active' if request.blueprint=='custody' else '' }}">🔗 &nbsp;Chain of Custody</a>
+    <a href="{{ url_for('reports.index') }}" class="{{ 'active' if request.blueprint=='reports' else '' }}">📤 &nbsp;Reports & Downloads</a>
+    {% if current_user['role'] in ('admin','auditor') %}
+    <div class="grp">Governance</div>
+    <a href="{{ url_for('audit.index') }}" class="{{ 'active' if request.blueprint=='audit' else '' }}">🧾 &nbsp;Audit Trail</a>
+    <a href="{{ url_for('compliance.index') }}" class="{{ 'active' if request.blueprint=='compliance' else '' }}">✅ &nbsp;Compliance</a>
+    {% endif %}
+    {% if current_user['role'] == 'admin' %}
+    <div class="grp">Administration</div>
+    <a href="{{ url_for('main.users') }}" class="{{ 'active' if request.endpoint=='main.users' else '' }}">👥 &nbsp;Users &amp; Roles</a>
+    <a href="{{ url_for('main.settings') }}" class="{{ 'active' if request.endpoint=='main.settings' else '' }}">⚙️ &nbsp;Settings</a>
+    {% endif %}
+  </nav>
+  <div class="usercard">
+    <b>{{ current_user['display_name'] }}</b> · {{ current_user['username'] }}<br>
+    <span class="rolebadge tag tag-{{ 'cyan' if current_user['role']=='admin' else ('violet' if current_user['role']=='auditor' else 'green') }}">{{ current_user['role'] }}</span>
+    <br><a href="{{ url_for('main.logout') }}">🚪 Log out</a>
+  </div>
+</aside>
+{% endif %}
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flashes">
+      {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+  <footer class="pagefoot">MobileForensicsLabPortable · tamper-evident audit · ISO 27001 · NIST 800-53 · OWASP Top 10</footer>
+</main>
+</body>
+</html>

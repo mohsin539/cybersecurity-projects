@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>📡 Network Traffic Monitor</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">📡</div>
+      <div>
+        <h1>Network Traffic Monitor</h1>
+        <p class="tagline">on-device · per-app bandwidth</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="modeBadge" class="badge live">● live</span>
+      <span id="clock" class="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi rx"><small>download</small><b id="kTotalRx">0 B/s</b><span class="spark" id="sparkRx"></span></div>
+    <div class="kpi tx"><small>upload</small><b id="kTotalTx">0 B/s</b><span class="spark" id="sparkTx"></span></div>
+    <div class="kpi sum"><small>total ▲▼</small><b id="kTotal">0 B/s</b><i id="kApps" class="mini">0 apps</i></div>
+    <div class="kpi peak"><small>peak (hist)</small><b id="kPeak">0 B/s</b><i id="kSamples" class="mini">0 samples</i></div>
+  </section>
+
+  <section class="panel chart-panel">
+    <div class="panel-head">
+      <h2>Live Throughput <span id="chartDelta" class="delta"></span></h2>
+      <div class="legend">
+        <span><b class="sw rx"></b>download</span>
+        <span><b class="sw tx"></b>upload</span>
+      </div>
+    </div>
+    <canvas id="chart"></canvas>
+  </section>
+
+  <section class="split">
+    <div class="panel">
+      <div class="panel-head"><h2>Top Apps</h2></div>
+      <div id="topApps" class="top-apps"><div class="empty">loading…</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Per-App Bandwidth</h2>
+        <span class="hint">click a row for details</span>
+      </div>
+      <div class="table-wrap">
+        <table id="appTable">
+          <thead><tr>
+            <th>app</th><th>rx</th><th>tx</th><th>total</th><th>conns</th><th class="head-bar">share</th>
+          </tr></thead>
+          <tbody id="appRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Adapter Interfaces</h2></div>
+    <div id="adapters" class="adapters"><div class="empty">loading…</div></div>
+  </section>
+
+  <footer class="foot">
+    <span id="health">● connecting…</span>
+    <span>·</span>
+    <span>localhost only · no data leaves this device</span>
+  </footer>
+</div>
+
+<aside id="drawer" class="drawer">
+  <button id="closeDrawer" class="close" title="close">✕</button>
+  <h3 id="drawerName">App</h3>
+  <p id="drawerMeta" class="meta"></p>
+  <div class="dgrid">
+    <div class="dcell"><small>current rx</small><b id="dRx">—</b></div>
+    <div class="dcell"><small>current tx</small><b id="dTx">—</b></div>
+    <div class="dcell"><small>avg total</small><b id="dAvg">—</b></div>
+    <div class="dcell"><small>peak</small><b id="dPeak">—</b></div>
+    <div class="dcell"><small>connections</small><b id="dConns">—</b></div>
+    <div class="dcell"><small>sample count</small><b id="dCount">—</b></div>
+  </div>
+  <canvas id="drawerChart"></canvas>
+</aside>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# REkt flag rules (allow-list style, ARCHITECTURE.md §3.3)
+# Format: label<TAB>regex (python re syntax, applied to raw bytes latin-1)
+flag{...}	(?:flag|FLAG)\{[^}\n]{1,128}\}
+ctf{...}	(?:ctf|CTF)\{[^}\n]{1,128}\}
+picoCTF{...}	picoCTF\{[^}\n]{1,128}\}
+HTB{...}	HTB\{[^}\n]{1,128}\}
+THM{...}	THM\{[^}\n]{1,128}\}

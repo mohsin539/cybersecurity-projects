@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Purple Team Capstone{% endblock %}
+{% block content %}
+<div class="hero">
+  <span class="badge">Capstone · Purple Team Fusion</span>
+  <h1>Red <span class="rd">Builds</span> · Blue <span class="bl">Detects</span> · Both Document <span class="pu">MITRE ATT&CK</span></h1>
+  <p>Every engagement is a shared casefile: red tags the techniques it used, blue tags what it saw, and the platform scores the alignment — ready to export to XLSX, CSV or HTML.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><b>{{ stats.cases }}</b><span>Cases</span></div>
+  <div class="stat"><b>{{ stats.attacks }}</b><span>Red Attacks</span></div>
+  <div class="stat"><b>{{ stats.detections }}</b><span>Blue Detections</span></div>
+  <div class="stat"><b>{{ stats.avg_align }}%</b><span>Avg Alignment</span></div>
+  <div class="stat"><b>{{ stats.controls_ok }}/{{ stats.controls }}</b><span>Controls OK</span></div>
+</div>
+
+<div class="two">
+  <div class="card">
+    <h3>🔴 ⇄ 🔵 Purple Casefile</h3>
+    {% for c in cases %}
+    <a class="row" href="/case/{{ c.id }}">
+      <div>
+        <b>{{ c.title }}</b>
+        <span class="pill {{ c.status }}">{{ c.status }}</span>
+        <div class="sub">owner {{ c.owner }} · {{ c.attacks|length }} attacks</div>
+      </div>
+      <div class="mtr">
+        <i style="width:{{ c.alignment_score }}%"></i>
+        <em>{{ c.alignment_score }}%</em>
+      </div>
+    </a>
+    {% else %}
+    <p class="muted">No cases yet.</p>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>🚨 Detection Gaps by Tactic</h3>
+    {% if stats.missed_tactics %}
+      {% for tac, n in stats.missed_tactics.items()|sort %}
+      <div class="gap"><div><b>{{ tac }}</b><span>{{ n }} missed run(s)</span></div><span class="tag red">GAP</span></div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">No gaps — perfect coverage.</p>
+    {% endif %}
+    <h3 style="margin-top:20px">🛡️ Framework Posture</h3>
+    <div class="fbar"><i style="width:{{ stats.controls_ok / stats.controls * 100 if stats.controls else 0 }}%"></i></div>
+    <p class="muted">ISO 27001 · NIST CSF · OWASP control coverage</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>🧬 Technique Library ({{ techniques|length }})</h3>
+  <div class="chips">
+    {% for t in techniques[:18] %}<span class="chip">{{ t.tactic }} · <b>{{ t.id }}</b> {{ t.name }}</span>{% endfor %}
+    <span class="chip dim">+ {{ techniques|length - 18 }} more in the MITRE service</span>
+  </div>
+</div>
+{% endblock %}

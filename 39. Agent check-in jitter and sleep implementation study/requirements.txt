@@ -1,0 +1,8 @@
+numpy>=2.0,<3
+customtkinter>=5.2,<7
+openpyxl>=3.1,<4
+PyYAML>=6,<7
+cryptography>=42,<51
+pydantic>=2.7,<3
+pytest>=8,<9
+pyinstaller>=6,<7

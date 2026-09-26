@@ -1,0 +1,5 @@
+LAMDEX = "LAMDEX"
+VERSION = "1.0.0"
+SITE = "corp.local"
+LAB_TAG = True
+DEFAULT_PIN = "1234"

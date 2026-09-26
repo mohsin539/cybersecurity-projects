@@ -1,0 +1,8 @@
+[
+  {"id": "sg-allow-ssh-broad",  "action": "allow",  "proto": "tcp",  "src": "any",           "dst": "any",           "ports": [22, 22],        "priority": 100, "device": "vpc-web-sg",   "log": false},
+  {"id": "sg-deny-ssh-pentest", "action": "deny",   "proto": "tcp",  "src": "198.51.100.4/32","dst": "any",           "ports": [22, 22],        "priority": 90,  "device": "vpc-web-sg",   "log": true},
+  {"id": "sg-allow-web",        "action": "allow",  "proto": "tcp",  "src": "any",           "dst": "any",           "ports": [443, 443],      "priority": 110, "device": "vpc-web-sg",   "log": true},
+  {"id": "sg-dup-web",          "action": "allow",  "proto": "tcp",  "src": "any",           "dst": "any",           "ports": [443, 443],      "priority": 115, "device": "vpc-web-sg",   "log": true},
+  {"id": "sg-allow-all-any",    "action": "allow",  "proto": "any",  "src": "any",           "dst": "any",           "ports": "any",           "priority": 130, "device": "vpc-wild-sg",  "log": true},
+  {"id": "sg-allow-internal-db","action": "allow",  "proto": "tcp",  "src": "10.0.0.0/16",   "dst": "10.0.1.0/24",   "ports": [3306, 3306],    "priority": 120, "device": "vpc-db-sg",    "log": true}
+]

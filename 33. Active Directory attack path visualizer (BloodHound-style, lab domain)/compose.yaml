@@ -1,0 +1,23 @@
+name: sentinelgraph
+
+services:
+  app:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      SG_ENVIRONMENT: production
+      SG_JWT_SECRET: ${SG_JWT_SECRET:?set a 48+ char secret in .env}
+    restart: unless-stopped
+
+  # Optional graph backend for large lab domains:
+  # set SG_NEO4J_ENABLED=true + SG_NEO4J_PASSWORD on the app service to use it.
+  neo4j:
+    image: neo4j:5-community
+    profiles: ["neo4j"]
+    environment:
+      NEO4J_AUTH: neo4j/${SG_NEO4J_PASSWORD:-changeme-neo4j}
+    ports: ["7474:7474", "7687:7687"]
+    volumes: [neo4j_data:/data]
+
+volumes:
+  neo4j_data:

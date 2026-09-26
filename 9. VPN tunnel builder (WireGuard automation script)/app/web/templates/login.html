@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Login — VPN Tunnel Builder{% endblock %}
+{% block content %}
+<div class="center-box">
+  <div class="panel" style="max-width:500px">
+    <h2>Authentication required</h2>
+    <p>Enter the pre-shared auth token. If you haven't set one, it was printed to the console and written to
+      <code>data/initial-auth.txt</code> when the server first started with auth enabled.</p>
+    <form method="post" action="{{ url_for('login') }}" class="form">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <label>Token <input name="token" placeholder="paste your token" required autofocus class="mono"></label>
+      <button class="btn primary" type="submit">Login</button>
+    </form>
+    {% if bootstrap_token %}
+    <div class="banner info" style="margin-top:1em">
+      <strong>Initial token (shown once):</strong>
+      <code class="mono">{{ bootstrap_token }}</code>
+      <span class="hint">Copy this now — it will not be shown again.</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

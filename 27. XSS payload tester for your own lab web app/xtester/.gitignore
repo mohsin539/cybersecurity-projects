@@ -1,0 +1,40 @@
+# xsslab-tester - Python / app
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+*.sqlite3
+data/
+.env
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Playwright
+ms-playwright/
+test-results/
+playwright-report/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+audit/
+
+# Secrets - NEVER commit
+*.pem
+*.key
+credentials.json
+*.secret

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Virtual environments
+.venv/
+.venv_build/
+
+# Build artifacts
+build/
+dist/
+
+# Runtime user data never belongs in the repo
+crash.log

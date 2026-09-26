@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arp-scanner-gui"
+version = "1.0.0"
+description = "ARP live-host discovery tool with a PySide6 (Qt) GUI, per archetecture.md"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "PySide6-Essentials>=6.6,<7",
+    "scapy>=2.6,<3",
+    "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "PyInstaller>=6.10"]
+
+[project.scripts]
+arp-scanner = "arp_scanner.app:main"
+
+[tool.setuptools.packages.find]
+include = ["arp_scanner*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

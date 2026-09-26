@@ -1,0 +1,7 @@
+# Runtime dependencies: NONE — Python 3.10+ stdlib only
+# (tkinter, sqlite3, socket, struct, threading, queue).
+#
+# Everything below is BUILD-TIME / DEV-TIME ONLY, not needed to run from source.
+
+pyinstaller>=6.10     # portable exe packaging
+pytest>=8.0           # test runner (if you add the optional test suite)

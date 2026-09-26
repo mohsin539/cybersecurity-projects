@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — VPN Tunnel Builder{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Dashboard</h1>
+  <p>Operational overview of tunnels, peers and recent activity.</p>
+</div>
+
+<div class="cards">
+  <div class="card stat">
+    <div class="stat-num">{{ tunnels_total }}</div>
+    <div class="stat-label">Tunnels</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-num">{{ running_count }}</div>
+    <div class="stat-label">Running</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-num">{{ peers_total }}</div>
+    <div class="stat-label">Peers</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-num">{{ audits|length }}</div>
+    <div class="stat-label">Recent audit events</div>
+  </div>
+</div>
+
+{% if backend_is_simulated %}
+<div class="banner info">
+  The system is running on the <strong>simulated backend</strong> — configs are fully built and validated, but no real
+  kernel interface is created. Install <code>wireguard-tools</code> on a Linux host (or choose backend <em>local</em>)
+  to manage real tunnels.
+</div>
+{% endif %}
+
+<div class="two-col">
+  <section class="panel">
+    <h2>Tunnels</h2>
+    {% if tunnels %}
+    <table class="tbl">
+      <thead><tr><th>Interface</th><th>Role</th><th>Port</th><th>Addresses</th><th>Peers</th><th>State</th><th></th></tr></thead>
+      <tbody>
+        {% for t in tunnels %}
+        <tr>
+          <td><a href="{{ url_for('tunnel_detail', interface=t.interface) }}">{{ t.interface }}</a></td>
+          <td>{{ t.role }}</td>
+          <td>{{ t.listen_port }}</td>
+          <td class="mono small">{{ t.addresses|join(', ') }}</td>
+          <td>{{ t.peer_count }}</td>
+          <td>
+            {% if t.status.running %}<span class="badge ok">UP</span>
+            {% else %}<span class="badge off">DOWN</span>{% endif %}
+            {% if t.status.error %}<span class="hint">{{ t.status.error[:40] }}</span>{% endif %}
+          </td>
+          <td><a class="btn sm" href="{{ url_for('tunnel_detail', interface=t.interface) }}">Open</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No tunnels yet. <a href="{{ url_for('tunnels_page') }}">Build your first one.</a></p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Recent audit activity</h2>
+    {% if audits %}
+    <table class="tbl small">
+      <thead><tr><th>When</th><th>Action</th><th>Target</th><th>Result</th></tr></thead>
+      <tbody>
+        {% for ev in audits %}
+        <tr>
+          <td class="mono small">{{ ev.ts[11:19] }}</td>
+          <td>{{ ev.action }}</td>
+          <td>{{ ev.target }}</td>
+          <td>{% if ev.result=='OK' %}<span class="badge ok">OK</span>
+              {% elif ev.result=='ERR' %}<span class="badge off">ERR</span>
+              {% else %}<span class="badge warn">{{ ev.result }}</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a class="btn sm" href="{{ url_for('audit_page') }}">Full audit log</a>
+    {% else %}
+    <p class="muted">No audit events recorded.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+﻿record_id,scenario,sni,host_header,dest_ip,cdn_owner,score,label,findings
+rec-0001,NORMAL,www.cloudflare.com,www.cloudflare.com,104.16.44.34,cloudflare,0,benign,0
+rec-0002,DOMAIN_FRONT,cdn.example-edge.com,api.evil.example,172.64.128.1,cloudflare,76,fronted,4
+rec-0003,SNI_SPOOF,www.cloudflare.com,bgp-relay.internal.example,104.16.44.34,cloudflare,60,suspicious,3
+rec-0004,HTTPS_TUNNEL,cdn.example-edge.com,cdn.example-edge.com,172.64.128.1,cloudflare,0,benign,0
+rec-0005,H2_SPOOF,www.fastly.com,www.fastly.com,151.101.0.137,fastly,34,benign,2
+rec-0006,BENIGN_CDN,cdn.medium.example,cdn.medium.example,13.32.0.1,amazon,0,benign,0
+rec-0007,NORMAL,assets.fastlycdn.example,assets.fastlycdn.example,199.232.0.1,fastly,0,benign,0

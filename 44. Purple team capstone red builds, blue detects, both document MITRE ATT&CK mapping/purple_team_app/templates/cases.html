@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Cases · Purple Team Capstone{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>🧬 Case Registry</h1>
+    <p class="muted">Each case fuses the red attack set, blue detection set, and their joint MITRE mapping.</p>
+  </div>
+</div>
+
+<div class="stats">
+  {% for c in cases %}
+  <a class="stat link" href="/case/{{ c.id }}">
+    <b>{{ c.alignment_score }}%</b>
+    <span>{{ c.title }}</span>
+    <span class="pill {{ c.status }}">{{ c.status }}</span>
+  </a>
+  {% else %}
+  <p class="muted">No cases yet.</p>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h3>Association Legend</h3>
+  <div class="legend">
+    <span class="lg rd">🔴 red_attacks → technique (built)</span>
+    <span class="lg bl">🔵 blue_detections → technique (observed)</span>
+    <span class="lg pu">🧬 joint casefile = alignment score</span>
+  </div>
+</div>
+{% endblock %}

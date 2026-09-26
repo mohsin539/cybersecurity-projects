@@ -1,0 +1,5 @@
+id,action,proto,src,dst,ports,direction,priority,log,device
+sg-ssh-open,allow,tcp,any,any,22:22,ingress,100,false,vpc-web-sg
+sg-ssh-pentest,deny,tcp,198.51.100.4/32,any,22,ingress,90,true,vpc-web-sg
+sg-https-open,allow,tcp,any,any,443,ingress,110,true,vpc-web-sg
+sg-db-internal,allow,tcp,10.0.0.0/16,10.0.1.0/24,3306,ingress,120,true,vpc-db-sg

@@ -1,0 +1,113 @@
+﻿evt_id,rule_id,rule_name,technique,severity,confidence,score,status,detected_at,host_id,mechanism
+57,PEM-CAT-0006,Startup folder payload in AppData,T1547.001,medium,0.6,27.0,open,2026-09-20T21:38:34,MOHSINIT-PC,startup:C:\Users\mohsi\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\StartUp\MEGAsync.lnk
+58,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,task:%localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe /reporting
+59,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,task:%localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe
+60,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,task:C:\Users\mohsi\AppData\Local\Microsoft\OneDrive\26.163.0823.0004\OneDriveLauncher.exe /startInstances
+61,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,"task:C:\Users\mohsi\AppData\Local\Programs\Opera GX\launcher.exe --scheduledautoupdate --component-name=assistant --component-path=""C:\Users\mohsi\AppData\Local\Programs\Opera GX\assistant"" $(Arg0)"
+62,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,task:C:\Users\mohsi\AppData\Local\Programs\Opera GX\autoupdate\opera_autoupdate.exe --scheduledtask $(Arg0)
+63,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,"task:""C:\Users\mohsi\AppData\Roaming\Zoom\bin\Zoom.exe"" --action=UpdateSchedule"
+64,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,"task:%windir%\system32\rundll32.exe Windows.Storage.ApplicationData.dll,CleanupTemporaryState"
+65,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+66,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+67,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+68,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+69,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+70,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+71,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+72,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+73,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+74,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+75,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+76,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+77,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+78,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+79,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+80,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+81,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce
+82,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,Winlogon\Shell: explorer.exe
+83,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,Winlogon\Userinit: C:\WINDOWS\system32\userinit.exe
+84,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\
+85,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\DdeSendTimeout
+86,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\DesktopHeapLogging
+87,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\DeviceNotSelectedTimeout
+88,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\DwmInputUsesIoCompletionPort
+89,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\EnableDwmInputProcessing
+90,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\GDIProcessHandleQuota
+91,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\IconServiceLib
+92,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LoadAppInit_DLLs
+93,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\NaturalInputHandler
+94,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\RapidHpdTimeoutMs
+95,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\ShutdownWarningDialogTimeout
+96,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\Spooler
+97,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\TransmissionRetryTimeout
+98,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\USERNestedWindowLimit
+99,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\USERPostMessageLimit
+100,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\USERProcessHandleQuota
+101,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\Win32kLastWriteTime
+102,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakTrackingAllocatorMode
+103,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\PoolLeakedState
+104,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag0
+105,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag1
+106,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag2
+107,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag3
+108,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag4
+109,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag5
+110,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag6
+111,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,AppInit\LeakedPoolTag7
+112,PEM-CAT-0002,Service binary hosted in writable user directory,T1543.003,high,0.6,42.0,open,2026-09-20T21:38:34,MOHSINIT-PC,service:FlixmateService (Flixmate service)
+1,PEM-CAT-0006,Startup folder payload in AppData,T1547.001,medium,0.6,27.0,open,2026-09-20T21:36:32,MOHSINIT-PC,startup:C:\Users\mohsi\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\StartUp\MEGAsync.lnk
+2,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,task:%localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe /reporting
+3,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,task:%localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe
+4,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,task:C:\Users\mohsi\AppData\Local\Microsoft\OneDrive\26.163.0823.0004\OneDriveLauncher.exe /startInstances
+5,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,"task:C:\Users\mohsi\AppData\Local\Programs\Opera GX\launcher.exe --scheduledautoupdate --component-name=assistant --component-path=""C:\Users\mohsi\AppData\Local\Programs\Opera GX\assistant"" $(Arg0)"
+6,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,task:C:\Users\mohsi\AppData\Local\Programs\Opera GX\autoupdate\opera_autoupdate.exe --scheduledtask $(Arg0)
+7,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,"task:""C:\Users\mohsi\AppData\Roaming\Zoom\bin\Zoom.exe"" --action=UpdateSchedule"
+8,PEM-CAT-0004,Scheduled task runs elevated binary from temp,T1053.005,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,"task:%windir%\system32\rundll32.exe Windows.Storage.ApplicationData.dll,CleanupTemporaryState"
+9,PEM-CAT-0002,Service binary hosted in writable user directory,T1543.003,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,service:FlixmateService (Flixmate service)
+10,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+11,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+12,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+13,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+14,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+15,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+16,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+17,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+18,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+19,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+20,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.8,56.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+21,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+22,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+23,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+24,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+25,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+26,PEM-CAT-0001,Suspicious Registry Autostart in writable location,T1547.001,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce
+27,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,Winlogon\Shell: explorer.exe
+28,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,Winlogon\Userinit: C:\WINDOWS\system32\userinit.exe
+29,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\
+30,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\DdeSendTimeout
+31,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\DesktopHeapLogging
+32,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\DeviceNotSelectedTimeout
+33,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\DwmInputUsesIoCompletionPort
+34,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\EnableDwmInputProcessing
+35,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\GDIProcessHandleQuota
+36,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\IconServiceLib
+37,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LoadAppInit_DLLs
+38,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\NaturalInputHandler
+39,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\RapidHpdTimeoutMs
+40,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\ShutdownWarningDialogTimeout
+41,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\Spooler
+42,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\TransmissionRetryTimeout
+43,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\USERNestedWindowLimit
+44,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\USERPostMessageLimit
+45,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\USERProcessHandleQuota
+46,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\Win32kLastWriteTime
+47,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakTrackingAllocatorMode
+48,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\PoolLeakedState
+49,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag0
+50,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag1
+51,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag2
+52,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag3
+53,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag4
+54,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag5
+55,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag6
+56,PEM-CAT-0007,AppInit_DLLs or IFEO Debugger modification,T1546.002,high,0.6,42.0,open,2026-09-20T21:36:32,MOHSINIT-PC,AppInit\LeakedPoolTag7

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Purple Team Capstone{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav class="topnav">
+  <div class="brand"><span class="logo">🧬</span> Purple&nbsp;Team<span class="brand-sub">CAPSTONE</span></div>
+  <div class="links">
+    <a href="/" class="{{ 'on' if active=='dashboard' else '' }}">Dashboard</a>
+    <a href="/cases" class="{{ 'on' if active=='cases' else '' }}">Cases</a>
+    <a href="/reports" class="{{ 'on' if active=='reports' else '' }}">Reports</a>
+    <a href="{{ url_for('static', filename='architecture.html') }}" target="_blank">Architecture</a>
+  </div>
+  <div class="who">🔐 <b>red-ops</b> · RBAC</div>
+</nav>
+
+{% with m = get_flashed_messages() %}{% if m %}<div class="flash">{{ m[0] }}</div>{% endif %}{% endwith %}
+
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="foot">ISO 27001 · NIST CSF · OWASP Top 10 — MITRE ATT&CK is a registered trademark of MITRE</footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

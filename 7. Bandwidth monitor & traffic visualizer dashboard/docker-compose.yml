@@ -1,0 +1,31 @@
+services:
+  bandwidth-monitor:
+    build: .
+    container_name: bandwidth-monitor
+    restart: unless-stopped
+    # Host networking ensures psutil sees the real host interfaces.
+    network_mode: host
+    volumes:
+      # Persist the SQLite history across container restarts.
+      - bwmon-data:/data
+    environment:
+      BWMON_HOST: "0.0.0.0"
+      BWMON_PORT: "8000"
+      BWMON_REFRESH_INTERVAL: "1"
+      BWMON_HISTORY_CAPACITY: "3600"
+      BWMON_STORE_BACKEND: "sqlite"
+      BWMON_STORE_PATH: "/data/bwmon_history.db"
+      BWMON_ALERT_UPLOAD_BPS: "104857600"
+      BWMON_ALERT_DOWNLOAD_BPS: "104857600"
+      BWMON_LOG_LEVEL: "INFO"
+      # A mapped/host port that is silently remapped would be confusing in a
+      # container; fail loudly instead of falling back.
+      BWMON_STRICT_PORT: "true"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  bwmon-data:

@@ -1,0 +1,9 @@
+{
+  "name": "sg-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Headless-Chrome E2E verification for SentinelGraph UI",
+  "dependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
+}

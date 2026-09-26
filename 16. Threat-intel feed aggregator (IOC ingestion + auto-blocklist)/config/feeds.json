@@ -1,0 +1,19 @@
+{
+  "auto_confidence": 0.7,
+  "quarantine_confidence": 0.4,
+  "consumer": "json",
+  "feeds": {
+    "honeypot-internal": {
+      "auto_confidence": 0.5,
+      "ip_feed_tlp": "white"
+    },
+    "otx": {
+      "auto_confidence": 0.7,
+      "ip_feed_tlp": "green"
+    },
+    "misp": {
+      "auto_confidence": 0.8,
+      "ip_feed_tlp": "amber"
+    }
+  }
+}

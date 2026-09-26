@@ -1,0 +1,31 @@
+<!--
+  Phase-Final Correlator — level 12 when >=3 distinct chain phases fire.
+  Synthetic parent rule using stock <if_group> propagation. In a real
+  OSSEC/Wazuh deployment this manifests as a dedicated parent rule that sees
+  the JSON alert aggregate from analysisd (see chain_enrich.py for the
+  directory store join on alert.groups).
+-->
+<group name="chain_phasefinal,chain,">
+  <rule id="200900" level="3">
+    <description>Chain phase finalizer — correlated below the UI via enrich</description>
+    <group>chain_phasefinal,</group>
+  </rule>
+
+  <rule id="200901" level="12">
+    <if_group>chain_phasefinal</if_group>
+    <regex>phase=|chain</regex>
+    <description>Multiple kill-chain phases observed on same host — phase-final signal</description>
+    <group>chain_phasefinal,</group>
+    <mitre>
+      <id>T1480</id>
+      <tactic>Defense Evasion</tactic>
+    </mitre>
+  </rule>
+
+  <!-- Bootstrap: drop chain_phasefinal whenever any 2+ phase groups co-occur -->
+  <rule id="200902" level="5">
+    <if_group>chain_access,chain_exec</if_group>
+    <description>Bridge access+exec into phasefinal candidate</description>
+    <group>chain_phasefinal,</group>
+  </rule>
+</group>

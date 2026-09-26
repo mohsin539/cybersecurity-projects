@@ -1,0 +1,744 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Traffic Obfuscation Demo - Architecture (Domain Fronting | Detection-Focused)</title>
+<style>
+  :root{
+    --ink:#eef1ff; --dim:#a9b2d9; --mut:#7c86ab;
+    --bg0:#0b0e1f; --bg1:#131a33;
+    --violet:#8b5cf6; --violet2:#6d28d9;
+    --cyan:#22d3ee; --teal:#2dd4bf;
+    --rose:#fb7185; --gold:#fbbf24; --lime:#a3e635; --sky:#38bdf8;
+    --glass:rgba(255,255,255,.045); --line:rgba(255,255,255,.09);
+    --shadow:0 18px 50px rgba(0,0,0,.42);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1100px 520px at 12% -8%, rgba(109,40,217,.34), transparent 60%),
+      radial-gradient(900px 460px at 92% 4%, rgba(34,211,238,.16), transparent 55%),
+      radial-gradient(800px 500px at 50% 110%, rgba(251,113,133,.10), transparent 60%),
+      linear-gradient(180deg, var(--bg0), var(--bg1) 70%, #0a0d1c);
+    min-height:100vh;
+  }
+  a{color:var(--cyan)}
+  .wrap{max-width:1240px;margin:0 auto;padding:26px 22px 90px}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;border:1px solid var(--line);border-radius:24px;padding:30px 34px;
+    background:linear-gradient(120deg,rgba(139,92,246,.16),rgba(34,211,238,.10));
+    box-shadow:var(--shadow);overflow:hidden;backdrop-filter:blur(6px)}
+  .hero::before{content:'';position:absolute;inset:0;
+    background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.06) 50%,transparent 60%);
+    animation:sheen 7s linear infinite}
+  @keyframes sheen{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+  .hero .kick{display:inline-flex;gap:8px;align-items:center;font-size:12px;letter-spacing:2.5px;
+    font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+  .hero h1{margin:0;font-size:clamp(24px,3.4vw,40px);line-height:1.15;
+    background:linear-gradient(92deg,#fff 10%,var(--sky) 40%,var(--violet) 80%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero h1 span{display:block;font-size:.55em;letter-spacing:.5px;opacity:.75}
+  .hero p{color:var(--dim);max-width:880px;margin:14px 0 0;font-size:14.5px;line-height:1.6}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .pill{border:1px solid var(--line);background:var(--glass);color:var(--ink);
+    padding:6px 13px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.4px}
+  .pill.grad{background:linear-gradient(120deg,var(--violet2),var(--violet))}
+  .pill.cy{background:linear-gradient(120deg,rgba(34,211,238,.18),rgba(34,211,238,.30));border-color:rgba(34,211,238,.4)}
+  .pill.go{background:linear-gradient(120deg,rgba(163,230,53,.18),rgba(163,230,53,.30));border-color:rgba(163,230,53,.4)}
+  .pill.ro{background:linear-gradient(120deg,rgba(251,113,133,.18),rgba(251,113,133,.30));border-color:rgba(251,113,133,.4)}
+  .hero .cmds{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+  .cmd{font-family:Consolas,monospace;font-size:12px;color:var(--lime);
+    background:rgba(0,0,0,.35);border:1px dashed rgba(163,230,53,.35);
+    padding:8px 12px;border-radius:10px;cursor:pointer;user-select:all}
+  .cmd:hover{border-style:solid;border-color:var(--lime);color:#ecfccb}
+
+  /* ---------- tabs ---------- */
+  nav{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 18px;position:sticky;top:10px;
+    background:rgba(13,17,38,.72);backdrop-filter:blur(12px);padding:8px;border-radius:16px;
+    border:1px solid var(--line);z-index:50}
+  nav button{border:0;background:transparent;color:var(--dim);font-weight:800;font-size:13px;
+    padding:10px 16px;border-radius:11px;cursor:pointer;letter-spacing:.3px;transition:.2s}
+  nav button:hover{color:var(--ink);background:var(--glass)}
+  nav button.on{background:linear-gradient(120deg,var(--violet2),var(--violet));
+    color:#fff;box-shadow:0 8px 22px rgba(109,40,217,.35)}
+  .tab{display:none;animation:fade .35s ease}
+  .tab.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .sec-head{display:flex;align-items:center;gap:12px;margin:26px 0 16px}
+  .sec-head .no{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    font-weight:900;color:#fff;font-size:13px;
+    background:linear-gradient(135deg,var(--violet),var(--sky))}
+  .sec-head h2{margin:0;font-size:19px}
+  .sec-head p{margin:2px 0 0;color:var(--mut);font-size:12.5px}
+
+  /* ---------- diagram canvases ---------- */
+  .diagram{background:rgba(10,13,30,.55);border:1px solid var(--line);border-radius:20px;
+    padding:10px;box-shadow:var(--shadow)}
+  .diagram svg{width:100%;height:auto;display:block;border-radius:14px;
+    background:linear-gradient(180deg,rgba(139,92,246,.05),rgba(34,211,238,.05))}
+  .t{font-family:'Segoe UI',sans-serif;font-weight:700}
+  .ts{font-family:'Segoe UI',sans-serif;font-weight:600;opacity:.85}
+  .tt{font-family:'Segoe UI',sans-serif;font-weight:500;opacity:.62}
+  .flow{stroke-dasharray:8 9;animation:dash 1.6s linear infinite}
+  @keyframes dash{to{stroke-dashoffset:-34}}
+  .pulse{animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.9}50%{opacity:.38}}
+  .lane{fill:rgba(255,255,255,.03);stroke:var(--line)}
+
+  /* ---------- cards / grids ---------- */
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .card{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:18px;
+    backdrop-filter:blur(6px);transition:.25s}
+  .card:hover{transform:translateY(-3px);border-color:rgba(139,92,246,.45)}
+  .card h4{margin:0 0 6px;font-size:14px}
+  .card .icon{font-size:22px;margin-bottom:8px}
+  .card p{margin:0;color:var(--mut);font-size:12.5px;line-height:1.55}
+  .card .kpi{font-size:26px;font-weight:900;color:#fff}
+  .card .kpi small{font-size:12px;color:var(--mut);font-weight:600}
+  .badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;letter-spacing:.3px}
+
+  /* ---------- scenario matrix ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:10px 12px;color:var(--dim);font-size:11px;letter-spacing:1px;
+    text-transform:uppercase;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03)}
+  td{padding:11px 12px;border-top:1px solid var(--line)}
+  tr:hover td{background:rgba(139,92,246,.06)}
+  code{font-family:Consolas,monospace;font-size:12px;background:rgba(0,0,0,.35);
+    padding:2px 7px;border-radius:6px;color:var(--sky)}
+  .scorebar{height:7px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;min-width:70px}
+  .scorebar i{display:block;height:100%;border-radius:6px}
+  .vr{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800;color:#fff}
+  .vr.fronted{background:linear-gradient(120deg,#ef4444,#f87171)}
+  .vr.suspicious{background:linear-gradient(120deg,#e17055,#ff8c5a)}
+  .vr.benign{background:linear-gradient(120deg,#059669,#10b981)}
+  .sev{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800;color:#fff}
+  .sev.critical{background:linear-gradient(120deg,#ef4444,#f87171)}
+  .sev.high{background:linear-gradient(120deg,#e17055,#ff8c5a)}
+  .sev.medium{background:linear-gradient(120deg,#f59e0b,#fbbf24)}
+  .sev.low{background:linear-gradient(120deg,#38bdf8,#7dd3fc)}
+  .sev.info{background:linear-gradient(120deg,#64748b,#94a3b8)}
+  .fw-chip{font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.3px}
+  .fw-ow{background:rgba(251,113,133,.16);color:#fda4af;border:1px solid rgba(251,113,133,.3)}
+  .fw-ni{background:rgba(34,211,238,.14);color:#7dd3fc;border:1px solid rgba(34,211,238,.32)}
+  .fw-is{background:rgba(163,230,53,.14);color:#bef264;border:1px solid rgba(163,230,53,.3)}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--dim)}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+  footer{color:var(--mut);font-size:12px;text-align:center;margin-top:44px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <div class="kick">Detection-Focused Reference Architecture</div>
+    <h1>Traffic Obfuscation Techniques Demo
+      <span>Domain Fronting Concepts | TLS/SNI Telemetry | Framework-Graded Reporting</span>
+    </h1>
+    <p>An end-to-end, education-first architecture that <strong>generates synthetic TLS flows</strong>
+      (ClientHello-level metadata), <strong>detects domain-fronting &amp; obfuscation signs</strong> with
+      heuristic scoring, maps every finding to <strong>OWASP Top 10 | NIST CSF 2.0 | ISO/IEC 27001:2022</strong>
+      and ships branded reports in <strong>.XLSX | .CSV | .HTML | .JSON</strong>.</p>
+    <div class="pills">
+      <span class="pill grad">OWASP Top 10 (2021)</span>
+      <span class="pill cy">NIST CSF 2.0</span>
+      <span class="pill go">ISO/IEC 27001:2022</span>
+      <span class="pill ro">JA4-a-like Fingerprints</span>
+      <span class="pill">SNI / Host Mismatch</span>
+      <span class="pill">H2 :authority Spoof</span>
+      <span class="pill">CDN Fronting Heuristics</span>
+      <span class="pill">Scoring 0 - 100</span>
+    </div>
+    <div class="cmds">
+      <span class="cmd">python -m src.main --formats xlsx csv html json</span>
+      <span class="cmd">start output\report_*\traffic_obfuscation_report.html</span>
+    </div>
+  </header>
+
+  <!-- ================= TABS ================= -->
+  <nav>
+    <button class="on" data-tab="t1">Architecture</button>
+    <button data-tab="t2">Detection Pipeline</button>
+    <button data-tab="t3">Scenario Matrix</button>
+    <button data-tab="t4">Framework Mapper</button>
+    <button data-tab="t5">Report Exports</button>
+  </nav><section class="tab on" id="t1">
+<div class="diagram">
+    <svg viewBox="0 0 1200 985" role="img" aria-label="Traffic obfuscation demo architecture">
+      <defs>
+        <linearGradient id="gClient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#7c3aed"/><stop offset="1" stop-color="#a855f7"/>
+        </linearGradient>
+        <linearGradient id="gObf" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#db2777"/><stop offset="1" stop-color="#fb7185"/>
+        </linearGradient>
+        <linearGradient id="gCdn" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0891b2"/><stop offset="1" stop-color="#22d3ee"/>
+        </linearGradient>
+        <linearGradient id="gOrigin" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ca8a04"/><stop offset="1" stop-color="#fbbf24"/>
+        </linearGradient>
+        <linearGradient id="gDet" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#16a34a"/><stop offset="1" stop-color="#a3e635"/>
+        </linearGradient>
+        <marker id="arrC" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0 L8 4 L0 8 z" fill="#22d3ee"/>
+        </marker>
+        <marker id="arrR" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0 L8 4 L0 8 z" fill="#fb7185"/>
+        </marker>
+        <marker id="arrG" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0 L8 4 L0 8 z" fill="#a3e635"/>
+        </marker>
+        <marker id="arrY" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0 L8 4 L0 8 z" fill="#fbbf24"/>
+        </marker>
+      </defs>
+
+      <!-- ================= LANE 1 Â· CLIENTS ================= -->
+      <rect class="lane" x="20" y="66" width="1160" height="86" rx="14"/>
+      <text x="34" y="84" class="ts" font-size="11" fill="#a9b2d9" letter-spacing="2">TRAFFIC GENERATION &amp; CLIENTS</text>
+      <g class="node">
+        <rect x="40" y="92" width="230" height="46" rx="12" fill="url(#gClient)"/>
+        <text class="t" x="155" y="112" font-size="14" fill="#fff" text-anchor="middle">Client / Generator</text>
+        <text class="tt" x="155" y="128" font-size="10.5" fill="#fff" text-anchor="middle">synthetic TLS ClientHello sessions</text>
+      </g>
+      <path class="flow" d="M270 115 H 306" stroke="#a855f7" stroke-width="2.4" marker-end="url(#arrR)"/>
+      <g font-size="11" font-weight="700">
+        <rect x="312" y="90" width="150" height="24" rx="12" fill="rgba(168,85,247,.14)" stroke="rgba(168,85,247,.45)"/>
+        <text x="387" y="107" fill="#d8b4fe" text-anchor="middle">scenario: NORMAL</text>
+        <rect x="474" y="90" width="196" height="24" rx="12" fill="rgba(251,113,133,.14)" stroke="rgba(251,113,133,.45)"/>
+        <text x="572" y="107" fill="#fda4af" text-anchor="middle">DOMAIN_FRONT (focus)</text>
+        <rect x="682" y="90" width="146" height="24" rx="12" fill="rgba(251,113,133,.14)" stroke="rgba(251,113,133,.45)"/>
+        <text x="755" y="107" fill="#fda4af" text-anchor="middle">SNI_SPOOF</text>
+        <rect x="840" y="90" width="158" height="24" rx="12" fill="rgba(251,113,133,.14)" stroke="rgba(251,113,133,.45)"/>
+        <text x="919" y="107" fill="#fda4af" text-anchor="middle">HTTPS_TUNNEL</text>
+        <rect x="1010" y="90" width="158" height="24" rx="12" fill="rgba(251,113,133,.14)" stroke="rgba(251,113,133,.45)"/>
+        <text x="1089" y="107" fill="#fda4af" text-anchor="middle">BENIGN_CDN</text>
+      </g>
+
+      <!-- ================= LANE 2 Â· OBFUSCATION ================= -->
+      <rect class="lane" x="20" y="172" width="1160" height="146" rx="14"/>
+      <text x="34" y="190" class="ts" font-size="11" fill="#a9b2d9" letter-spacing="2">OBFUSCATION TECHNIQUES / FRONTING CONCEPTS (ATTACK CHANNEL)</text>
+      <!-- arrows from lane 1 into lane 2 -->
+      <path class="flow" d="M600 152 v 34" stroke="#fb7185" stroke-width="2.2" marker-end="url(#arrR)"/>
+      <g>
+        <rect x="40" y="208" width="252" height="58" rx="12" fill="url(#gObf)"/>
+        <text class="t" x="166" y="230" font-size="13" fill="#fff" text-anchor="middle">Domain Fronting</text>
+        <text class="tt" x="166" y="247" font-size="10" fill="#fff" text-anchor="middle">SNI = CDN front | Host = real origin</text>
+        <text class="tt" x="166" y="259" font-size="10" fill="#fff" text-anchor="middle">JS_ver t13d fingerprint of edge TLS</text>
+      </g>
+      <g>
+        <rect x="322" y="208" width="252" height="58" rx="12" fill="url(#gObf)"/>
+        <text class="t" x="448" y="230" font-size="13" fill="#fff" text-anchor="middle">SNI Spoofing</text>
+        <text class="tt" x="448" y="247" font-size="10" fill="#fff" text-anchor="middle">unrelated high-reputation front</text>
+        <text class="tt" x="448" y="259" font-size="10" fill="#fff" text-anchor="middle">Host header carries hidden target</text>
+      </g>
+      <g>
+        <rect x="604" y="208" width="252" height="58" rx="12" fill="url(#gObf)"/>
+        <text class="t" x="730" y="230" font-size="13" fill="#fff" text-anchor="middle">HTTPS CONNECT Tunnel</text>
+        <text class="tt" x="730" y="247" font-size="10" fill="#fff" text-anchor="middle">TLS into CONNECT proxy (443)</text>
+        <text class="tt" x="730" y="259" font-size="10" fill="#fff" text-anchor="middle">IP-only tunnel, no visible HTTP</text>
+      </g>
+      <g>
+        <rect x="886" y="208" width="252" height="58" rx="12" fill="url(#gObf)"/>
+        <text class="t" x="1012" y="230" font-size="13" fill="#fff" text-anchor="middle">H2 :authority Spoofing</text>
+        <text class="tt" x="1012" y="247" font-size="10" fill="#fff" text-anchor="middle">:scheme/:authority rewritten</text>
+        <text class="tt" x="1012" y="259" font-size="10" fill="#fff" text-anchor="middle">ALPN h2 after CONNECT tunnel</text>
+      </g>
+
+      <!-- ================= LANE 3 Â· CDN EDGE ================= -->
+      <rect class="lane" x="20" y="348" width="1160" height="140" rx="14"/>
+      <text x="34" y="366" class="ts" font-size="11" fill="#a9b2d9" letter-spacing="2">CDN ANYCAST EDGE / SHARED FRONT</text>
+      <g class="node">
+        <rect x="40" y="384" width="270" height="58" rx="12" fill="url(#gCdn)"/>
+        <text class="t" x="175" y="406" font-size="13" fill="#fff" text-anchor="middle">CDN Anycast Edge</text>
+        <text class="tt" x="175" y="423" font-size="10" fill="#fff" text-anchor="middle">Cloudflare | Fastly | Akamai | Google</text>
+        <text class="tt" x="175" y="435" font-size="10" fill="#fff" text-anchor="middle">TLS terminates here - cert per SNI</text>
+      </g>
+      <path class="flow" d="M310 413 H 352" stroke="#22d3ee" stroke-width="2.2" marker-end="url(#arrC)" transform="translate(-20 0)"/>
+      <g class="node">
+        <rect x="360" y="384" width="270" height="58" rx="12" fill="url(#gCdn)"/>
+        <text class="t" x="495" y="406" font-size="13" fill="#fff" text-anchor="middle">Front / SNI Domain</text>
+        <text class="tt" x="495" y="423" font-size="10" fill="#fff" text-anchor="middle">cdn.example-edge.com</text>
+        <text class="tt" x="495" y="435" font-size="10" fill="#fff" text-anchor="middle">cert signalled via SNI only</text>
+      </g>
+      <text class="ts" x="700" y="404" font-size="11" fill="#7dd3fc">SNI selects the front</text>
+      <text class="ts" x="700" y="420" font-size="11" fill="#7dd3fc">certificate + routing</text>
+      <text class="tt" x="700" y="436" font-size="10" fill="#7c86ab">at LAN 3 the flow is indistinguishable from benign CDN use</text>
+      <g class="node">
+        <rect x="880" y="378" width="280" height="50" rx="12" fill="rgba(34,211,238,.10)" stroke="rgba(34,211,238,.5)"/>
+        <text class="ts" x="1020" y="398" font-size="12" fill="#a5f3fc" text-anchor="middle">Routing fabric: Host header steers</text>
+        <text class="ts" x="1020" y="414" font-size="12" fill="#a5f3fc" text-anchor="middle">internal path toward hidden origin</text>
+      </g>
+      <path class="flow" d="M640 413 C 780 413 780 470 618 470" stroke="#fbbf24" stroke-width="2.2" marker-end="url(#arrY)" transform="translate(0 -8)"/>
+
+      <!-- ================= LANE 4 Â· HIDDEN ORIGIN ================= -->
+      <rect class="lane" x="20" y="508" width="1160" height="86" rx="14"/>
+      <text x="34" y="526" class="ts" font-size="11" fill="#a9b2d9" letter-spacing="2">HIDDEN ORIGIN (ALLOW-LISTED BACKEND)</text>
+      <g class="node">
+        <rect x="330" y="538" width="340" height="46" rx="12" fill="url(#gOrigin)"/>
+        <text class="t" x="500" y="558" font-size="14" fill="#1c1917" text-anchor="middle">Hidden Backend Origin</text>
+        <text class="tt" x="500" y="574" font-size="10.5" fill="#3f2d05" text-anchor="middle">api.evil.example - reachable only via CDN routing path</text>
+      </g>
+      <g>
+        <rect x="720" y="538" width="300" height="46" rx="12" fill="rgba(251,191,36,.08)" stroke="rgba(251,191,36,.5)"/>
+        <text class="ts" x="870" y="555" font-size="11" fill="#fde68a" text-anchor="middle">SSRF-style pivot if routing fabric</text>
+        <text class="ts" x="870" y="571" font-size="11" fill="#fde68a" text-anchor="middle">trusts untrusted Host values (A10)</text>
+      </g>
+      <path class="flow" d="M640 508 v -30" stroke="#fbbf24" stroke-width="2.2" marker-end="url(#arrY)" transform="translate(0 26)"/>
+
+      <!-- ================= LANE 5 Â· DETECTION ================= -->
+      <rect class="lane" x="20" y="624" width="1160" height="146" rx="14"/>
+      <text x="34" y="642" class="ts" font-size="11" fill="#a9b2d9" letter-spacing="2">DETECTION &amp; ANALYTICS ENGINE (DETECTION-FOCUSED)</text>
+      <path class="flow" d="M600 594 v 40" stroke="#a3e635" stroke-width="2.2" marker-end="url(#arrG)" transform="translate(0 20)"/>
+      <text x="640" y="624" class="tt" font-size="10" fill="#7c86ab">mirrored / decrypted telemetry</text>
+      <g>
+        <rect x="40" y="676" width="180" height="70" rx="12" fill="url(#gDet)"/>
+        <text class="t" x="130" y="697" font-size="12" fill="#052e16" text-anchor="middle">SNI / Host Check</text>
+        <text class="tt" x="130" y="713" font-size="9.5" fill="#052e16" text-anchor="middle">mismatch detector</text>
+        <text class="tt" x="130" y="726" font-size="9.5" fill="#052e16" text-anchor="middle">A01 A04 A10</text>
+      </g>
+      <g>
+        <rect x="250" y="676" width="180" height="70" rx="12" fill="url(#gDet)"/>
+        <text class="t" x="340" y="697" font-size="12" fill="#052e16" text-anchor="middle">JA4 Fingerprint</text>
+        <text class="tt" x="340" y="713" font-size="9.5" fill="#052e16" text-anchor="middle">stack clustering</text>
+        <text class="tt" x="340" y="726" font-size="9.5" fill="#052e16" text-anchor="middle">A09 | DE</text>
+      </g>
+      <g>
+        <rect x="460" y="676" width="180" height="70" rx="12" fill="url(#gDet)"/>
+        <text class="t" x="550" y="697" font-size="12" fill="#052e16" text-anchor="middle">CDN Range Check</text>
+        <text class="tt" x="550" y="713" font-size="9.5" fill="#052e16" text-anchor="middle">anycast owner lookup</text>
+        <text class="tt" x="550" y="726" font-size="9.5" fill="#052e16" text-anchor="middle">A04 | ID PR</text>
+      </g>
+      <g>
+        <rect x="670" y="676" width="180" height="70" rx="12" fill="url(#gDet)"/>
+        <text class="t" x="760" y="697" font-size="12" fill="#052e16" text-anchor="middle">TTL Anomaly</text>
+        <text class="tt" x="760" y="713" font-size="9.5" fill="#052e16" text-anchor="middle">encapsulation hints</text>
+        <text class="tt" x="760" y="726" font-size="9.5" fill="#052e16" text-anchor="middle">A09 | DE</text>
+      </g>
+      <g>
+        <rect x="880" y="676" width="180" height="70" rx="12" fill="url(#gDet)"/>
+        <text class="t" x="970" y="697" font-size="12" fill="#052e16" text-anchor="middle">H2 authority Check</text>
+        <text class="tt" x="970" y="713" font-size="9.5" fill="#052e16" text-anchor="middle">:authority vs Host</text>
+        <text class="tt" x="970" y="726" font-size="9.5" fill="#052e16" text-anchor="middle">A08 | DE</text>
+      </g>
+      <g class="pulse">
+        <path class="flow" d="M220 700 H 250" stroke="#a3e635" stroke-width="2.2" marker-end="url(#arrG)"/>
+        <path class="flow" d="M430 700 H 460" stroke="#a3e635" stroke-width="2.2" marker-end="url(#arrG)"/>
+        <path class="flow" d="M640 700 H 670" stroke="#a3e635" stroke-width="2.2" marker-end="url(#arrG)"/>
+        <path class="flow" d="M850 700 H 880" stroke="#a3e635" stroke-width="2.2" marker-end="url(#arrG)"/>
+        <path class="flow" d="M1060 700 H 1100" stroke="#a3e635" stroke-width="2.2" marker-end="url(#arrG)"/>
+      </g>
+
+      <!-- ================= LANE 6 Â· COMPLIANCE + REPORTING ================= -->
+      <rect class="lane" x="20" y="800" width="1150" height="150" rx="14"/>
+      <text x="34" y="818" class="ts" font-size="11" fill="#a9b2d9" letter-spacing="2">FRAMEWORK COMPLIANCE &amp; REPORTING / EXPORT</text>
+      <path class="flow" d="M340 746 v 70" stroke="#e4ccff" stroke-width="2.2" marker-end="url(#arrY)"/>
+      <g>
+        <rect x="40" y="842" width="330" height="70" rx="12" fill="rgba(251,113,133,.10)" stroke="rgba(251,113,133,.45)"/>
+        <text class="t" x="205" y="864" font-size="12" fill="#fda4af" text-anchor="middle">OWASP Top 10 (2021)</text>
+        <text class="tt" x="205" y="882" font-size="9.5" fill="#fecdd3" text-anchor="middle">A01 A02 A04 A07 A08 A09 A10 seeded</text>
+      </g>
+      <g>
+        <rect x="390" y="842" width="330" height="70" rx="12" fill="rgba(34,211,238,.10)" stroke="rgba(34,211,238,.45)"/>
+        <text class="t" x="555" y="864" font-size="12" fill="#7dd3fc" text-anchor="middle">NIST CSF 2.0</text>
+        <text class="tt" x="555" y="882" font-size="9.5" fill="#cffafe" text-anchor="middle">GV ID PR DE RS RC functions</text>
+      </g>
+      <g>
+        <rect x="740" y="842" width="430" height="70" rx="12" fill="rgba(163,230,53,.10)" stroke="rgba(163,230,53,.45)"/>
+        <text class="t" x="955" y="864" font-size="12" fill="#bef264" text-anchor="middle">ISO / IEC 27001:2022 Annex A</text>
+        <text class="tt" x="955" y="882" font-size="9.5" fill="#ecfccb" text-anchor="middle">A8.16 monitoring | A8.20 networks | A8.24 crypto | A8.28 secure coding</text>
+      </g>
+
+      <g>
+        <text class="t" x="1200" y="940" font-size="12" fill="#a9b2d9" text-anchor="end">reports</text>
+      </g>
+    </svg>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:linear-gradient(120deg,#7c3aed,#a855f7)"></i>Traffic generation</span>
+      <span><i style="background:linear-gradient(120deg,#db2777,#fb7185)"></i>Obfuscation / fronting channel</span>
+      <span><i style="background:linear-gradient(120deg,#0891b2,#22d3ee)"></i>CDN anycast edge</span>
+      <span><i style="background:linear-gradient(120deg,#ca8a04,#fbbf24)"></i>Hidden origin / trust boundary</span>
+      <span><i style="background:linear-gradient(120deg,#16a34a,#a3e635)"></i>Detection &amp; analytics</span>
+      <span><i class="flow" style="width:26px;height:0;border-top:3px dashed #a855f7;border-radius:0"></i>animated telemetry flow</span>
+    </div>
+</section><section class="tab" id="t2">
+    <div class="sec-head">
+      <div class="no">2</div>
+      <div>
+        <h2>Detection Pipeline &amp; Heuristic Scoring</h2>
+        <p>Each TLS session is decomposed into observable features; every feature is scored and aggregated.</p>
+      </div>
+    </div>
+
+    <div class="grid g3">
+      <div class="card">
+        <div class="icon">1</div>
+        <h4>Feature Extraction</h4>
+        <p><code>SNI</code> Â· <code>Host</code> Â· <code>:authority</code> Â· <code>dest IP</code> Â·
+          <code>TTL</code> Â· <code>cipher suites</code> Â· <code>extensions</code> Â· <code>ALPN</code> Â·
+          <code>CDN ownership</code></p>
+        <div class="badge-row">
+          <span class="chip fw-ow">A09</span><span class="chip fw-ni">DE</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">2</div>
+        <h4>Concept Checks</h4>
+        <p><strong>SNI/Host mismatch</strong> (fronting signature) Â· <strong>JA4-a-like fingerprint</strong>
+          clustering Â· <strong>anycast range check</strong> Â· <strong>H2 authority divergence</strong> Â·
+          <strong>TTL anomaly</strong>.</p>
+        <div class="badge-row">
+          <span class="chip fw-ow">A01</span><span class="chip fw-ow">A04</span>
+          <span class="chip fw-ni">ID</span><span class="chip fw-is">A8.16</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">3</div>
+        <h4>Scoring Engine (0 - 100)</h4>
+        <p>Severity-weighted accumulation. Thresholds: <code>40</code> = suspicious, <code>70</code> =
+          fronted. Output maps 1:1 to verdicts in the exported reports.</p>
+        <div class="badge-row">
+          <span class="chip fw-ow">A08</span><span class="chip fw-ni">RS</span>
+          <span class="chip fw-is">A8.24</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <div class="no" style="background:linear-gradient(135deg,#059669,#22d3ee)">D</div>
+      <div>
+        <h2>Detection Rules</h2>
+        <p>Heuristic catalogue - each rule raises a framework-mappable finding.</p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Rule</th><th>Indicator</th><th>Severity</th><th>Weight</th><th>Mapped controls</th><th>Evasion caveat</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>SNI / Host mismatch</strong></td>
+          <td><code>SNI</code> front != <code>Host</code> origin</td><td><span class="sev high">high</span></td><td>26</td>
+          <td><span class="fw-chip fw-ow">A01</span><span class="fw-chip fw-ow">A04</span><span class="fw-chip fw-ow">A10</span><span class="fw-chip fw-ni">C</span><span class="fw-chip fw-is">A8.28</span></td>
+          <td>Encrypted SNI (ECH) hides the mismatch</td>
+        </tr>
+        <tr>
+          <td><strong>HTTP/2 :authority spoof</strong></td>
+          <td><code>:authority</code> != <code>Host</code> / <code>SNI</code></td>
+          <td><span class="sev high">high</span></td><td>26</td>
+          <td><span class="fw-chip fw-ow">A08</span><span class="fw-chip fw-ni">D</span><span class="fw-chip fw-is">A8.16</span></td>
+          <td>Needs decrypted or MITM visibility of H2 header block</td>
+        </tr>
+        <tr>
+          <td><strong>CDN fronting signature</strong></td>
+          <td>dest in anycast range + front/backend divergence</td>
+          <td><span class="sev high">high</span></td><td>26</td>
+          <td><span class="fw-chip fw-ow">A04</span><span class="fw-chip fw-ni">P</span><span class="fw-chip fw-is">A8.28</span></td>
+          <td>Legit multi-CDN / dual-homed services may trip it</td>
+        </tr>
+        <tr>
+          <td><strong>Custom TLS stack heuristics</strong></td>
+          <td>non-browser extension set / stable JA4 token</td>
+          <td><span class="sev medium">medium</span></td><td>16</td>
+          <td><span class="fw-chip fw-ow">A09</span><span class="fw-chip fw-ni">D</span><span class="fw-chip fw-is">A8.16</span></td>
+          <td>Fingerprints rot quickly; correlation over time is key</td>
+        </tr>
+        <tr>
+          <td><strong>TTL anomaly</strong></td>
+          <td>sub-52 TTL / stable low variance across flows</td>
+          <td><span class="sev low">low</span></td><td>8</td>
+          <td><span class="fw-chip fw-ow">A09</span><span class="fw-chip fw-ni">D</span><span class="fw-chip fw-is">A8.16</span></td>
+          <td>Only a weak signal; ASN routing skews TTL naturally</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="legend">
+      <span><i style="background:#fb7185"></i>high</span>
+      <span><i style="background:#fbbf24"></i>medium</span>
+      <span><i style="background:#38bdf8"></i>low</span>
+      <span><i style="background:#059669"></i>benign baseline</span>
+    </div>
+  </section><section class="tab" id="t3">
+    <div class="sec-head">
+      <div class="no">3</div>
+      <div>
+        <h2>Scenario Matrix - Demo Results</h2>
+        <p>Reference output from <code>python -m src.main</code>. Heuristic scores are evidence-based, not attribution.</p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Flow</th><th>Scenario</th><th>SNI (front)</th><th>Host (:origin)</th><th>Dest IP</th><th>CDN owner</th><th>Score</th><th>Verdict</th><th>Detected checks</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>rec-0001</code></td><td>NORMAL</td>
+          <td><code>www.cloudflare.com</code></td><td><code>www.cloudflare.com</code></td>
+          <td>104.16.44.34</td><td>cloudflare</td>
+          <td><div class="scorebar"><i style="width:0%;background:#059669"></i></div></td>
+          <td><span class="vr benign">benign</span></td><td>-</td>
+        </tr>
+        <tr style="background:linear-gradient(90deg,rgba(239,68,68,.10),transparent 40%)">
+          <td><code>rec-0002</code></td><td><strong>DOMAIN_FRONT</strong></td>
+          <td><code>cdn.example-edge.com</code></td><td><code>api.evil.example</code></td>
+          <td>172.64.128.1</td><td>cloudflare</td>
+          <td><div class="scorebar"><i style="width:84%;background:#ef4444"></i></div></td>
+          <td><span class="vr fronted">fronted</span></td>
+          <td><span class="fw-chip fw-ow">A01</span> mismatch <span class="fw-chip fw-ow">A04</span> cdn-signature <span class="fw-chip fw-ni">DE</span> ttl</td>
+        </tr>
+        <tr style="background:linear-gradient(90deg,rgba(225,112,85,.10),transparent 40%)">
+          <td><code>rec-0003</code></td><td><strong>SNI_SPOOF</strong></td>
+          <td><code>www.cloudflare.com</code></td><td><code>bgp-relay.internal.example</code></td>
+          <td>104.16.44.34</td><td>cloudflare</td>
+          <td><div class="scorebar"><i style="width:68%;background:#e17055"></i></div></td>
+          <td><span class="vr suspicious">suspicious</span></td>
+          <td><span class="fw-chip fw-ow">A01</span> mismatch <span class="fw-chip fw-ow">A04</span> cdn-signature</td>
+        </tr>
+        <tr>
+          <td><code>rec-0004</code></td><td>HTTPS_TUNNEL</td>
+          <td><code>cdn.example-edge.com</code></td><td><code>cdn.example-edge.com</code></td>
+          <td>172.64.128.1</td><td>cloudflare</td>
+          <td><div class="scorebar"><i style="width:0%;background:#059669"></i></div></td>
+          <td><span class="vr benign">benign</span></td><td>IP-only tunnel, no visible HTTP to score</td>
+        </tr>
+        <tr style="background:linear-gradient(90deg,rgba(225,112,85,.10),transparent 40%)">
+          <td><code>rec-0005</code></td><td><strong>H2_SPOOF</strong></td>
+          <td><code>www.fastly.com</code></td><td><code>www.fastly.com</code></td>
+          <td>151.101.0.137</td><td>fastly</td>
+          <td><div class="scorebar"><i style="width:42%;background:#e17055"></i></div></td>
+          <td><span class="vr suspicious">suspicious</span></td>
+          <td><span class="fw-chip fw-ow">A08</span> authority-divergence <span class="fw-chip fw-ni">D</span> ttl</td>
+        </tr>
+        <tr>
+          <td><code>rec-0006</code></td><td>BENIGN_CDN</td>
+          <td><code>cdn.medium.example</code></td><td><code>cdn.medium.example</code></td>
+          <td>13.32.0.1</td><td>amazon</td>
+          <td><div class="scorebar"><i style="width:0%;background:#059669"></i></div></td>
+          <td><span class="vr benign">benign</span></td><td>legitimate CDN front, consistent SNI/Host</td>
+        </tr>
+        <tr>
+          <td><code>rec-0007</code></td><td>NORMAL</td>
+          <td><code>assets.fastlycdn.example</code></td><td><code>assets.fastlycdn.example</code></td>
+          <td>199.232.0.1</td><td>fastly</td>
+          <td><div class="scorebar"><i style="width:0%;background:#059669"></i></div></td>
+          <td><span class="vr benign">benign</span></td><td>-</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sec-head">
+      <div class="no" style="background:linear-gradient(135deg,#0ea5e9,#2dd4bf)">i</div>
+      <div>
+        <h2>Interpretation Guidance</h2>
+        <p>How to read a verdict in an operational environment.</p>
+      </div>
+    </div>
+    <div class="grid g3">
+      <div class="card">
+        <h4>fronted</h4>
+        <p>SNI/Host divergence on a shared-anycast CDN edge, often with custom TLS stack markers.
+          Treat as a high-priority alert: investigate origin reachability, inspect allow-lists,
+          review routing fabric. <em>OWASP A01/A04/A10 - NIST DE</em>.</p>
+      </div>
+      <div class="card">
+        <h4>suspicious</h4>
+        <p>Two or more alignment anomalies (authority divergence, TTL, fingerprint drift).
+          Correlate across time windows and peers before escalating. <em>OWASP A08/A09 - NIST DE/RS</em>.</p>
+      </div>
+      <div class="card">
+        <h4>benign</h4>
+        <p>Consistent SNI/Host/cert/route. Note that <strong>absence of evidence is not evidence of absence</strong> -
+          ECH and full CDN-legit fronting stay invisible to passive inspection.</p>
+      </div>
+    </div>
+  </section><section class="tab" id="t4">
+    <div class="sec-head">
+      <div class="no">4</div>
+      <div>
+        <h2>Compliance &amp; Audit Mapping</h2>
+        <p>Every finding, rule and control is cross-referenced across the three catalogs for audit-ready traceability.</p>
+      </div>
+    </div>
+
+    <div class="grid g4">
+      <div class="card">
+        <div class="icon">OW</div>
+        <h4>OWASP Top 10 (2021)</h4>
+        <p class="kpi">10 <small>top-level categories seeded</small></p>
+        <div class="badge-row">
+          <span class="chip fw-ow">A01 Access</span><span class="chip fw-ow">A02 Crypto</span>
+          <span class="chip fw-ow">A03 Injection</span><span class="chip fw-ow">A04 Design</span>
+          <span class="chip fw-ow">A05 Config</span><span class="chip fw-ow">A08 Integrity</span>
+          <span class="chip fw-ow">A09 Logging</span><span class="chip fw-ow">A10 SSRF</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">CSF</div>
+        <h4>NIST CSF 2.0</h4>
+        <p class="kpi">6 <small>core functions</small></p>
+        <div class="badge-row">
+          <span class="chip fw-ni">GV Govern</span><span class="chip fw-ni">ID Identify</span>
+          <span class="chip fw-ni">PR Protect</span><span class="chip fw-ni">DE Detect</span>
+          <span class="chip fw-ni">RS Respond</span><span class="chip fw-ni">RC Recover</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">ISO</div>
+        <h4>ISO/IEC 27001:2022</h4>
+        <p class="kpi">8 <small>Annex A controls referenced</small></p>
+        <div class="badge-row">
+          <span class="chip fw-is">A5.2</span><span class="chip fw-is">A5.10</span>
+          <span class="chip fw-is">A8.9</span><span class="chip fw-is">A8.16</span>
+          <span class="chip fw-is">A8.20</span><span class="chip fw-is">A8.24</span>
+          <span class="chip fw-is">A8.28</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">G</div>
+        <h4>Audit Trace</h4>
+        <p class="kpi">24 <small>controls exported per report</small></p>
+        <p>Findings carry <code>refs</code> - e.g. <code>OWASP-04</code>, <code>NIST:C</code>,
+          <code>ISO:A8.28</code> - resolvable to control descriptors in <code>framework_mapping.csv</code>.</p>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <div class="no" style="background:linear-gradient(135deg,#059669,#fbbf24)">M</div>
+      <div>
+        <h2>Control Cross-Reference</h2>
+        <p>Relevant controls and their standing in this demo.</p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Framework</th><th>Ref</th><th>Control</th><th>Mapping to demo capability</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="fw-chip fw-ow">OWASP</span></td><td><code>A01</code></td><td>Broken Access Control</td><td>Hidden origins exposed via fronted channel bypass coarse IP allow-lists</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-ow">OWASP</span></td><td><code>A04</code></td><td>Insecure Design</td><td>Design assumes attacker controls SNI and Host independently</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-ow">OWASP</span></td><td><code>A07</code></td><td>Identification &amp; Authentication Failures</td><td>Origin must not treat SNI as identity or authn token</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-ow">OWASP</span></td><td><code>A08</code></td><td>Software &amp; Data Integrity Failures</td><td>:authority / Host must be validated end-to-end</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-ow">OWASP</span></td><td><code>A09</code></td><td>Logging &amp; Monitoring Failures</td><td>SNI/Host/JA4 telemetry feeds the detection engine</td><td><span class="sev medium">monitoring</span></td></tr>
+        <tr><td><span class="fw-chip fw-ow">OWASP</span></td><td><code>A10</code></td><td>SSRF</td><td>Fronted channel can turn CDN edge into an SSRF pivot toward origins</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-ni">NIST</span></td><td><code>ID</code></td><td>Identify</td><td>Inventory origins, CDN edges and expected SNI/Host pairings</td><td><span class="sev medium">review</span></td></tr>
+        <tr><td><span class="fw-chip fw-ni">NIST</span></td><td><code>PR</code></td><td>Protect</td><td>TLS 1.3 / pinned-cert / allow-list defaults</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-ni">NIST</span></td><td><code>DE</code></td><td>Detect</td><td>Continuous SNI/authority/TTL/JA4 analytics lane</td><td><span class="sev medium">monitoring</span></td></tr>
+        <tr><td><span class="fw-chip fw-ni">NIST</span></td><td><code>RS</code></td><td>Respond</td><td>Playbooks to terminate or quarantine fronted channels</td><td><span class="sev medium">review</span></td></tr>
+        <tr><td><span class="fw-chip fw-is">ISO</span></td><td><code>A8.16</code></td><td>Monitoring activities</td><td>Active monitoring of egress/ingress TLS for misuse</td><td><span class="sev medium">monitoring</span></td></tr>
+        <tr><td><span class="fw-chip fw-is">ISO</span></td><td><code>A8.20</code></td><td>Networks security</td><td>Segment and filter egress so fronted channels cannot reach origins</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-is">ISO</span></td><td><code>A8.24</code></td><td>Use of cryptography</td><td>Consistent crypto policy on egress TLS stacks</td><td><span class="sev high">adopt</span></td></tr>
+        <tr><td><span class="fw-chip fw-is">ISO</span></td><td><code>A8.28</code></td><td>Secure coding</td><td>Host/:authority validation in app code; no implicit SNI trust</td><td><span class="sev high">adopt</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="legend">
+      <span><i style="background:#e17055"></i>adopt</span>
+      <span><i style="background:#fbbf24"></i>review</span>
+      <span><i style="background:#38bdf8"></i>monitoring</span>
+      <span>Full catalog exported to <code>.xlsx</code> / <code>.csv</code> (sheet: Framework Mapping)</span>
+    </div>
+  </section><section class="tab" id="t5">
+    <div class="sec-head">
+      <div class="no">5</div>
+      <div>
+        <h2>Report &amp; Export Layer</h2>
+        <p>Identical dataset, four branded artifacts - pick the format your audience needs.</p>
+      </div>
+    </div>
+
+    <div class="grid g4">
+      <div class="card">
+        <div class="icon">XLSX</div>
+        <h4>Excel Workbook</h4>
+        <p><code>traffic_obfuscation_report.xlsx</code> - multi-sheet: Overview, Flow Verdicts,
+          Findings, Framework Mapping, Raw Records. Color-coded severity fills, auto-width columns.</p>
+        <div class="badge-row"><span class="chip fw-ow">analysts</span><span class="chip fw-ni">auditors</span></div>
+      </div>
+      <div class="card">
+        <div class="icon">CSV</div>
+        <h4>CSV Facets</h4>
+        <p><code>flow_verdicts.csv</code> Â· <code>findings.csv</code> Â· <code>framework_mapping.csv</code> -
+          UTF-8 BOM so Excel opens them cleanly; ideal for SIEM / pipeline ingestion.</p>
+        <div class="badge-row"><span class="chip fw-ow">SIEM</span><span class="chip fw-is">Splunk/ELK</span></div>
+      </div>
+      <div class="card">
+        <div class="icon">HTML</div>
+        <h4>Interactive Report</h4>
+        <p><code>traffic_obfuscation_report.html</code> - self-contained, branded, printable digest:
+          verdicts, severity-pill findings, framework coverage table.</p>
+        <div class="badge-row"><span class="chip fw-ow">management</span><span class="chip fw-ni">share</span></div>
+      </div>
+      <div class="card">
+        <div class="icon">JSON</div>
+        <h4>Machine Data</h4>
+        <p><code>traffic_obfuscation_report.json</code> - the full bundle: flows, findings, records,
+          framework stats - stable schema for downstream tooling and automation.</p>
+        <div class="badge-row"><span class="chip fw-ow">APIs</span><span class="chip fw-is">automation</span></div>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <div class="no" style="background:linear-gradient(135deg,#f43f5e,#fbbf24)">F</div>
+      <div>
+        <h2>Generated Artifact Tree</h2>
+        <p>One run, one timestamped folder under <code>output/report_&lt;stamp&gt;/</code>.</p>
+      </div>
+    </div>
+    <div class="diagram" style="padding:18px 22px">
+      <pre style="font-family:Consolas,monospace;font-size:12.5px;color:#a5f3fc;margin:0;line-height:2">
+output/
+  report_20260920_101159/
+    traffic_obfuscation_report.xlsx   <span style="color:#7c86ab"># Overview | Verdicts | Findings | Frameworks | Raw</span>
+    traffic_obfuscation_report.html   <span style="color:#7c86ab"># branded, printable digest</span>
+    traffic_obfuscation_report.json   <span style="color:#7c86ab"># machine-readable bundle</span>
+    flow_verdicts.csv                 <span style="color:#7c86ab"># per-flow scoring</span>
+    findings.csv                      <span style="color:#7c86ab"># rule-level evidence</span>
+    framework_mapping.csv             <span style="color:#7c86ab"># OWASP | NIST CSF | ISO 27001 controls</span></pre>
+    </div>
+  </section>
+
+  <footer>
+    (c) 2026 Traffic Obfuscation Techniques Demo - educational lab only.<br>
+    Heuristic indicators are <strong>not</strong> attribution; no real domains were contacted. Synthetic TLS metadata only.
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('nav button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('nav button').forEach(function (b) { b.classList.remove('on'); });
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('on'); });
+      btn.classList.add('on');
+      var panel = document.getElementById(btn.dataset.tab);
+      if (panel) { panel.classList.add('on'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    });
+  });
+  document.querySelectorAll('.cmd').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+    });
+  });
+</script>
+</body>
+</html>

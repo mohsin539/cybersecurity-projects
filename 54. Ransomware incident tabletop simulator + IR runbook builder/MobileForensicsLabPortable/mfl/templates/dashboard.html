@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+
+<h1>📊 Lab Dashboard</h1>
+<div class="sub">Principal operating picture for the forensic lab console.</div>
+
+<div class="grid stats">
+  <div class="card stat grad-cyan"><div class="num">{{ total_cases }}</div><div class="lbl">Total cases</div></div>
+  <div class="card stat grad-amber"><div class="num">{{ open_cases }}</div><div class="lbl">Open / active</div></div>
+  <div class="card stat grad-magenta"><div class="num">{{ evidence }}</div><div class="lbl">Evidence items</div></div>
+  <div class="card stat grad-violet"><div class="num">{{ artifacts }}</div><div class="lbl">Artifacts</div></div>
+  <div class="card stat grad-green"><div class="num">{{ audits }}</div><div class="lbl">Audit events</div></div>
+  <div class="card stat grad-red"><div class="num">{{ posture['score'] }}%</div><div class="lbl">Compliance posture</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1.4fr 1fr; margin-top:22px">
+  <div>
+    <div class="card">
+      <h3 style="margin-top:0">🗂️ Recent cases</h3>
+      {% if recent_cases %}
+      <div class="tblwrap"><table>
+        <tr><th>Ref</th><th>Title</th><th>Status</th><th>Severity</th><th>Updated</th></tr>
+        {% for c in recent_cases %}
+        <tr>
+          <td><a href="{{ url_for('cases.detail', cid=c['id']) }}"><code>{{ c['case_ref'] }}</code></a></td>
+          <td>{{ c['title'] }}</td>
+          <td><span class="tag tag-{{ 'cyan' if c['status']=='open' else ('amber' if c['status']=='active' else 'green' if c['status']=='closed' else 'gray') }}">{{ c['status'] }}</span></td>
+          <td><span class="tag sev-{{ c['severity'] if c['severity'] in ('blocker','critical','high','medium','low','info') else 'info' }}">{{ c['severity'] }}</span></td>
+          <td class="small muted">{{ c['updated_at'] }}</td>
+        </tr>
+        {% endfor %}
+      </table></div>
+      {% else %}<div class="empty">No cases yet — create your first case from the Cases module.</div>{% endif %}
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h3 style="margin-top:0">🛡️ Framework posture</h3>
+      {% for fw, (ev, total) in by_fw.items() %}
+      <div class="small muted" style="margin-top:10px">{{ fw }}</div>
+      <div class="bar"><i style="width: {{ (100*ev/total) if total else 0 }}%"></i></div>
+      <div class="small">{{ ev }}/{{ total }} controls evidenced</div>
+      {% endfor %}
+      <div class="actions"><a class="btn ghost" href="{{ url_for('compliance.index') }}">Open compliance dashboard →</a></div>
+    </div>
+    <div class="card mt">
+      <h3 style="margin-top:0">🧾 Latest audit activity</h3>
+      {% if recent_audits %}
+      {% for e in recent_audits %}
+      <div class="small" style="padding:5px 0;border-bottom:1px solid var(--line)">
+        <span class="tag tag-{{ 'cyan' if e['action'] in ('LOGIN','CASE_CREATE','EVIDENCE_CREATE') else 'amber' if e['action'] in ('REPORT_ORDERED','CUSTODY_EVENT') else 'violet' if e['action'] in ('AUDIT_EXPORT','COMPLIANCE_VIEW') else 'gray' }}">{{ e['action'] }}</span>
+        <span class="muted">{{ e['ts'] }}</span>
+      </div>
+      {% endfor %}
+      {% else %}<div class="empty">No audit events yet.</div>{% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

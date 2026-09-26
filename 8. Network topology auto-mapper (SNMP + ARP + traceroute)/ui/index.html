@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Network Topology Auto-Mapper</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="icon" href="data:," />
+</head>
+<body>
+<div id="screen-login" class="screen hidden">
+  <form id="form-login" class="card" autocomplete="off">
+    <h1>Network Topology Auto-Mapper</h1>
+    <p class="sub">Secure discovery console — SNMP/ARP/traceroute</p>
+    <label>Username<input name="username" required autofocus /></label>
+    <label>Password<input name="password" type="password" required /></label>
+    <label>TOTP / one-time code (optional)<input name="code" placeholder="000000" /></label>
+    <div id="login-err" class="err"></div>
+    <button type="submit">Sign in</button>
+  </form>
+</div>
+
+<div id="screen-app" class="screen hidden">
+  <header class="topbar">
+    <span class="brand">NTM</span>
+    <span id="who" class="who"></span>
+    <nav>
+      <button data-view="dashboard" class="nv active">Dashboard</button>
+      <button data-view="topology" class="nv">Topology</button>
+      <button data-view="inventory" class="nv">Inventory</button>
+      <button data-view="audit" class="nv">Audit</button>
+    </nav>
+    <button id="btn-logout" class="ghost">Sign out</button>
+  </header>
+
+  <main>
+    <section id="view-dashboard" class="view">
+      <div class="card">
+        <h2>Run a discovery scan</h2>
+        <form id="form-scan" class="row">
+          <label>Scope (CIDR subnet)<input name="scope" placeholder="10.10.0.0/16" required /></label>
+          <label>Item budget<input name="budget" type="number" value="6000" min="100" max="20000" /></label>
+          <button type="submit">Launch simulated scan</button>
+        </form>
+        <div id="scan-err" class="err"></div>
+        <div id="scan-info" class="dim"></div>
+      </div>
+      <div class="card">
+        <h2>Job progress</h2>
+        <div id="job-status" class="dim">no job yet</div>
+        <progress id="job-bar" max="100" value="0"></progress>
+      </div>
+    </section>
+
+    <section id="view-topology" class="view hidden">
+      <div class="card">
+        <div class="row between">
+          <h2>Topology</h2>
+          <button id="btn-refresh-topo" class="ghost">Refresh</button>
+        </div>
+        <div id="topo-note"></div>
+        <div id="topo" class="topobox"></div>
+      </div>
+    </section>
+
+    <section id="view-inventory" class="view hidden">
+      <div class="card">
+        <div class="row between">
+          <h2>Device inventory</h2>
+          <button id="btn-refresh-inv" class="ghost">Refresh</button>
+        </div>
+        <div id="inv-note"></div>
+        <table id="inv-table" class="table">
+          <thead><tr><th>IP</th><th>Name</th><th>MAC</th><th>Vendor</th><th>Kind</th><th>Last seen</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="view-audit" class="view hidden">
+      <div class="card">
+        <div class="row between">
+          <h2>Audit chain</h2>
+          <span id="audit-ok" class="badge">verify…</span>
+        </div>
+        <table class="table">
+          <thead><tr><th>#</th><th>When</th><th>Actor</th><th>Action</th><th>Target</th><th>Result</th></tr></thead>
+          <tbody id="audit-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<iframe id="dl" class="hidden"></iframe>
+<script src="app.js"></script>
+</body>
+</html>

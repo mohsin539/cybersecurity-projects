@@ -1,0 +1,15 @@
+﻿technique_id,name,severity,coverage,expected_rules,covered_rules,coverage_ratio
+T1021.002,SMB / Windows Admin Shares,high,100%,2,2,1.0
+T1021.006,Windows Remote Management (WinRM),high,100%,1,1,1.0
+T1021.001,Remote Desktop Protocol (RDP),medium,100%,1,1,1.0
+T1550.002,Pass-the-Hash,critical,100%,1,1,1.0
+T1550.003,Pass-the-Ticket,critical,100%,1,1,1.0
+T1558.003,Kerberoasting,high,100%,1,1,1.0
+T1021.003,Distributed COM (DCOM),high,100%,1,1,1.0
+T1570,Lateral Tool Transfer,medium,100%,1,1,1.0
+T1078,Valid Accounts,high,100%,1,1,1.0
+T1047,Windows Management Instrumentation (WMI),high,100%,1,1,1.0
+T1543.003,Windows Service (PsExec-style),high,100%,1,1,1.0
+T1021.004,SSH,medium,100%,1,1,1.0
+T1087,Account Discovery,low,100%,1,1,1.0
+T1018,Remote System Discovery,low,0%,1,0,0.0

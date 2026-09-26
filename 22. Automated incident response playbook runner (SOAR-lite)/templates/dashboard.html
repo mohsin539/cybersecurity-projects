@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · SOAR-Lite{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-num">{{ open_cases }}</div><div class="kpi-label">Open cases</div></div>
+  <div class="kpi"><div class="kpi-num">{{ alerts_24h }}</div><div class="kpi-label">Alerts (24h)</div></div>
+  <div class="kpi"><div class="kpi-num">{{ alerts_7d }}</div><div class="kpi-label">Alerts (7d)</div></div>
+  <div class="kpi"><div class="kpi-num">{{ pending_approvals }}</div><div class="kpi-label">Pending approvals</div></div>
+  <div class="kpi"><div class="kpi-num {% if sla %}bad{% endif %}">{{ sla }}</div><div class="kpi-label">SLA breaches</div></div>
+  <div class="kpi"><div class="kpi-num">{{ mttc_min }}</div><div class="kpi-label">MTTC (min)</div></div>
+  <div class="kpi"><div class="kpi-num {% if dlq %}warn{% endif %}">{{ dlq }}</div><div class="kpi-label">Dead letters</div></div>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Latest executions</h2>
+    <table>
+      <thead><tr><th>Run</th><th>Playbook</th><th>Status</th><th>Started</th></tr></thead>
+      <tbody>
+      {% for r in runs %}
+        <tr>
+          <td><a href="/runs/{{ r.id }}">{{ r.id[:8] }}</a></td>
+          <td>{{ r.trigger_summary }}</td>
+          <td>{% if r.status == 'succeeded' %}<span class="pill ok">success</span>
+              {% elif r.status == 'failed' or r.status == 'compensated' %}<span class="pill bad">{{ r.status }}</span>
+              {% elif r.status == 'awaiting_approval' %}<span class="pill warn">awaiting approval</span>
+              {% else %}<span class="pill">{{ r.status }}</span>{% endif %}</td>
+          <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">No executions yet — try <a href="/ingest-demo">ingesting a demo alert</a>.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Latest alerts</h2>
+    <table>
+      <thead><tr><th>Time</th><th>Source</th><th>Category</th><th>Severity</th></tr></thead>
+      <tbody>
+      {% for a in recent_alerts %}
+        <tr>
+          <td>{{ a.created_at.strftime('%H:%M') }}</td>
+          <td><a href="/alerts/{{ a.id }}">{{ a.source }}</a></td>
+          <td>{{ a.category }}</td>
+          <td>{% if a.severity >= 4 %}<span class="pill bad">high</span>{% elif a.severity == 3 %}<span class="pill warn">med</span>{% else %}<span class="pill">low</span>{% endif %}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">No alerts yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

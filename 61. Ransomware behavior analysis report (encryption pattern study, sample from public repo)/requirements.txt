@@ -1,0 +1,4 @@
+# Runtime uses ONLY the Python standard library (tkinter, sqlite3, hashlib,
+# struct, collections, json, threading). PyInstaller is required only at build
+# time to produce the portable .exe.
+pyinstaller>=6.22

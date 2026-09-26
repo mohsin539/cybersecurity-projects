@@ -1,0 +1,1 @@
+"""detectors package - L3 Zeek + Suricata signature engines."""

@@ -1,0 +1,55 @@
+# ---- dependencies ----
+node_modules/
+.pnp
+.pnp.js
+
+# ---- build output ----
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# ---- runtime data (NEVER commit - may contain encrypted PII / audit trail) ----
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+storage/
+!storage/.gitkeep
+
+# ---- secrets (OWASP A05:2021 - never commit key material) ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# ---- audit exports (may contain personal data) ----
+exports/
+*.audit.json
+*.csv
+*.xlsx
+*.pdf
+
+# ---- logs ----
+logs/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# ---- editor / OS ----
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---- test / coverage ----
+coverage/
+.nyc_output/

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Reports · Purple Team Capstone{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>📈 Reports &amp; Exports</h1>
+    <p class="muted">One normalized schema → three renderers (openpyxl / csv / Jinja2-HTML). Every export is hash-signed into the audit trail.</p>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat link"><a class="btn pu" href="/export/xlsx">⬇ Full .XLSX</a><span>all cases · 7 sheets</span></div>
+  <div class="stat link"><a class="btn bl" href="/export/csv?kind=mapping">⬇ .CSV mapping</a><span>technique verdicts</span></div>
+  <div class="stat link"><a class="btn bl" href="/export/csv?kind=controls">⬇ .CSV controls</a><span>ISO/NIST/OWASP</span></div>
+  <div class="stat link"><a class="btn green" href="/export/html?case_id={{ cases[0].id if cases else 1 }}">⬇ .HTML report</a><span>cover · TOC · heat verdicts</span></div>
+</div>
+
+<div class="two">
+  <div class="card">
+    <h3>📚 Per-case exports</h3>
+    {% for c in cases %}
+    <div class="row plain">
+      <b>{{ c.title }}</b>
+      <div class="btns small">
+        <a href="/export/xlsx?case_id={{ c.id }}" class="btn pu">XLSX</a>
+        <a href="/export/csv?kind=mapping&case_id={{ c.id }}" class="btn bl">CSV</a>
+        <a href="/export/html?case_id={{ c.id }}" class="btn green">HTML</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>🧾 Compliance Posture Registry</h3>
+    <table class="tbl">
+      <thead><tr><th>Control</th><th>Title</th><th>ISO</th><th>NIST</th><th>OWASP</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for c in controls %}
+        <tr><td class="mono">{{ c.code }}</td><td>{{ c.title }}</td><td>{{ c.iso_ref }}</td>
+        <td>{{ c.nist_ref }}</td><td>{{ c.owasp_ref }}</td>
+        <td><span class="pill {{ c.status }}">{{ c.status }}</span></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3>🕵️ Recent Audit Trail (ISO A.5.28)</h3>
+  <div id="audit" class="chips"><span class="chip dim">loading…</span></div>
+</div>
+{% endblock %}

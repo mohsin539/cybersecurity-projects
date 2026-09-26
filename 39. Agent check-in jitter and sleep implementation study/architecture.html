@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Check-in Jitter &amp; Sleep Implementation Study — Architecture Blueprint</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0e1430; --panel:#111a33; --panel2:#16203f;
+    --line:#223055; --text:#e6ecff; --muted:#8fa0c8; --faint:#5a6a92;
+    --cyan:#22d3ee; --teal:#2dd4bf; --green:#34d399; --amber:#fbbf24;
+    --magenta:#f472b6; --violet:#a78bfa; --rose:#fb7185; --blue:#60a5fa;
+    --mono:'Cascadia Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(1200px 600px at 80% -10%,#1b2b5e 0%,transparent 60%),
+       radial-gradient(900px 500px at -10% 20%,#1e2a4a 0%,transparent 55%),
+       var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.65}
+  a{color:var(--cyan)}
+  ::selection{background:#22d3ee33}
+
+  /* ── header ── */
+  header{position:relative;overflow:hidden;padding:64px 40px 54px;text-align:center;
+    background:linear-gradient(135deg,#0e2a4a 0%,#12245e 45%,#311a5e 100%)}
+  header::before,header::after{content:"";position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;pointer-events:none}
+  header::before{width:480px;height:480px;background:#22d3ee22;top:-220px;left:-120px}
+  header::after{width:420px;height:420px;background:#f472b622;bottom:-240px;right:-100px}
+  .kicker{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:3px;
+    color:var(--cyan);border:1px solid #22d3ee55;border-radius:999px;padding:6px 18px;margin-bottom:18px;background:#22d3ee11}
+  h1{font-size:clamp(28px,4.4vw,52px);font-weight:800;letter-spacing:-.5px;
+    background:linear-gradient(90deg,var(--cyan),var(--teal) 35%,var(--green) 60%,var(--amber));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin-top:12px;color:var(--muted);font-size:16px;max-width:760px;margin-left:auto;margin-right:auto}
+  .badge-row{margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .badge{font-family:var(--mono);font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:#0f1730cc;color:var(--text)}
+
+  /* ── nav ── */
+  nav{position:sticky;top:0;z-index:50;display:flex;gap:4px;flex-wrap:wrap;align-items:center;
+    justify-content:center;padding:10px 16px;background:#0b1020e8;backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line)}
+  nav a{color:var(--muted);text-decoration:none;font-size:13px;padding:7px 13px;border-radius:8px;transition:.18s}
+  nav a:hover{color:var(--text);background:#1b2a55}
+
+  main{max-width:1180px;margin:0 auto;padding:34px 24px 80px}
+
+  section{margin:54px 0;scroll-margin-top:64px}
+  .sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .sec-num{font-family:var(--mono);font-weight:800;font-size:15px;min-width:40px;height:40px;display:grid;place-items:center;
+    border-radius:12px;color:#04121a;background:linear-gradient(135deg,var(--cyan),var(--teal))}
+  h2{font-size:26px;font-weight:700;letter-spacing:-.3px}
+  .sec-note{color:var(--muted);margin:2px 0 18px}
+
+  /* ── cards & grid ── */
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .card{background:linear-gradient(180deg,var(--panel),#0e1730);border:1px solid var(--line);border-radius:16px;padding:20px 20px 22px;transition:.2s}
+  .card:hover{transform:translateY(-3px);border-color:#2c4270;box-shadow:0 12px 30px #0008}
+  .card h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:9px}
+  .card h3 .dot{width:10px;height:10px;border-radius:3px;flex:none}
+  .card p{color:var(--muted);font-size:14px}
+  .card ul{list-style:none;margin-top:10px}
+  .card li{color:var(--muted);font-size:13px;padding:5px 0 5px 20px;position:relative}
+  .card li::before{content:"▸";position:absolute;left:4px;color:var(--cyan)}
+  code{font-family:var(--mono);background:#0d1526;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:12.5px;color:#a7e6f5}
+
+  /* ── color helpers ── */
+  .c-cyan{background:var(--cyan)} .c-teal{background:var(--teal)} .c-green{background:var(--green)}
+  .c-amber{background:var(--amber)} .c-magenta{background:var(--magenta)} .c-violet{background:var(--violet)}
+  .c-rose{background:var(--rose)} .c-blue{background:var(--blue)}
+  .bord-cyan{border-color:#22d3ee66 !important} .bord-teal{border-color:#2dd4bf66 !important}
+  .bord-green{border-color:#34d39966 !important} .bord-amber{border-color:#fbbf2466 !important}
+  .bord-magenta{border-color:#f472b666 !important} .bord-violet{border-color:#a78bfa66 !important}
+  .bord-rose{border-color:#fb718566 !important} .bord-blue{border-color:#60a5fa66 !important}
+
+  /* ── layers ── */
+  .layer{display:flex;gap:14px;align-items:stretch;margin-bottom:16px}
+  .layer-tag{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-weight:800;
+    font-size:12px;letter-spacing:2px;border-radius:12px;padding:12px 8px;display:flex;align-items:center;color:#04121a}
+  .layer-box{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .chip{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;display:inline-block;margin-right:6px}
+
+  /* ── tables ── */
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#0e172e}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+  thead th{text-align:left;padding:12px 16px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);background:#131f3f;border-bottom:1px solid var(--line)}
+  tbody td{padding:11px 16px;border-bottom:1px solid #1a2747;vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#18264655}
+  td .id{font-family:var(--mono);font-weight:700;color:var(--amber)}
+  td .pin{font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+  /* ── svg diagram box ── */
+  .diagram{background:#0c1326;border:1px solid var(--line);border-radius:18px;padding:22px;overflow-x:auto}
+  svg text{font-family:'Segoe UI',sans-serif}
+
+  /* ── pipeline steps ── */
+  .pipe{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+  .step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;position:relative}
+  .step .n{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--cyan)}
+  .step p{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .step::after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--faint);font-weight:800}
+  .step:last-child::after{content:none}
+
+  .mono{font-family:var(--mono)}
+  .qa{font-size:14px}
+  footer{text-align:center;color:var(--faint);font-size:12.5px;padding:30px;border-top:1px solid var(--line);
+    background:linear-gradient(180deg,transparent,#0a0e1e)}
+  @media print{ nav{display:none} body{background:#fff} .card,.diagram{box-shadow:none} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">STUDY · BLUEPRINT · PORTABLE EXE</div>
+  <h1>Agent Check-in Jitter &amp; Sleep</h1>
+  <h1 style="font-size:clamp(18px,2.6vw,30px);margin-top:4px">Implementation Study — Solution Architecture</h1>
+  <p class="sub">A portable, securely-hardened, single-file <b>.exe</b> research toolkit that simulates fleet-scale agent check-in behaviour, applies <b>jitter (timing randomisation)</b> and <b>sleep (duty-cycle) strategies</b>, and quantifies their impact on server load, network traffic, and power draw — exporting study results as <b>.xlsx · .csv · .html</b> (and more).</p>
+  <div class="badge-row">
+    <span class="badge">🐍 Python 3.11 + PyInstaller</span>
+    <span class="badge">🔒 OWASP Top 10 (2021)</span>
+    <span class="badge">🛡 NIST CSF 2.0</span>
+    <span class="badge">📜 ISO/IEC 27001:2022</span>
+    <span class="badge">📦 Single-File Portable</span>
+    <span class="badge">📊 xlsx · csv · html · json</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#highlevel">Layered Architecture</a>
+  <a href="#flow">Study Data Flow</a>
+  <a href="#engine">Jitter &amp; Sleep Engine</a>
+  <a href="#orchestrator">Study Orchestrator</a>
+  <a href="#reporting">Reporting Pipeline</a>
+  <a href="#packaging">Portable .exe</a>
+  <a href="#security">Security Blueprint</a>
+  <a href="#stack">Tech Stack</a>
+  <a href="#structure">Code Layout</a>
+  <a href="#roadmap">Roadmap</a>
+</nav>
+
+<main>
+
+<!-- ═══════════════ 1 OVERVIEW ═══════════════ -->
+<section id="overview">
+  <div class="sec-head"><div class="sec-num">01</div><h2>Executive Overview — Problem &amp; Purpose</h2></div>
+  <p class="sec-note qa">Why does a "check-in jitter and sleep study" matter? Every fleet of agents (IoT sensors, EDR endpoints, telemetry beacons, heartbeat pollers) risks the <b>Thundering-Herd problem</b>: when all agents tick on the same cadence, the server is hit by synchronised spikes.</p>
+
+  <div class="grid g3">
+    <div class="card bord-rose"><h3><span class="dot c-rose"></span>Thundering-Herd Problem</h3>
+      <p>1,000 agents sleeping 60s and waking at the same 60s boundary → 1,000 simultaneous requests → CPU/latency spikes, dropped packets, snowball retries that amplify the burst.</p>
+      <ul><li>Un-correlated traffic peaks by 10–100×</li><li>Retry-storms during outage recovery</li><li>Hard-to-size infrastructure</li></ul></div>
+    <div class="card bord-cyan"><h3><span class="dot c-cyan"></span>Jitter — the Fix</h3>
+      <p>Add a random offset (±Δ) to each agent's schedule so check-ins spread uniformly across the window. Traffic flattening replaces spike-flooding.</p>
+      <ul><li>Uniform, Gaussian, Poisson &amp; truncated-exponential samplers</li><li>Deterministic seeds for reproducible experiments</li><li>Configurable jitter % of base interval</li></ul></div>
+    <div class="card bord-green"><h3><span class="dot c-green"></span>Sleep — Duty-Cycling</h3>
+      <p>Agents enter deep-sleep between check-ins (power-down radios, timers). Balances freshness of data against battery &amp; bandwidth.</p>
+      <ul><li>Fixed, adaptive &amp; random sleep windows</li><li>Wake triggers, watchdog liveness</li><li>KPI: duty-cycle %, power budget, staleness</li></ul></div>
+  </div>
+
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card">
+      <h3><span class="dot c-amber"></span>Study Objectives</h3>
+      <ul>
+        <li>Quantify herd-coefficient / load-spike factor per strategy</li>
+        <li>Compare jitter distributions statistically (Mann-Whitney U, Welch t-test, effect size)</li>
+        <li>Model power draw &amp; network bytes vs. data freshness trade-off</li>
+        <li>Produce reproducible, auditable reports (.xlsx/.csv/.html)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot c-violet"></span>Key Deliverables</h3>
+      <ul>
+        <li>Deterministic simulation engine (DT-sim, wall-clock optional)</li>
+        <li>Interactive CLI + TUI dashboard (rich)</li>
+        <li>One-click report bundle with embedded charts</li>
+        <li>Signed portable .exe, zero-install, no admin rights</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot c-teal"></span>Measured KPIs</h3>
+      <ul>
+        <li>Peak-to-mean request ratio &amp; 99.9th latency</li>
+        <li>Bucket coefficient-of-variation (uniformity)</li>
+        <li>Sleep/wake duty-cycle &amp; simulated mAh draw</li>
+        <li>Bytes/agent/day &amp; sync-loss episodes</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 2 HIGH LEVEL ═══════════════ -->
+<section id="highlevel">
+  <div class="sec-head"><div class="sec-num">02</div><h2>High-Level Layered Architecture</h2></div>
+  <p class="sec-note sqa">Five horizontal layers + two cross-cutting planes. Colour-coded, dependency-inverted: Presentation never touches storage directly; everything funnels through the App layer. Security &amp; Observability span every layer.</p>
+
+  <div class="diagram">
+  <svg viewBox="0 0 1080 760" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI">
+    <defs>
+      <linearGradient id="gHeader" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/>
+      </linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <style>.b{fill:#101a36;stroke:#26335940}.bi{font-weight:700}.sp{fill:#293a6e}.lb{font-weight:800;letter-spacing:2px;fill:#05131c}</style>
+
+    <!-- PRESENTATION -->
+    <rect x="60" y="40" width="960" height="110" rx="14" class="b" stroke="#f472b6"/>
+    <text x="84" y="72" class="bi" fill="#f472b6">◈ PRESENTATION / CLIENT</text>
+    <g font-size="12.5">
+      <rect x="84" y="86" width="168" height="46" rx="9" fill="#f472b622" stroke="#f472b6"/><text x="168" y="104" text-anchor="middle" fill="#f9e8f3">CLI · click / argparse</text><text x="168" y="121" text-anchor="middle" fill="#cda0c0" font-size="10.5">--agents 5000 --jitter gaussian</text>
+      <rect x="268" y="86" width="168" height="46" rx="9" fill="#f472b622" stroke="#f472b6"/><text x="352" y="104" text-anchor="middle" fill="#f9e8f3">TUI · rich / textual</text><text x="352" y="121" text-anchor="middle" fill="#cda0c0" font-size="10.5">live progress + metrics</text>
+      <rect x="452" y="86" width="168" height="46" rx="9" fill="#f472b622" stroke="#f472b6"/><text x="536" y="104" text-anchor="middle" fill="#f9e8f3">Config Profile Loader</text><text x="536" y="121" text-anchor="middle" fill="#cda0c0" font-size="10.5">scenario YAML / JSON</text>
+      <rect x="636" y="86" width="210" height="46" rx="9" fill="#f472b622" stroke="#f472b6"/><text x="741" y="104" text-anchor="middle" fill="#f9e8f3">Report Funnel</text><text x="741" y="121" text-anchor="middle" fill="#cda0c0" font-size="10.5">xlsx · csv · html · json · pdf</text>
+    </g>
+
+    <!-- APPLICATION -->
+    <rect x="60" y="180" width="960" height="150" rx="14" class="b" stroke="#fbbf24"/>
+    <text x="84" y="212" class="bi" fill="#fbbf24">◈ APPLICATION / USE-CASE</text>
+    <g font-size="12.5">
+      <rect x="84" y="228" width="200" height="80" rx="9" fill="#fbbf2422" stroke="#fbbf24"/>
+      <text x="184" y="250" text-anchor="middle" fill="#fdeeb8" font-weight="700">Study Orchestrator</text>
+      <text x="184" y="268" text-anchor="middle" fill="#cbb283" font-size="10.5">scenario sweep / replays</text>
+      <text x="184" y="284" text-anchor="middle" fill="#cbb283" font-size="10.5">state-machine runner</text>
+      <text x="184" y="300" text-anchor="middle" fill="#cbb283" font-size="10.5">progress + ETA</text>
+      <rect x="300" y="228" width="200" height="80" rx="9" fill="#fbbf2422" stroke="#fbbf24"/>
+      <text x="400" y="250" text-anchor="middle" fill="#fdeeb8" font-weight="700">Experiment Matrix</text>
+      <text x="400" y="268" text-anchor="middle" fill="#cbb283" font-size="10.5">base × jitter × sleep × N</text>
+      <text x="400" y="284" text-anchor="middle" fill="#cbb283" font-size="10.5">Latin-square / full-grid</text>
+      <text x="400" y="300" text-anchor="middle" fill="#cbb283" font-size="10.5">seed replication ×10</text>
+      <rect x="516" y="228" width="200" height="80" rx="9" fill="#fbbf2422" stroke="#fbbf24"/>
+      <text x="616" y="250" text-anchor="middle" fill="#fdeeb8" font-weight="700">Comparison &amp; Statistics</text>
+      <text x="616" y="268" text-anchor="middle" fill="#cbb283" font-size="10.5">Mann-Whitney U · Welch t</text>
+      <text x="616" y="284" text-anchor="middle" fill="#cbb283" font-size="10.5">Hedges' g effect size</text>
+      <text x="616" y="300" text-anchor="middle" fill="#cbb283" font-size="10.5">confidence intervals</text>
+      <rect x="732" y="228" width="200" height="80" rx="9" fill="#fbbf2422" stroke="#fbbf24"/>
+      <text x="832" y="250" text-anchor="middle" fill="#fdeeb8" font-weight="700">Report Controller</text>
+      <text x="832" y="268" text-anchor="middle" fill="#cbb283" font-size="10.5">asset registry / metadata</text>
+      <text x="832" y="284" text-anchor="middle" fill="#cbb283" font-size="10.5">IR-bundle (summary)</text>
+      <text x="832" y="300" text-anchor="middle" fill="#cbb283" font-size="10.5">zip export</text>
+    </g>
+
+    <!-- DOMAIN -->
+    <rect x="60" y="360" width="960" height="150" rx="14" class="b" stroke="#22d3ee"/>
+    <text x="84" y="392" class="bi" fill="#22d3ee">◈ DOMAIN / CORE SIMULATION</text>
+    <g font-size="12.5">
+      <rect x="84" y="406" width="200" height="90" rx="9" fill="#22d3ee22" stroke="#22d3ee"/>
+      <text x="184" y="428" text-anchor="middle" fill="#c9f6ff" font-weight="700">Agent Model</text>
+      <text x="184" y="446" text-anchor="middle" fill="#8fd6e6" font-size="10.5">id · group · phase · state</text>
+      <text x="184" y="462" text-anchor="middle" fill="#8fd6e6" font-size="10.5">liveness · watchdog · retries</text>
+      <text x="184" y="478" text-anchor="middle" fill="#8fd6e6" font-size="10.5">power profile (mA/h)</text>
+      <rect x="300" y="406" width="200" height="90" rx="9" fill="#22d3ee22" stroke="#22d3ee"/>
+      <text x="400" y="428" text-anchor="middle" fill="#c9f6ff" font-weight="700">Jitter Engine</text>
+      <text x="400" y="446" text-anchor="middle" fill="#8fd6e6" font-size="10.5">uniform · gaussian · poisson</text>
+      <text x="400" y="462" text-anchor="middle" fill="#8fd6e6" font-size="10.5">triangular · exp-truncated</text>
+      <text x="400" y="478" text-anchor="middle" fill="#8fd6e6" font-size="10.5">seeded / reproducible</text>
+      <rect x="516" y="406" width="200" height="90" rx="9" fill="#22d3ee22" stroke="#22d3ee"/>
+      <text x="616" y="428" text-anchor="middle" fill="#c9f6ff" font-weight="700">Sleep Scheduler</text>
+      <text x="616" y="446" text-anchor="middle" fill="#8fd6e6" font-size="10.5">fixed / adaptive / random</text>
+      <text x="616" y="462" text-anchor="middle" fill="#8fd6e6" font-size="10.5">wake timers · duty-cycle</text>
+      <text x="616" y="478" text-anchor="middle" fill="#8fd6e6" font-size="10.5">failure backoff (exp+jitter)</text>
+      <rect x="732" y="406" width="200" height="90" rx="9" fill="#22d3ee22" stroke="#22d3ee"/>
+      <text x="832" y="428" text-anchor="middle" fill="#c9f6ff" font-weight="700">Discrete-Event Simulator</text>
+      <text x="832" y="446" text-anchor="middle" fill="#8fd6e6" font-size="10.5">heap-based event queue</text>
+      <text x="832" y="462" text-anchor="middle" fill="#8fd6e6" font-size="10.5">server model: queue + latency</text>
+      <text x="832" y="478" text-anchor="middle" fill="#8fd6e6" font-size="10.5">sampling 1s buckets</text>
+    </g>
+
+    <!-- INFRASTRUCTURE / PERSISTENCE -->
+    <rect x="60" y="540" width="960" height="110" rx="14" class="b" stroke="#34d399"/>
+    <text x="84" y="572" class="bi" fill="#34d399">◈ INFRASTRUCTURE / PERSISTENCE</text>
+    <g font-size="12.5">
+      <rect x="84" y="584" width="168" height="46" rx="9" fill="#34d39922" stroke="#34d399"/><text x="168" y="602" text-anchor="middle" fill="#d5fbe9">SQLite (WAL)</text><text x="168" y="619" text-anchor="middle" fill="#9ed8bb" font-size="10.5">runs · events · raw buckets</text>
+      <rect x="268" y="584" width="168" height="46" rx="9" fill="#34d39922" stroke="#34d399"/><text x="352" y="602" text-anchor="middle" fill="#d5fbe9">Parquet / Feeds</text><text x="352" y="619" text-anchor="middle" fill="#9ed8bb" font-size="10.5">large outcomes, analysis</text>
+      <rect x="452" y="584" width="168" height="46" rx="9" fill="#34d39922" stroke="#34d399"/><text x="536" y="602" text-anchor="middle" fill="#d5fbe9">Bundle Store</text><text x="536" y="619" text-anchor="middle" fill="#9ed8bb" font-size="10.5">out/ folder · iso-stamped</text>
+      <rect x="636" y="584" width="252" height="46" rx="9" fill="#34d39922" stroke="#34d399"/><text x="762" y="602" text-anchor="middle" fill="#d5fbe9">RNG &amp; Seeds Registry</text><text x="762" y="619" text-anchor="middle" fill="#9ed8bb" font-size="10.5">numpy.bit_generator → replay audit</text>
+    </g>
+
+    <!-- CROSS-CUTTING -->
+    <rect x="1032" y="40" width="12" height="610" rx="6" fill="#fb7185" opacity=".9"/>
+    <text x="1040" y="360" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" transform="rotate(90)">
+      SECURITY PLANE · OWASP · NIST 1 5 3 4 5 6 · ISO 27001 SHADED</text>
+    <rect x="1020" y="350" width="36" height="2" fill="#fb7185"/>
+
+    <!-- connector lines -->
+    <g stroke="#3b4f8a" stroke-width="1.6" fill="none" stroke-dasharray="5 4">
+      <path d="M180 195 L180 226"/><path d="M400 195 L400 226"/><path d="M616 195 L616 226"/><path d="M832 195 L832 226"/>
+      <path d="M184 398 L184 406"/><path d="M400 398 L400 406"/><path d="M616 398 L616 406"/><path d="M832 398 L832 406"/>
+      <path d="M184 496 L184 582"/><path d="M400 496 L400 582"/>
+    </g>
+  </svg>
+  </div>
+</section>
+
+<!-- ═══════════════ 3 FLOW ═══════════════ -->
+<section id="flow">
+  <div class="sec-head"><div class="sec-num">03</div><h2>End-to-End Study Data Flow</h2></div>
+  <p class="sec-note sqa">The pipeline: profile → simulate → score → aggregate → render → package. Every stage is deterministic (seed-carried) and appended to an immutable audit log.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 1080 300" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="gf" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#f472b6"/></linearGradient></defs>
+      <style>.bx{fill:#131e3b;stroke:#2c4270;rx:12}.tx{fill:#dfe9ff;font-size:13;font-weight:600;text-anchor:middle}.sx{fill:#7f90bd;font-size:10.5;text-anchor:middle}</style>
+      <g>
+        <rect x="30" y="70" width="150" height="78" class="bx"/><text x="105" y="98" class="tx">1 · Scenario</text><text x="105" y="118" class="sx">YAML profile</text>
+        <rect x="220" y="70" width="150" height="78" class="bx"/><text x="295" y="98" class="tx">2 · Simulate</text><text x="295" y="118" class="sx">DES event loop</text>
+        <rect x="410" y="70" width="150" height="78" class="bx"/><text x="485" y="98" class="tx">3 · Score KPIs</text><text x="485" y="118" class="sx">spikes · uniformity</text>
+        <rect x="600" y="70" width="150" height="78" class="bx"/><text x="675" y="98" class="tx">4 · Statistics</text><text x="675" y="118" class="sx">hypothesis tests</text>
+        <rect x="790" y="70" width="150" height="78" class="bx"/><text x="865" y="118" class="tx">5 · Render</text><text x="865" y="98" class="sx">charts + sheets</text>
+        <rect x="980" y="70" width="70" height="78" class="bx"/><text x="1015" y="118" class="tx">6 · 🗜</text>
+      </g>
+      <g stroke="url(#gf)" stroke-width="3" fill="none">
+        <path d="M185 109 H 214 M375 109 H 404 M565 109 H 594 M755 109 H 784 M945 109 H 974" marker-end="url(#arrow)"/>
+      </g>
+      <defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#f472b6"/></marker></defs>
+      <text x="30" y="30" fill="#a78bfa" font-size="12" font-weight="700">AUDIT TRAIL ⚠ immutable log of config_hash · seed · version · sha256 of every artifact</text>
+      <g stroke="#a78bfa22" stroke-width="1.4"><path d="M30 40 H1080" stroke-dasharray="3 4"/></g>
+    </svg>
+  </div>
+
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card bord-cyan"><h3><span class="dot c-cyan"></span>Check-in Lifecycle</h3>
+      <p class="mono" style="font-size:13px">SLEEPING ──► WAKING ──► CHECK-IN ──► PROCESS ──► SLEEPING</p>
+      <ul>
+        <li>Wake decision: timer expiry + jitter offset</li>
+        <li>Check-in: request latency modelled by server queue</li>
+        <li>On failure → exponential backoff + fresh jitter</li>
+        <li>Heartbeat ~ keepalive from a subset of agents</li>
+      </ul></div>
+    <div class="card bord-amber"><h3><span class="dot c-amber"></span>Server-Side Model</h3>
+      <ul>
+        <li>M/M/c-style queue with configurable workers</li>
+        <li>Per-request service time distribution</li>
+        <li>Queue length &amp; 99.9th percentile latency per bucket</li>
+        <li>Kernel-buffer drops at extreme synchronisation</li>
+      </ul></div>
+    <div class="card bord-violet"><h3><span class="dot c-violet"></span>Determinism &amp; Replays</h3>
+      <ul>
+        <li><code>numpy.random.SeedSequence</code> per scenario × replicate</li>
+        <li>Same seed → byte-identical results</li>
+        <li>Replay flag re-runs last seed registry</li>
+        <li>Config hash logged for reproducibility audits</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 4 ENGINE ═══════════════ -->
+<section id="engine">
+  <div class="sec-head"><div class="sec-num">04</div><h2>The Jitter &amp; Sleep Engine</h2></div>
+  <p class="sec-note sqa">The research heart. Jitter shapes <i>when</i> agents act; sleep shapes <i>how often</i> and <i>for how long</i>.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="dot c-cyan"></span>Jitter Distributions</h3>
+      <div class="tbl-wrap" style="margin-top:6px"><table>
+        <thead><tr><th>Strategy</th><th>Sampler</th><th>Use case</th></tr></thead>
+        <tbody>
+          <tr><td class="id">uniform</td><td>U(−J, +J)</td><td>Default; dead-simple spread</td></tr>
+          <tr><td class="id">gaussian</td><td>N(0, J/3)</td><td>Natural sensor drift, mild clustering</td></tr>
+          <tr><td class="id">triangular</td><td>Tri(−J, +J)</td><td>Weighted toward nominal interval</td></tr>
+          <tr><td class="id">poisson</td><td>Exp(λ) arrivals</td><td>Random-slot / slotted ALOHA style</td></tr>
+          <tr><td class="id">exp-truncated</td><td>Exp clipped [0, J]</td><td>Burst-then-quiet, aggressive de-sync</td></tr>
+        </tbody></table>
+      </div>
+      <p style="margin-top:10px">Jitter bound <code>J = interval × jitter_pct / 100</code>, clamped to a live global window so the herd-coefficient stays measurable.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="dot c-teal"></span>Sleep Strategies</h3>
+      <div class="tbl-wrap" style="margin-top:6px"><table>
+        <thead><tr><th>Mode</th><th>Behaviour</th><th>Power avatar</th></tr></thead>
+        <tbody>
+          <tr><td class="id">fixed</td><td>Constant sleep window</td><td>Baseline reference</td></tr>
+          <tr><td class="id">random</td><td>Sleep × U(0.5, 1.5)</td><td>Mixes duty cycles</td></tr>
+          <tr><td class="id">adaptive</td><td>Extend after quiet rounds</td><td>Aligned with server backpressure</td></tr>
+          <tr><td class="id">burst+backoff</td><td>Retry storms with exp backoff</td><td>Stress / failure scenarios</td></tr>
+        </tbody></table>
+      </div>
+      <p style="margin-top:10px">Each agent carries a power profile (active mA vs. sleep µA) → simulates mAh draw and battery-life impact per strategy.</p>
+    </div>
+  </div>
+
+  <div class="diagram" style="margin-top:18px">
+    <p style="color:var(--muted);font-size:12.5px;margin-bottom:8px">Illustration: 20 agents, base 60 s — left column herd-locked (no jitter), right column jittered. Dots = check-in events across 600 s.</p>
+    <svg viewBox="0 0 1080 240" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+      <style>.ax{fill:none;stroke:#2c4270}.tk{fill:#7f90bd;font-size:10.5}</style>
+      <!-- axes -->
+      <g stroke="#2c4270"><path d="M70 40 H1010 M70 40 V210 M1010 40 V210"/></g>
+      <text class="tk" x="540" y="228" text-anchor="middle">time (s) → 0–600</text>
+      <g fill="#7f90bd" font-size="10"><text x="66" y="224" text-anchor="end">t=0</text><text x="1006" y="224" text-anchor="end">t=600</text></g>
+      <!-- left: one column of dots at sync points -->
+      <g fill="#fb7185">
+        <rect x="86" y="46" width="10" height="160" fill="#fb718544" stroke="#fb7185"/>
+        <text class="tk" x="95" y="38" text-anchor="middle" fill="#fb7185">no-jitter: all agents fire at 60s boundaries</text>
+        <line x1="200" y1="206" x2="200" y2="50" stroke="#fb7185" stroke-dasharray="2 3"/>
+        <line x1="334" y1="206" x2="334" y2="50" stroke="#fb7185" stroke-dasharray="2 3"/>
+        <line x1="468" y1="206" x2="468" y2="50" stroke="#fb7185" stroke-dasharray="2 3"/>
+        <circle cx="200" cy="170" r="6"/><circle cx="200" cy="150" r="6"/><circle cx="200" cy="130" r="6"/><circle cx="200" cy="110" r="6"/><circle cx="200" cy="90" r="6"/><circle cx="200" cy="70" r="6"/>
+        <circle cx="334" cy="170" r="6"/><circle cx="334" cy="150" r="6"/><circle cx="334" cy="130" r="6"/><circle cx="334" cy="110" r="6"/><circle cx="334" cy="90" r="6"/><circle cx="334" cy="70" r="6"/>
+        <circle cx="468" cy="170" r="6"/><circle cx="468" cy="150" r="6"/><circle cx="468" cy="130" r="6"/><circle cx="468" cy="110" r="6"/><circle cx="468" cy="90" r="6"/><circle cx="468" cy="70" r="6"/>
+      </g>
+      <!-- right: spread dots -->
+      <g fill="#22d3ee">
+        <text class="tk" x="790" y="38" text-anchor="middle" fill="#22d3ee">jittered: events diffused across each window</text>
+        <g transform="translate(530,0)">
+          <circle cx="70" cy="180" r="5"/><circle cx="92" cy="120" r="5"/><circle cx="120" cy="156" r="5"/><circle cx="150" cy="98" r="5"/><circle cx="180" cy="142" r="5"/><circle cx="210" cy="170" r="5"/><circle cx="238" cy="88" r="5"/>
+          <circle cx="268" cy="128" r="5"/><circle cx="300" cy="150" r="5"/><circle cx="330" cy="110" r="5"/><circle cx="356" cy="168" r="5"/><circle cx="386" cy="102" r="5"/><circle cx="416" cy="136" r="5"/><circle cx="448" cy="82" r="5"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════ 5 ORCHESTRATOR ═══════════════ -->
+<section id="orchestrator">
+  <div class="sec-head"><div class="sec-num">05</div><h2>Study Orchestrator &amp; Metrics</h2></div>
+  <p class="sec-note sqa">Turns a scenario card into a validated, replicated, statistically-scored study run.</p>
+
+  <div class="pipe">
+    <div class="step"><div class="n">1 · Load</div><p>Parse YAML/JSON scenario; schema-validate (pydantic)</p></div>
+    <div class="step"><div class="n">2 · Normalise</div><p>Bounds-check ranges, clamp jitter %, resolve defaults</p></div>
+    <div class="step"><div class="n">3 · Matrix</div><p>Build experiment grid + Latin-square ordering</p></div>
+    <div class="step"><div class="n">4 · Replicate</div><p>SeedSequence → N runs per cell (default ×10)</p></div>
+    <div class="step"><div class="n">5 · Aggregate</div><p>Pool KPIs, bootstrap CIs, run comparisons</p></div>
+    <div class="step"><div class="n">6 · Publish</div><p>Render xlsx/csv/html, hash, write audit entry</p></div>
+  </div>
+
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card bord-amber"><h3><span class="dot c-amber"></span>Scenario Card (example YAML)</h3>
+<pre class="mono" style="background:#0d1526;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:11.5px;color:#b8e6b8;overflow-x:auto">agents: 10000
+interval_sec: 60
+jitter_pct: 25
+jitter_type: uniform
+sleep_mode: random
+sleep_base_sec: 45
+run_length_sec: 3600
+replicate: 10
+seed: 42
+server:
+  workers: 50
+  service_ms: 8
+power:
+  active_ma: 35
+  sleep_ua: 900</pre>
+    </div>
+    <div class="card bord-cyan"><h3><span class="dot c-cyan"></span>Key Metric Equations</h3>
+      <ul style="font-family:var(--mono);font-size:12.5px">
+        <li><b style="color:var(--cyan)">HerdCoef</b> = peak_bucket / mean_bucket</li>
+        <li><b style="color:var(--teal)">Uniformity</b> = 1 − (std / mean) over buckets</li>
+        <li><b style="color:var(--green)">DutyCycle</b> = active_s / total_s</li>
+        <li><b style="color:var(--amber)">Power</b> = (mA·act + µA·slp) · hrs / 1000 → mAh</li>
+        <li><b style="color:var(--magenta)">p99.9 Latency</b> from server queue tail</li>
+      </ul></div>
+    <div class="card bord-violet"><h3><span class="dot c-violet"></span>Scoring &amp; Verdicts</h3>
+      <ul>
+        <li>Statistical Win: Mann-Whitney U p &lt; 0.05 (Bonferroni-corrected for grid)</li>
+        <li>Practical Win: Hedges' g ≥ 0.5</li>
+        <li>Traffic Win: &lt;1.05-spike plateau achieved</li>
+        <li>Final verdict per strategy: <span class="chip c-green" style="color:#04121a">PASS</span> / <span class="chip c-amber" style="color:#04121a">CAUTION</span> / <span class="chip c-rose" style="color:#04121a">FAIL</span></li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 6 REPORTING ═══════════════ -->
+<section id="reporting">
+  <div class="sec-head"><div class="sec-num">06</div><h2>Reporting &amp; Export Pipeline</h2></div>
+  <p class="sec-note sqa">Every run produces a consistent, versioned bundle. Formats below plus optional JSON/PDF; all outputs carry the run manifest and artifact hashes.</p>
+
+  <div class="grid g4">
+    <div class="card bord-green"><h3><span class="dot c-green"></span>.xlsx</h3>
+      <p>openpyxl workbook with auto-styled, frozen-header sheets + native pivot-ready tables and inline bar sparklines.</p>
+      <ul><li>00_manifest · 01_summary · 02_buckets · 03_stats · 04_power · 05_events</li></ul></div>
+    <div class="card bord-cyan"><h3><span class="dot c-cyan"></span>.csv</h3>
+      <p>UTF-8, CRLF, quoted, RFC-4180. Machine-consumable raw feeds for external analysis.</p>
+      <ul><li>buckets.csv · agents.csv · comparisons.csv · manifest.csv</li></ul></div>
+    <div class="card bord-violet"><h3><span class="dot c-violet"></span>.html</h3>
+      <p>Self-contained interactive report — inline CSS/JS, embedded SVG charts, filterable tables + executive verdict cards.</p>
+      <ul><li>Dark/light toggle, print→PDF ready, zero internet needed</li></ul></div>
+    <div class="card bord-amber"><h3><span class="dot c-amber"></span>+ JSON / ZIP</h3>
+      <p>Raw results (JSON) for CI pipelines and a final ZIP bundle (timestamped, hashed manifest).</p>
+      <ul><li>report_YYYYMMDD_HHMMSS.zip · sha256.json</li></ul></div>
+  </div>
+
+  <div class="diagram" style="margin-top:16px">
+    <p style="color:var(--muted);font-size:12.5px;margin-bottom:10px">Export bundle anatomy — single source of truth feeds every renderer:</p>
+    <svg viewBox="0 0 1080 210" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+      <style>.c{fill:#131e3b;stroke:#2c4270;rx:11}.l{fill:#dfe9ff;font-size:12;font-weight:700}.s{fill:#7f90bd;font-size:10.5}</style>
+      <rect x="30" y="60" width="150" height="90" class="c" stroke="#22d3ee"/><text x="105" y="92" class="l" fill="#22d3ee" text-anchor="middle">Run Store</text><text x="105" y="112" class="s" text-anchor="middle">SQLite + parquet</text><text x="105" y="128" class="s" text-anchor="middle">canonical rows</text>
+      <rect x="230" y="60" width="150" height="90" class="c" stroke="#a78bfa"/><text x="305" y="92" class="l" fill="#a78bfa" text-anchor="middle">Report Core</text><text x="305" y="112" class="s" text-anchor="middle">render registry</text><text x="305" y="128" class="s" text-anchor="middle">style guides</text>
+      <rect x="430" y="20" width="140" height="62" class="c" stroke="#34d399"/><text x="500" y="44" class="l" fill="#34d399" text-anchor="middle">.xlsx</text><text x="500" y="60" class="s" text-anchor="middle">openpyxl</text>
+      <rect x="590" y="20" width="140" height="62" class="c" stroke="#60a5fa"/><text x="660" y="44" class="l" fill="#60a5fa" text-anchor="middle">.csv</text><text x="660" y="60" class="s" text-anchor="middle">csv + utf-8</text>
+      <rect x="750" y="20" width="140" height="62" class="c" stroke="#fbbf24"/><text x="820" y="44" class="l" fill="#fbbf24" text-anchor="middle">.html</text><text x="820" y="60" class="s" text-anchor="middle">inline charts</text>
+      <rect x="910" y="20" width="140" height="62" class="c" stroke="#f472b6"/><text x="980" y="44" class="l" fill="#f472b6" text-anchor="middle">.json</text><text x="980" y="60" class="s" text-anchor="middle">raw + meta</text>
+      <rect x="430" y="110" width="310" height="62" class="c" stroke="#fb7185"/><text x="585" y="132" class="l" fill="#fb7185" text-anchor="middle">zip + sha256 + manifest</text><text x="585" y="150" class="s" text-anchor="middle">single atomic bundle</text>
+      <rect x="760" y="110" width="290" height="62" class="c" stroke="#fb7185"/><text x="905" y="132" class="l" fill="#fb7185" text-anchor="middle">Audit log append</text><text x="905" y="150" class="s" text-anchor="middle">who · what · hash · ts</text>
+      <g stroke="#3b4f8a" stroke-width="1.5" fill="none"><path d="M180 100 H228 M380 100 H428 M500 82 V108 M660 82 V108 M820 82 V108 M980 82 V108 M585 110 V108 M905 108 V110"/></g>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════ 7 PACKAGING ═══════════════ -->
+<section id="packaging">
+  <div class="sec-head"><div class="sec-num">07</div><h2>Portable Single-File .EXE Packaging</h2></div>
+  <p class="sec-note sqa">PyInstaller <code>--onefile</code> build with a hardened spec: icon, version metadata, UAC-asInvoker, no admin, Windows-relevant launch hardening.</p>
+
+  <div class="grid g2">
+    <div class="card bord-cyan">
+      <h3><span class="dot c-cyan"></span>Build Pipeline</h3>
+      <div class="pipe" style="flex-direction:column">
+        <div class="step" style="text-align:left"><div class="n">1 · Dev container / venv + lock</div><p>ruff · mypy · pytest · bandit all green → CI gate</p></div>
+        <div class="step" style="text-align:left"><div class="n">2 · PyInstaller onefile</div><p>hidden-imports pinned, <code>--noupx</code>, reproducible build via spec file</p></div>
+        <div class="step" style="text-align:left"><div class="n">3 · Warm-up</div><p>extract to <code>%LOCALAPPDATA%</code> cache keyed by build hash</p></div>
+        <div class="step" style="text-align:left"><div class="n">4 · Runtime data dir</div><p><code>%LOCALAPPDATA%/AgentJitterStudy/</code> — never Program Files, no registry writes</p></div>
+        <div class="step" style="text-align:left"><div class="n">5 · Sign + verify</div><p>Authenticode/EV (optional), version resource, digital edition banner</p></div>
+      </div>
+    </div>
+
+    <div class="card bord-magenta">
+      <h3><span class="dot c-magenta"></span>Portability Guarantees</h3>
+      <table class="mono" style="font-size:12px;width:100%">
+        <thead><tr><th>Property</th><th>Implementation</th></tr></thead>
+        <tbody>
+          <tr><td>Zero-install</td><td>single .exe + self-extract</td></tr>
+          <tr><td>No admin</td><td>asInvoker manifest</td></tr>
+          <tr><td>No registry</td><td>portable ini + local dir</td></tr>
+          <tr><td>No internet</td><td>fonts/UI shipped inline</td></tr>
+          <tr><td>Data isolation</td><td>per-user LOCALAPPDATA</td></tr>
+          <tr><td>AV-friendly</td><td>signed, no packer junk, minimal entropy</td></tr>
+          <tr><td>Side-by-side</td><td>versioned build hash in dir</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px">Anti-smart-screen guidance: sign with a trusted cert; keep automatic updates signed and verify TLS pinning on update feeds.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3><span class="dot c-blue"></span>Example PyInstaller Spec</h3>
+<pre class="mono" style="background:#0d1526;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:12px;color:#a7e6f5;overflow-x:auto"># build.spec — python -m PyInstaller build.spec
+from PyInstaller.building.build_main import EXE, COLLECT
+exe = EXE(
+    pathex=['.'],
+    scripts=['src/main.py'],
+    name='AgentJitterStudy',
+    icon='assets/app.ico',
+    onefile=True,
+    console=False,                     # GUI/TUI entry
+    upx=False, noupx=True,
+    version='versioninfo.txt',         # FileDescription, ProductName...
+    manifest='app.manifest',           # asInvoker, dpi-aware
+    add-data=[('assets/*.ttf','assets'), ('scenarios/*.yml','scenarios')],
+    hiddenimports=['scipy.stats','matplotlib.backends.backend_svg'],
+    strip=False,
+)
+# warm-cache aware: config_dir = %LOCALAPPDATA%\AgentJitterStudy\cache</pre>
+  </div>
+</section>
+
+<!-- ═══════════════ 8 SECURITY ═══════════════ -->
+<section id="security">
+  <div class="sec-head"><div class="sec-num">08</div><h2>Security Blueprint — OWASP · NIST · ISO 27001</h2></div>
+  <p class="sec-note sqa">A defence-in-depth design. Since the tool is a local, offline study engine, the threat model centres on: malicious scenario payloads, unsafe output handling, supply-chain, local data integrity, and secret/token hygiene.</p>
+
+  <!-- OWASP -->
+  <div class="card bord-rose" style="margin-bottom:16px">
+    <h3><span class="dot c-rose"></span>OWASP Top 10 (2021) → Countermeasures</h3>
+    <div class="tbl-wrap" style="margin-top:10px"><table>
+      <thead><tr><th>#</th><th>Risk</th><th>Mitigation in solution</th></tr></thead>
+      <tbody>
+        <tr><td class="id">A01</td><td>Broken Access Control</td><td>Least-privilege runtime, per-user data dirs, no registry/system writes, role checks on export dirs.</td></tr>
+        <tr><td class="id">A02</td><td>Cryptographic Failures</td><td>No plaintext secrets; optional AES-256-GCM vault for report passphrases; TLS on update checks; artifact sha256 manifest.</td></tr>
+        <tr><td class="id">A03</td><td>Injection</td><td>Generated SQL/HTML/Excel values driven by typed models; parameterised queries; HTML entities auto-escaped in templates; CSV injection (leading <code>=+−@</code>) neutralised.</td></tr>
+        <tr><td class="id">A04</td><td>Insecure Design</td><td>Threat-model in repo; scenario schema is strongest validation gate; SAFE-flag for arbitrary script modules (disabled by default).</td></tr>
+        <tr><td class="id">A05</td><td>Security Misconfiguration</td><td>Build-time defaults baked in spec; no debug endpoints; hardened YAML loader (SafeLoader); strict CSP inside generated HTML.</td></tr>
+        <tr><td class="id">A06</td><td>Vulnerable Components</td><td><code>pip-audit</code> + Dependabot CI gate; pinned hashes (<code>requirements-lock.txt</code>); PyInstaller rebuild on base-image update.</td></tr>
+        <tr><td class="id">A07</td><td>Identification &amp; Auth Failures</td><td>N/A offline but: signed binary + optional passphrase-scoped report bundles; run IDs have versioned UUIDs.</td></tr>
+        <tr><td class="id">A08</td><td>Software Integrity Failures</td><td>sha256 manifests per artifact; update feed over TLS with pinned keys; reproducible builds tracked by hash.</td></tr>
+        <tr><td class="id">A09</td><td>Logging &amp; Monitoring Failures</td><td>Non-repudiation audit log (append-only, hashed chain); structured JSON logs; retention policy + redaction of sensitive fields.</td></tr>
+        <tr><td class="id">A10</td><td>SSRF</td><td>No server-side fetch runtime; any telemetry/update URL must be allow-listed &amp; TLS-validated.</td></tr>
+      </tbody></table></div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card bord-blue">
+      <h3><span class="dot c-blue"></span>NIST CSF 2.0 — Core Functions Map</h3>
+      <div class="tbl-wrap" style="margin-top:10px"><table>
+        <thead><tr><th>Function</th><th>How it lives here</th></tr></thead>
+        <tbody>
+          <tr><td class="id">Govern</td><td>Security policy, roles, SBOM policy, traceability of study configs to reviews.</td></tr>
+          <tr><td class="id">Identify</td><td>Asset inventory (dependency SBOM), data-flow diagram, risk register per scenario.</td></tr>
+          <tr><td class="id">Protect</td><td>Least privilege, hardened build, signed artifacts, encrypted-at-rest option, input validation.</td></tr>
+          <tr><td class="id">Detect</td><td>Structured logs, integrity checks, tamper detection via manifest chain.</td></tr>
+          <tr><td class="id">Respond</td><td>Incident runbook: quarantine out/, rotate keys, re-issue signed build.</td></tr>
+          <tr><td class="id">Recover</td><td>Reproducible builds + seed registry → restore studies fast after a compromise.</td></tr>
+        </tbody></table></div>
+    </div>
+
+    <div class="card bord-teal">
+      <h3><span class="dot c-teal"></span>ISO/IEC 27001:2022 → Annex A Controls</h3>
+      <div class="tbl-wrap" style="margin-top:10px"><table>
+        <thead><tr><th>Control</th><th>Application</th></tr></thead>
+        <tbody>
+          <tr><td class="id">A.5.8</td><td>Secure coding: ruff/bandit gates, peer-reviewed PRs.</td></tr>
+          <tr><td class="id">A.5.28-36</td><td>Vuln mgmt, dependency audits, threat vetting.</td></tr>
+          <tr><td class="id">A.7.10</td><td>Input validation at scenario/schema boundary.</td></tr>
+          <tr><td class="id">A.8.9</td><td>Config mgmt: versioned scenario profiles + hashes.</td></tr>
+          <tr><td class="id">A.8.10-12</td><td>Logging chain, backup/retention, backups of out/.</td></tr>
+          <tr><td class="id">A.8.16</td><td>Change mgmt: semantic versioning of reports/UI.</td></tr>
+          <tr><td class="id">A.8.24-25</td><td>Cryptography use policy + secure dev lifecycle (SDLC).</td></tr>
+          <tr><td class="id">A.8.26-27</td><td>Security requirements in procurement (open-source libs).</td></tr>
+          <tr><td class="id">A.5.23</td><td>Cloud guardrails if reports are uploaded (opt-in SFTP/object store).</td></tr>
+        </tbody></table></div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card bord-violet"><h3><span class="dot c-violet"></span>Defence-in-Depth Stack</h3>
+      <p class="mono" style="font-size:12.5px">INPUT ▶ VALIDATE ▶ SANITISE ▶ ISOLATE ▶ ENCRYPT ▶ LOG ▶ RELEASE</p>
+      <ul><li>Pydantic schemas reject hostile YAML</li><li>HTML templates: auto-escape + CSP 'nonce'</li><li>CSV: strip formula-prefix injection</li><li>Runtime dir: local app-data sandbox</li><li>Report passphrases: scrypt→AES-256-GCM</li></ul></div>
+    <div class="card bord-green"><h3><span class="dot c-green"></span>Secure SDLC Gates</h3>
+      <ul><li><b>Lint/type:</b> ruff + mypy strict</li><li><b>SAST:</b> bandit, semgrep in CI</li><li><b>SCA:</b> pip-audit + Dependabot</li><li><b>Secrets:</b> detect-gitleaks; never in repo</li><li><b>Test:</b> pytest incl. adversarial scenarios</li><li><b>Release:</b> signed, hashed, SBOM attached</li></ul></div>
+    <div class="card bord-amber"><h3><span class="dot c-amber"></span>Data Governance &amp; Compliance</h3>
+      <ul><li>Reports carry consent/classification banner</li><li>Retention policy default 90 days, purge option</li><li>PII-free simulation agents (IDs only)</li><li>Export manifests support GDPR-art.30 records</li><li>Audit chain: append-only, hash-linked</li><li>Local-first; nothing leaves the machine unless opt-in</li></ul></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 9 STACK ═══════════════ -->
+<section id="stack">
+  <div class="sec-head"><div class="sec-num">09</div><h2>Technology Stack</h2></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Concern</th><th>Choice</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="id">Language</td><td>Python 3.11</td><td>fast DES via C-extension-friendly SIM; huge data stack</td></tr>
+      <tr><td class="id">Simulation</td><td>heapq DES + numpy arrays</td><td>deterministic, seeded, vectorisable bucketing</td></tr>
+      <tr><td class="id">RNG</td><td>numpy SeedSequence</td><td>reproducible &amp; portable across runs</td></tr>
+      <tr><td class="id">Statistics</td><td>scipy.stats</td><td>Mann-Whitney U, Welch t, effect sizes, bootstrap</td></tr>
+      <tr><td class="id">CLI / TUI</td><td>click + rich</td><td>professional UX, single-file friendly</td></tr>
+      <tr><td class="id">Storage</td><td>sqlite3 (WAL) + parquet (pandas)</td><td>relational integrity + columnar analysis</td></tr>
+      <tr><td class="id">Validation</td><td>pydantic v2</td><td>schema boundary security (A07/A03 gates)</td></tr>
+      <tr><td class="id">Reports</td><td>openpyxl · csv · Jinja2 + Chart.js inline</td><td>xlsx/csv/html exports of the same canonical rows</td></tr>
+      <tr><td class="id">Packaging</td><td>PyInstaller --onefile</td><td>zero-dependency portable .exe</td></tr>
+      <tr><td class="id">Security</td><td>bandit · semgrep · pip-audit · cryptography</td><td>SAST, SCA, AES-256-GCM, TLS pinning</td></tr>
+      <tr><td class="id">Testing</td><td>pytest + hypothesis</td><td>property-based adversarial scenario fuzzing</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ═══════════════ 10 STRUCTURE ═══════════════ -->
+<section id="structure">
+  <div class="sec-head"><div class="sec-num">10</div><h2>Proposed Code Layout</h2></div>
+  <div class="card">
+<pre class="mono" style="background:#0d1526;border:1px solid var(--line);border-radius:10px;padding:16px;font-size:12.5px;color:#b3e5fc;overflow-x:auto">AgentJitterStudy/
+├─ src/
+│  ├─ main.py                  # entry → CLI/TUI router
+│  ├─ engine/
+│  │  ├─ agent.py              # lifecycle state machine + power profile
+│  │  ├─ jitter.py             # uniform|gaussian|poisson|triangular|exp-trunc
+│  │  ├─ sleep.py              # fixed|random|adaptive schedulers
+│  │  ├─ simulator.py          # heapq discrete-event core (server model)
+│  │  └─ rng.py                # SeedSequence registry + replay
+│  ├─ app/
+│  │  ├─ orchestrator.py       # experiment matrix + replication
+│  │  ├─ metrics.py            # herd-coef, uniformity, duty-cycle, p99.9
+│  │  ├─ stats.py              # Mann-Whitney U, t-test, Hedges' g, bootstrap
+│  │  └─ config.py             # pydantic scenario + profile loader
+│  ├─ presentation/
+│  │  ├─ cli.py                # click commands & flags
+│  │  └─ tui.py                # rich live dashboard
+│  ├─ reporting/
+│  │  ├─ xlsx_writer.py · csv_writer.py · html_writer.py
+│  │  ├─ bundle.py             # zip + manifest + sha256
+│  │  └─ templates/report.html.j2
+│  ├─ security/
+│  │  ├─ vault.py              # AES-256-GCM passphrase keys
+│  │  ├─ sanitize.py           # HTML/CSV injection guards
+│  │  └─ audit.py              # append-only hash-linked log
+│  └─ assets/  app.ico · fonts
+├─ scenarios/                  # example *.yml profiles
+├─ tests/                      # pytest + hypothesis adversarial cases
+├─ specs/build.spec            # PyInstaller recipe
+├─ requirements.txt / req-lock.txt
+└─ docs/  threat-model.md · security-review.md · roadmap.md
+</pre>
+  </div>
+</section>
+
+<!-- ═══════════════ 11 ROADMAP ═══════════════ -->
+<section id="roadmap">
+  <div class="sec-head"><div class="sec-num">11</div><h2>Delivery Roadmap</h2></div>
+  <div class="pipe">
+    <div class="step"><div class="n">Phase 1 · Core</div><p>DES + jitter/sleep engines + metrics + unit tests</p></div>
+    <div class="step"><div class="n">Phase 2 · App</div><p>Orchestrator, stats, scenario validation, seed registry</p></div>
+    <div class="step"><div class="n">Phase 3 · Reports</div><p>xlsx/csv/html/json writers + bundle + audit</p></div>
+    <div class="step"><div class="n">Phase 4 · UX</div><p>TUI dashboard, theming, report vault passphrase</p></div>
+    <div class="step"><div class="n">Phase 5 · Hardening</div><p>bandit/semgrep/pip-audit gate, threat-model review</p></div>
+    <div class="step"><div class="n">Phase 6 · Ship</div><p>PyInstaller onefile, sign, test matrix on clean VMs, release</p></div>
+  </div>
+
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card"><h3><span class="dot c-green"></span>Acceptance Criteria</h3><ul>
+      <li>Deterministic: identical seed → identical reports</li>
+      <li>10k agents × 1h sim &lt; 20 s wall-clock</li>
+      <li>Jittered run lowers herd-coef ≥ 50% in demo</li>
+      <li>Export parity: xlsx/csv/html totals match</li>
+    </ul></div>
+    <div class="card"><h3><span class="dot c-amber"></span>Risk Register</h3><ul>
+      <li>AV false-positives → signing + clean-room builds</li>
+      <li>PyInstaller hidden-import drift → pinned hiddenimports</li>
+      <li>Numerical determinism across libs → pinned lock + LAPACK matrix lock</li>
+      <li>Excel opening untrusted CSVs → injection guard tested</li>
+    </ul></div>
+    <div class="card"><h3><span class="dot c-cyan"></span>Success Metrics</h3><ul>
+      <li>Runs fully offline &amp; portable on Win10/11 x64</li>
+      <li>All reports carry hashes + audit chain</li>
+      <li>Pass static-analysis gate with 0 critical findings</li>
+      <li>Study reproduces 5 published jitter results</li>
+    </ul></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Agent Check-in Jitter &amp; Sleep Implementation Study · Solution Architecture Blueprint ·<br>
+  OWASP Top 10 2021 · NIST CSF 2.0 · ISO/IEC 27001:2022 · Portable single-file .exe · Export: .xlsx / .csv / .html / .json / .zip
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Users & roles · MobileForensicsLabPortable{% endblock %}
+{% block content %}
+<h1>👥 Users & Roles</h1>
+<div class="sub">Account management — passwords stored as salted PBKDF2 hashes, creation audit-logged (ISO A.5.15).</div>
+
+<div class="card" style="max-width:760px">
+  <h3 style="margin-top:0">Create user</h3>
+  <form method="post" class="stack">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="row3">
+      <div class="field"><label>Username</label><input name="username" required></div>
+      <div class="field"><label>Display name</label><input name="display_name"></div>
+      <div class="field"><label>Role</label>
+        <select name="role">
+          <option value="examiner">examiner</option>
+          <option value="auditor">auditor</option>
+          <option value="admin">admin</option>
+        </select></div>
+    </div>
+    <div class="field"><label>Initial password (≥8 chars)</label><input type="password" name="password" minlength="8" required></div>
+    <div><button class="btn success" type="submit">➕ Create</button></div>
+  </form>
+</div>
+
+<div class="card mt">
+  <h3 style="margin-top:0">Directory</h3>
+  <div class="tblwrap" style="border:0"><table>
+    <tr><th>#</th><th>Username</th><th>Display</th><th>Role</th><th>State</th><th>Last login</th><th></th></tr>
+    {% for u in users %}
+    <tr>
+      <td class="muted">{{ u['id'] }}</td>
+      <td><code>{{ u['username'] }}</code></td>
+      <td>{{ u['display_name'] }}</td>
+      <td><span class="tag tag-{{ 'cyan' if u['role']=='admin' else ('violet' if u['role']=='auditor' else 'green') }}">{{ u['role'] }}</span></td>
+      <td><span class="tag tag-{{ 'green' if u['active'] else 'red' }}">{{ 'active' if u['active'] else 'disabled' }}</span></td>
+      <td class="small muted">{{ u['last_login'] or 'never' }}</td>
+      <td>
+        {% if current_user['id'] != u['id'] %}
+        <form method="post" action="{{ url_for('main.toggle_user', uid=u['id']) }}" style="display:inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+          <button class="btn warn small">{{ 'Disable' if u['active'] else 'Enable' }}</button>
+        </form>
+        {% else %}<span class="small muted">you</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

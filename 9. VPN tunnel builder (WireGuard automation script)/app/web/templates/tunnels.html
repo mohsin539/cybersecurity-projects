@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Tunnels — VPN Tunnel Builder{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Tunnels</h1>
+  <p>Provision, start, stop, validate, snapshot and remove WireGuard interfaces.</p>
+</div>
+
+<div class="two-col wide">
+  <section class="panel">
+    <h2>Existing tunnels</h2>
+    {% if tunnels %}
+    <table class="tbl">
+      <thead><tr><th>Interface</th><th>Role</th><th>Port</th><th>Addresses</th><th>Peers</th><th>State</th><th></th></tr></thead>
+      <tbody>
+        {% for t in tunnels %}
+        <tr>
+          <td><a href="{{ url_for('tunnel_detail', interface=t.interface) }}"><strong>{{ t.interface }}</strong></a></td>
+          <td>{{ t.role }}</td>
+          <td>{{ t.listen_port }}</td>
+          <td class="mono small">{{ t.addresses|join(', ') }}</td>
+          <td>{{ t.peer_count }}</td>
+          <td>
+            {% if t.status.running %}<span class="badge ok">UP</span>
+            {% else %}<span class="badge off">DOWN</span>{% endif %}
+            {% if t.status.error %}<div class="hint">{{ t.status.error[:50] }}</div>{% endif %}
+          </td>
+          <td><a class="btn sm" href="{{ url_for('tunnel_detail', interface=t.interface) }}">Manage</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No tunnels yet — build one with the form.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Build a tunnel</h2>
+    <form method="post" action="{{ url_for('tunnels_create') }}" class="form">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <label>Name <input name="name" placeholder="Office gateway" required value="{{ app_settings.default_subnet and 'net' }}"></label>
+      <label>Interface <input name="interface" placeholder="wg0" value="wg0" required></label>
+      <label>Role
+        <select name="role">
+          <option value="server" selected>server (hub / public endpoint)</option>
+          <option value="client">client (initiating peer)</option>
+        </select>
+      </label>
+      <label>Listen port <input name="listen_port" type="number" value="{{ app_settings.default_listen_port }}" min="1" max="65535"></label>
+      <label>Interface addresses (comma-separated; blank = auto from subnet)
+        <input name="addresses" placeholder="10.9.0.1/24"></label>
+      <label>MTU (optional) <input name="mtu" type="number" value="{{ app_settings.default_mtu }}" min="576" max="65535"></label>
+      <label>DNS (client role, comma-separated) <input name="dns" placeholder="1.1.1.1, 9.9.9.9"></label>
+      <label class="check"><input type="checkbox" name="start" value="1"> Start the tunnel immediately after build</label>
+      <button class="btn primary" type="submit">Build tunnel</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

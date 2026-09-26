@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sap-static-analysis-pipeline"
+version = "1.0.0"
+description = "Portable Static Analysis Pipeline - strings, PE header parsing, hashed threat-intel lookups (see architecture.md)"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+# Core pipeline runs on the Python stdlib; extras unlock PE depth / GUI / crypto.
+dependencies = []
+
+[project.optional-dependencies]
+pe = ["pefile>=2023"]
+engine = ["lief>=0.14"]
+rules = ["yara-python>=4.3"]
+gui = ["PySide6>=6.6"]
+crypto = ["cryptography>=42"]
+dev = ["pytest>=8", "pyinstaller>=6.0", "pip-audit"]
+
+[project.scripts]
+sap = "sap.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C2 Study Lab - Compliance Report</title>
+<style>
+:root {
+  --bg:#1E1E2E; --panel:#28283f; --accent:#7C4DFF; --green:#27AE60;
+  --amber:#F39C12; --red:#E74C3C; --blue:#2E86DE; --text:#ECEFF4; --muted:#9aa0b5;
+}
+* { box-sizing:border-box; }
+body { margin:0; font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); }
+header { padding:28px 40px; background:linear-gradient(90deg,#14141f,#241f45 55%,#1d3350);
+  border-bottom:3px solid var(--accent); }
+header h1 { margin:0; font-size:26px; letter-spacing:.5px; }
+header p { margin:4px 0 0; color:var(--muted); font-size:13px; }
+main { padding:24px 40px 60px; display:grid; gap:22px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+.card { background:var(--panel); border:1px solid #3a3a55; border-radius:12px; padding:16px 18px; }
+.card b { display:block; font-size:26px; }
+.card span { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:1px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); border-radius:12px; overflow:hidden; }
+caption { text-align:left; font-weight:700; padding:12px 14px; color:var(--accent); font-size:15px; }
+th { background:#34345a; color:#fff; text-align:left; padding:9px 12px; font-size:12px; }
+td { padding:8px 12px; border-top:1px solid #343446; font-size:12px; vertical-align:top; word-break:break-word; }
+tr:hover td { background:#30304a; }
+.badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+.b-info  { background:#243b52; color:#6fc3ff; }
+.b-warn  { background:#4a3a20; color:#ffc46b; }
+.b-danger{ background:#4a2125; color:#ff8a93; }
+.b-ok    { background:#1e4030; color:#67e08f; }
+.b-failed{ background:#4a2125; color:#ff8a93; }
+.b-pending { background:#3a3549; color:#c9b8ff; }
+footer { padding:18px 40px; color:var(--muted); font-size:11px; border-top:1px solid #343446; }
+</style>
+</head>
+<body>
+<header>
+  <h1>&#x1F512; C2 Study Lab &middot; Compliance Report</h1>
+  <p>Minimal C2 beacon + listener over HTTP (educational skeleton) &nbsp;|&nbsp; Generated 2026-09-20 14:13:44</p>
+</header>
+<main>
+  <div class="cards">
+    <div class="card"><b>1</b><span>Beacons</span></div>
+    <div class="card"><b>2</b><span>Tasks</span></div>
+    <div class="card"><b>9</b><span>Audit events</span></div>
+    <div class="card" style="border-color:var(--green)"><b>&#10003;</b><span>ISO 27001 / NIST / OWASP tracked</span></div>
+  </div>
+  
+<section>
+  <table>
+    <caption>&#128225; Beacon Inventory</caption>
+    <thead><tr><th>Beacon ID</th><th>Hostname</th><th>OS</th><th>IP</th><th>First Seen</th><th>Last Seen</th><th>Status</th></tr></thead>
+    <tbody><tr><td>demo-beacon-1</td><td>mohsinIT-PC</td><td>None</td><td>127.0.0.1</td><td>2026-09-20T08:13:43.467012+00:00</td><td>2026-09-20T08:13:43.927910+00:00</td><td><span class="badge b-info">Online</span></td></tr></tbody>
+  </table>
+</section>
+
+
+<section>
+  <table>
+    <caption>&#128203; Task Register</caption>
+    <thead><tr><th>Task ID</th><th>Beacon</th><th>Name</th><th>Status</th><th>Queued</th><th>Output</th></tr></thead>
+    <tbody><tr><td>task-ce9aeb364d9d</td><td>None</td><td>get-sysinfo</td><td><span class="badge b-ok">ok</span></td><td>2026-09-20T08:13:43.891786+00:00</td><td>{"os": "Windows-11-10.0.26200-SP0", "hostname": "mohsinIT-PC", "machine": "AMD64", "python": "3.12.7"}</td></tr><tr><td>task-ab81f6e7e10f</td><td>None</td><td>heartbeat-test</td><td><span class="badge b-ok">ok</span></td><td>2026-09-20T08:13:43.923863+00:00</td><td>{"ok": true, "ts": "2026-09-20T08:13:43.930384+00:00"}</td></tr></tbody>
+  </table>
+</section>
+
+
+<section>
+  <table>
+    <caption>&#128276; Audit Events (last 300)</caption>
+    <thead><tr><th>Timestamp</th><th>Event</th><th>Actor</th><th>Subject</th><th>Severity</th><th>Detail</th></tr></thead>
+    <tbody><tr><td>2026-09-20T08:13:43.319116+00:00</td><td>listener.started</td><td>console</td><td>127.0.0.1:17081</td><td><span class="badge b-info">info</span></td><td>{}</td></tr><tr><td>2026-09-20T08:13:43.467012+00:00</td><td>beacon.checkin</td><td>demo-beacon-1</td><td>/api/v1/checkin</td><td><span class="badge b-info">info</span></td><td>{"ip": "127.0.0.1", "os": "Windows-11-10.0.26200-SP0"}</td></tr><tr><td>2026-09-20T08:13:43.890836+00:00</td><td>beacon.checkin</td><td>demo-beacon-1</td><td>/api/v1/checkin</td><td><span class="badge b-info">info</span></td><td>{"ip": "127.0.0.1", "os": "Windows-11-10.0.26200-SP0"}</td></tr><tr><td>2026-09-20T08:13:43.891786+00:00</td><td>task.enqueue</td><td>console</td><td>demo-beacon-1</td><td><span class="badge b-info">info</span></td><td>{"task": "get-sysinfo", "task_id": "task-ce9aeb364d9d"}</td></tr><tr><td>2026-09-20T08:13:43.906250+00:00</td><td>beacon.checkin</td><td>demo-beacon-1</td><td>/api/v1/checkin</td><td><span class="badge b-info">info</span></td><td>{"ip": "127.0.0.1", "os": "Windows-11-10.0.26200-SP0"}</td></tr><tr><td>2026-09-20T08:13:43.921863+00:00</td><td>task.result</td><td>demo-beacon-1</td><td>/task/task-ce9aeb364d9d</td><td><span class="badge b-info">info</span></td><td>{"ok": true}</td></tr><tr><td>2026-09-20T08:13:43.923863+00:00</td><td>task.enqueue</td><td>console</td><td>demo-beacon-1</td><td><span class="badge b-info">info</span></td><td>{"task": "heartbeat-test", "task_id": "task-ab81f6e7e10f"}</td></tr><tr><td>2026-09-20T08:13:43.927910+00:00</td><td>beacon.checkin</td><td>demo-beacon-1</td><td>/api/v1/checkin</td><td><span class="badge b-info">info</span></td><td>{"ip": "127.0.0.1", "os": "Windows-11-10.0.26200-SP0"}</td></tr><tr><td>2026-09-20T08:13:43.952426+00:00</td><td>task.result</td><td>demo-beacon-1</td><td>/task/task-ab81f6e7e10f</td><td><span class="badge b-info">info</span></td><td>{"ok": true}</td></tr></tbody>
+  </table>
+</section>
+
+</main>
+<footer>Generated by C2 Study Lab 1.0.0 - authorized, educational use only.</footer>
+</body>
+</html>

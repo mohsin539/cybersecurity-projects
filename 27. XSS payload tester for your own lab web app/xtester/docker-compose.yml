@@ -1,0 +1,109 @@
+# Production-shaped deployment for the XSS lab tester.
+#
+# Topology / network segmentation (ISO 27001 A.13, NIST SC-7):
+#   - `backend_internal`: web + worker + redis + postgres  (control plane)
+#   - `lab_net`: deliberately vulnerable lab app, tied ONLY to the worker;
+#     NOT published to any public interface (host port bind on 127.0.0.1,
+#     inside-out). The lab can never reach the DB, redis, or the API.
+#   - scanner egress: worker -> lab only.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-xtester}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-xtester}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [backend_internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-xtester}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redisdata:/data
+    networks: [backend_internal]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--no-access-log"]
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-xtester}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-xtester}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CELERY_TASK_ALWAYS_EAGER: "0"
+      ALLOWED_TARGET_HOSTS: ${ALLOWED_TARGET_HOSTS:-localhost,127.0.0.1,lab,*.lab.local}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://web:8000}
+    ports:
+      - "127.0.0.1:8000:8000"   # loopback-only; put nginx/TLS in front in prod
+    volumes:
+      - webdata:/data
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+    networks: [backend_internal]
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs: [/tmp]
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=INFO", "--concurrency=2"]
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-xtester}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-xtester}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CELERY_TASK_ALWAYS_EAGER: "0"
+      ALLOWED_TARGET_HOSTS: ${ALLOWED_TARGET_HOSTS:-localhost,127.0.0.1,lab,*.lab.local}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://web:8000}
+    volumes:
+      - webdata:/data
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+    networks: [backend_internal, lab_net]
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs: [/tmp]
+    restart: unless-stopped
+
+  lab:
+    build:
+      context: lab
+      dockerfile: Dockerfile
+    container_name: vuln-lab
+    environment:
+      VULN_LAB_ALLOW: "1"
+    ports:
+      - "127.0.0.1:5001:5001"      # localhost only; NOT reachable outside
+    networks: [lab_net]
+    command: ["gunicorn", "-b", "0.0.0.0:5001", "-w", "1", "app:app"]
+    restart: unless-stopped
+
+networks:
+  backend_internal:
+    internal: true
+  lab_net:
+    internal: true
+
+volumes:
+  pgdata:
+  redisdata:
+  webdata:

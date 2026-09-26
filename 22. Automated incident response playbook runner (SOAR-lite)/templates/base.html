@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}SOAR-Lite{% endblock %}</title>
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+{% if user %}
+<header class="topbar">
+  <div class="brand"><a href="/">SOAR&#8209;Lite</a> <span class="tag">IR Playbook Runner</span></div>
+  <nav>
+    <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Dashboard</a>
+    <a href="/alerts" class="{% if request.url.path.startswith('/alerts') %}active{% endif %}">Alerts</a>
+    <a href="/cases" class="{% if request.url.path.startswith('/cases') %}active{% endif %}">Cases</a>
+    <a href="/playbooks" class="{% if request.url.path.startswith('/playbooks') %}active{% endif %}">Playbooks</a>
+    <a href="/approvals" class="{% if request.url.path.startswith('/approvals') %}active{% endif %}">Approvals</a>
+    <a href="/reports" class="{% if request.url.path.startswith('/reports') %}active{% endif %}">Reports</a>
+    {% if user.role == 'admin' %}
+    <a href="/audit" class="{% if request.url.path.startswith('/audit') %}active{% endif %}">Audit</a>
+    <a href="/connectors" class="{% if request.url.path.startswith('/connectors') %}active{% endif %}">Connectors</a>
+    <a href="/users" class="{% if request.url.path.startswith('/users') %}active{% endif %}">Users</a>
+    {% endif %}
+  </nav>
+  <div class="account">
+    <span class="role">{{ user.role }}</span>
+    <span>{{ user.username }}</span>
+    {% if user.must_change_password %}<a href="/" class="warn-link">change pw required</a>{% endif %}
+    <button class="btn btn-sm" id="logout-btn" onclick="doLogout()">Sign out</button>
+  </div>
+</header>
+<div class="csrf" data-token="{{ csrf_token }}"></div>
+{% endif %}
+<main class="container">
+{% block content %}{% endblock %}
+</main>
+<script src="/static/js/app.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

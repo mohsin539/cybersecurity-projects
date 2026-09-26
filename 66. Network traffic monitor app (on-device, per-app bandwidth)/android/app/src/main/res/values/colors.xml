@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#FF0B1120</color>
+    <color name="card">#148FA3B0</color>
+    <color name="stroke">#14FFFFFF</color>
+    <color name="text_primary">#FFF1F5F9</color>
+    <color name="text_secondary">#FF94A3B8</color>
+    <color name="rx">#FF22D3EE</color>
+    <color name="tx">#FFA78BFA</color>
+    <color name="live">#FF34D399</color>
+    <color name="sim">#FFFBBF24</color>
+    <color name="ic_bg">#FF0B1120</color>
+</resources>

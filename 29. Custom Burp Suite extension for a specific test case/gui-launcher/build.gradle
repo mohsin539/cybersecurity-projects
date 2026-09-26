@@ -1,0 +1,86 @@
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+javafx {
+    version = '21.0.4'
+    modules = ['javafx.controls']
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+application {
+    mainClass = 'com.acs.launcher.BurpTesterLauncher'
+}
+
+dependencies {
+    implementation project(':burp-extension')
+    implementation libs.gson
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.register('uberJar', Jar) {
+    group = 'package'
+    description = 'Self-contained portable jar (includes JavaFX platform natives and the extension engine)'
+    archiveClassifier = 'all'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn configurations.runtimeClasspath
+    from sourceSets.main.output
+    from { configurations.runtimeClasspath.findAll { it.name.endsWith('.jar') }.collect { zipTree(it) } }
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
+    manifest {
+        attributes(
+                'Main-Class': 'com.acs.launcher.BurpTesterLauncher',
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': 'Application Security Engineering'
+        )
+    }
+}
+
+def jpackageExe = new File(System.getProperty('java.home'), 'bin/jpackage').toString()
+
+tasks.register('packagePortable') {
+    group = 'package'
+    description = 'Create portable app-image (BurpTester.exe + bundled runtime) via jpackage'
+    dependsOn tasks.named('uberJar')
+    doLast {
+        def inputDir = layout.buildDirectory.dir('packaging-input').get().asFile
+        def destDir = layout.buildDirectory.dir('portable').get().asFile
+        def imageDir = new File(destDir, 'BurpTester')
+        if (imageDir.exists()) {
+            imageDir.deleteDir()
+        }
+        inputDir.mkdirs()
+        destDir.mkdirs()
+        copy {
+            from tasks.named('uberJar').flatMap { it.archiveFile }
+            into inputDir
+        }
+        exec {
+            commandLine jpackageExe,
+                    '--type', 'app-image',
+                    '--name', 'BurpTester',
+                    '--app-version', project.version,
+                    '--vendor', 'Application Security Engineering',
+                    '--input', inputDir.absolutePath,
+                    '--main-jar', tasks.named('uberJar').flatMap { it.archiveFile }.get().asFile.name,
+                    '--main-class', 'com.acs.launcher.BurpTesterLauncher',
+                    '--dest', destDir.absolutePath
+        }
+        if (imageDir.exists()) {
+            exec {
+                commandLine 'powershell', '-NoProfile', '-Command',
+                        "Compress-Archive -Path '" + imageDir.absolutePath + "' -DestinationPath '" + layout.buildDirectory.file('BurpTester-portable.zip').get().asFile.absolutePath + "' -Force"
+            }
+        }
+    }
+}

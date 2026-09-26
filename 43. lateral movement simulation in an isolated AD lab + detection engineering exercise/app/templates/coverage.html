@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Detection Coverage <small>precision / recall / F1 per technique</small></h1>
+
+<div class="cards">
+  <div class="card good"><b>{{ metrics.totals.precision }}</b><span>Overall precision</span></div>
+  <div class="card good"><b>{{ metrics.totals.recall }}</b><span>Overall recall</span></div>
+  <div class="card good"><b>{{ metrics.totals.f1 }}</b><span>Overall F1</span></div>
+  <div class="card"><b>{{ metrics.totals.detections }}</b><span>Total detections</span></div>
+</div>
+
+<table>
+  <tr>
+    <th>Technique</th><th>Expected rules</th><th>Covered</th><th>TP</th><th>FP</th><th>FN</th>
+    <th>Precision</th><th>Recall</th><th>F1</th><th>Coverage</th>
+  </tr>
+  {% for m in metrics.per_technique %}
+  <tr>
+    <td><code>{{ m.technique_id }}</code></td>
+    <td>{{ m.expected }}</td>
+    <td>{{ m.covered }}</td>
+    <td>{{ m.tp }}</td>
+    <td>{{ m.fp }}</td>
+    <td>{{ m.fn }}</td>
+    <td>{{ m.precision }}</td>
+    <td>{{ m.recall }}</td>
+    <td>{{ m.f1 }}</td>
+    <td><div class="bar"><i style="width:{{ (m.f1*100)|int }}%"></i></div></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="10" class="empty">No runs yet.</td></tr>
+  {% endfor %}
+</table>
+
+<section class="panel">
+  <h2>Rule store</h2>
+  <div class="table-scroll">
+  <table class="compact">
+    <tr><th>Rule</th><th>Name</th><th>Technique</th><th>Level</th><th>p_detect</th><th>p_fp</th></tr>
+    {% for r in rules %}
+    <tr>
+      <td><code>{{ r.id }}</code></td>
+      <td>{{ r.name }}</td>
+      <td>{{ r.technique or 'behavioral' }}</td>
+      <td><span class="badge {{ r.level }}">{{ r.level }}</span></td>
+      <td>{{ r.p_detect }}</td>
+      <td>{{ r.p_fp }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</section>
+{% endblock %}
